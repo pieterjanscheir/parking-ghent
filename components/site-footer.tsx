@@ -10,7 +10,7 @@ export function SiteFooter() {
 						rel='noopener noreferrer'
 						className='text-primary underline-offset-4 hover:underline'
 					>
-						Pieter-Jan Scheir — scheir.eu
+						Pieter-Jan Scheir | scheir.eu
 					</a>
 				</p>
 				<p className='text-xs text-muted-foreground'>Data: stad.gent open data portal</p>
