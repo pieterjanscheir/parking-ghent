@@ -2,6 +2,10 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
+const subscribeNoop = () => () => {};
+const getMountedClient = () => true;
+const getMountedServer = () => false;
+
 /**
  * SSR-safe localStorage subscription helper. Returns the parsed value (or null)
  * and a setter that persists + notifies any other hook instance reading the
@@ -62,7 +66,14 @@ export function useLocalStorageJson<T>(
     () => null,
   );
 
-  const mounted = typeof window !== "undefined";
+  // useSyncExternalStore returns the server snapshot on the first client
+  // render too, so this stays false through hydration and flips to true on
+  // the post-hydration render — matching SSR without a setState-in-effect.
+  const mounted = useSyncExternalStore(
+    subscribeNoop,
+    getMountedClient,
+    getMountedServer,
+  );
   // Parse only when the underlying localStorage string changes — otherwise
   // every render returns a fresh object reference and cascades into infinite
   // re-renders in any downstream useMemo/useCallback that depends on it.
