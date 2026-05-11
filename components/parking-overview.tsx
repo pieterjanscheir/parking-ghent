@@ -9,6 +9,7 @@ import {
   useQueryState,
 } from "nuqs";
 import { LayoutGrid, List, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -127,6 +128,11 @@ export function ParkingOverview({ parkings }: Props) {
     setBucketFilter(null);
   };
 
+  const clearSearchAndFilters = () => {
+    setQ(null);
+    clearFilters();
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <header className="mb-8">
@@ -222,11 +228,19 @@ export function ParkingOverview({ parkings }: Props) {
       </section>
 
       {filteredRest.length === 0 ? (
-        <div className="surface-card flex flex-col items-center gap-2 rounded-xl border border-border/70 px-6 py-16 text-center">
+        <div className="surface-card flex flex-col items-center gap-3 rounded-xl border border-border/70 px-6 py-16 text-center">
           <p className="font-heading text-lg font-semibold">No matches</p>
           <p className="text-sm text-muted-foreground">
             Try clearing your search or filters.
           </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={clearSearchAndFilters}
+          >
+            Clear search and filters
+          </Button>
         </div>
       ) : view === "list" ? (
         <ParkingListView

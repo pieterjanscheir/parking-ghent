@@ -72,6 +72,7 @@ export type Parking = {
   address: string;
   lat: number | null;
   lng: number | null;
+  phone: string | null;
   lastUpdate: string;
 };
 
@@ -79,8 +80,9 @@ function parseLocation(raw: string): {
   address: string;
   lat: number | null;
   lng: number | null;
+  phone: string | null;
 } {
-  if (!raw) return { address: "", lat: null, lng: null };
+  if (!raw) return { address: "", lat: null, lng: null, phone: null };
   try {
     const parsed = LocationAndDimensionSchema.parse(JSON.parse(raw));
     let address = (parsed.roadName ?? "").replace(/\s+/g, " ").trim();
@@ -90,9 +92,12 @@ function parseLocation(raw: string): {
     }
     const lat = parsed.coordinatesForDisplay?.latitude ?? null;
     const lng = parsed.coordinatesForDisplay?.longitude ?? null;
-    return { address, lat, lng };
+    const rawPhone = (parsed.contactDetailsTelephoneNumber ?? "").trim();
+    const phone =
+      rawPhone && rawPhone !== "?" && !/^\?+$/.test(rawPhone) ? rawPhone : null;
+    return { address, lat, lng, phone };
   } catch {
-    return { address: "", lat: null, lng: null };
+    return { address: "", lat: null, lng: null, phone: null };
   }
 }
 
@@ -151,7 +156,7 @@ export function normalizeParking(record: {
   fields: z.infer<typeof RawFieldsSchema>;
 }): Parking {
   const f = record.fields;
-  const { address, lat, lng } = parseLocation(f.locationanddimension);
+  const { address, lat, lng, phone } = parseLocation(f.locationanddimension);
   const isTemporaryClosed = f.temporaryclosed === 1;
   const isOpen = f.isopennow === 1 && !isTemporaryClosed;
   const totalSpaces = f.totalcapacity ?? 0;
@@ -191,6 +196,7 @@ export function normalizeParking(record: {
     address,
     lat,
     lng,
+    phone,
     lastUpdate: f.lastupdate ?? "",
   };
 }

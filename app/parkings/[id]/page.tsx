@@ -11,6 +11,7 @@ import { fetchParkingById, fetchParkingDetailById } from "@/lib/parkings";
 import { AvailabilityGauge } from "@/components/availability-gauge";
 import { FavoriteButton } from "@/components/favorite-button";
 import { JsonBlock } from "@/components/json-block";
+import { ParkingActions } from "@/components/parking-actions";
 import {
   ParkingStatusBadge,
   MetaBadge,
@@ -97,6 +98,8 @@ export default async function ParkingDetailPage({
             </p>
           </div>
         </div>
+
+        <ParkingActions parking={parking} variant="full" className="mt-8" />
 
         {parking.description ? (
           <p className="mt-8 text-sm leading-relaxed text-muted-foreground">

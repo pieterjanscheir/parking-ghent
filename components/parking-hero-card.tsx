@@ -3,6 +3,7 @@ import { MapPin, ChevronRight } from "lucide-react";
 import type { Parking } from "@/lib/parkings.schema";
 import { AvailabilityGauge } from "./availability-gauge";
 import { FavoriteButton } from "./favorite-button";
+import { ParkingActions } from "./parking-actions";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 
 export function ParkingHeroCard({ parking }: { parking: Parking }) {
@@ -57,9 +58,12 @@ export function ParkingHeroCard({ parking }: { parking: Parking }) {
         {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
       </div>
 
-      <div className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-primary">
-        View details
-        <ChevronRight className="size-4 transition-transform group-hover/card:translate-x-0.5" />
+      <div className="mt-auto flex items-center justify-between gap-3">
+        <ParkingActions parking={parking} variant="compact" />
+        <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
+          View details
+          <ChevronRight className="size-4 transition-transform group-hover/card:translate-x-0.5" />
+        </span>
       </div>
     </Link>
   );
