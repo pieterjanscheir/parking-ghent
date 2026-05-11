@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -8,15 +9,22 @@ import {
   Building2,
 } from "lucide-react";
 import { fetchParkingById, fetchParkingDetailById } from "@/lib/parkings";
+import {
+  computeTrend,
+  fetchParkingHistory,
+  getHistoryDataset,
+} from "@/lib/parking-history";
 import { AvailabilityGauge } from "@/components/availability-gauge";
 import { FavoriteButton } from "@/components/favorite-button";
 import { JsonBlock } from "@/components/json-block";
 import { ParkingActions } from "@/components/parking-actions";
+import { ParkingHistoryChart } from "@/components/parking-history-chart";
 import {
   ParkingStatusBadge,
   MetaBadge,
 } from "@/components/parking-status-badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export async function generateMetadata({
   params,
@@ -158,6 +166,14 @@ export default async function ParkingDetailPage({
         ) : null}
       </div>
 
+      {getHistoryDataset(parking.id) ? (
+        <div className="mt-6 surface-card rounded-xl border border-border/70 p-6 sm:p-8">
+          <Suspense fallback={<HistorySkeleton />}>
+            <HistorySection parkingId={parking.id} totalSpaces={parking.totalSpaces} />
+          </Suspense>
+        </div>
+      ) : null}
+
       {mapSrc ? (
         <div className="mt-6 surface-card overflow-hidden rounded-xl border border-border/70">
           <iframe
@@ -177,6 +193,48 @@ export default async function ParkingDetailPage({
         title="Raw API response"
         subtitle="gent.opendatasoft.com — bezetting-parkeergarages-real-time"
       />
+    </div>
+  );
+}
+
+async function HistorySection({
+  parkingId,
+  totalSpaces,
+}: {
+  parkingId: string;
+  totalSpaces: number;
+}) {
+  const points = await fetchParkingHistory(parkingId);
+  if (!points || points.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No recent history available for this parking.
+      </p>
+    );
+  }
+  const trend = computeTrend(points);
+  return (
+    <ParkingHistoryChart
+      points={points}
+      trend={trend}
+      totalSpaces={totalSpaces || points[points.length - 1].totalSpaces}
+    />
+  );
+}
+
+function HistorySkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-9 w-44" />
+      </div>
+      <Skeleton className="h-56 w-full" />
+      <div className="grid grid-cols-3 gap-3">
+        <Skeleton className="h-14" />
+        <Skeleton className="h-14" />
+        <Skeleton className="h-14" />
+      </div>
     </div>
   );
 }
