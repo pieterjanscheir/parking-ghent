@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ghent Parking
 
-## Getting Started
+Live availability for Ghent's parking garages, built against the city's open data feed.
 
-First, run the development server:
+Originally a technical-interview assignment ([ASSIGNMENT.md](ASSIGNMENT.md)) — the implementation plan is in [PLAN.md](PLAN.md), the visual system in [THEME.md](THEME.md), and an ongoing punch list in [TODO.md](TODO.md).
+
+## Features
+
+- **Onboarding & profile** — first-visit form (name, license plate, car) persisted in `localStorage`. Editable and erasable from `/profile`.
+- **Overview** — every Ghent garage with name, status, free spaces, address, and an at-a-glance availability dial.
+  - Search by name; sort by name / free spaces / % free.
+  - Filter by status, LEZ category, parking type, and availability bucket.
+  - Card grid or dense list view (TanStack Table) — view, query, sort, and filters are URL-stated via nuqs so the page is shareable.
+  - Up to 3 favorites pinned at the top as oversized hero cards.
+  - Auto-refresh (default 60 s, configurable, pauses on hidden tab) with manual refresh and last-updated timestamp.
+- **Detail page** — description, opening hours, operator, LEZ category, type, website link, embedded Google Map, and the raw API record for debugging.
+- **Navigation & contact actions** — open the parking in Google Maps / Waze / Apple Maps, call the phone number (when published in the dataset), and share the page via the Web Share API (falls back to copying the link). Available on the detail page and on every favorite hero card.
+- **Polish** — dark-only oklch theme with violet accent, loading / error / not-found states per segment, accessible labels, responsive layout.
+
+## Stack
+
+- **Next.js 16.2** (App Router) on **React 19**
+- **TypeScript** end-to-end, with Zod schemas at every fetch / storage boundary
+- **Tailwind v4** (CSS-first) + **shadcn/ui** (radix-ui primitives) + `tw-animate-css`
+- **nuqs** for URL-synced search / sort / filters / view
+- **@tanstack/react-table** for the list view
+- **react-hook-form** + `zodResolver` for the profile form
+- **sonner** for toasts
+- **lucide-react** for icons
+- Fonts: **Geist** (headings + mono), **Raleway** (body) via `next/font/google`
+
+> ⚠️ This is Next.js 16, which has breaking changes from older releases (see [AGENTS.md](AGENTS.md)). Consult `node_modules/next/dist/docs/` before reaching for App Router APIs from memory.
+
+## Getting started
+
+Requires Node 20+ and [pnpm](https://pnpm.io).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The first paint will show the onboarding form; complete it once and the overview takes over on subsequent visits.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command       | What it does                          |
+| ------------- | ------------------------------------- |
+| `pnpm dev`    | Start the dev server                  |
+| `pnpm build`  | Production build                      |
+| `pnpm start`  | Serve the production build            |
+| `pnpm lint`   | Run ESLint                            |
 
-## Learn More
+## Project layout
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/                       App Router routes
+  page.tsx                 Overview (server) + onboarding gate
+  parkings/[id]/           Detail page (server) + loading / error / not-found
+  profile/                 Profile edit + delete
+components/                UI building blocks
+  parking-actions.tsx      Maps / Waze / Apple Maps / Call / Share row
+  parking-hero-card.tsx    Favorite card
+  parking-card.tsx         Standard grid card
+  parking-list-view.tsx    TanStack Table view
+  availability-gauge.tsx   SVG ring used in every card / row
+  ui/                      shadcn primitives
+lib/
+  parkings.ts              Server fetchers + filter/sort helpers
+  parkings.schema.ts       Zod schema + Parking type + normaliser
+  profile.tsx              ProfileProvider (localStorage)
+  favorites.tsx            FavoritesProvider (localStorage, max 3)
+  use-auto-refresh.ts      Visibility-aware refresh hook
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Data source
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Real-time occupancy comes from the City of Ghent open data portal:
 
-## Deploy on Vercel
+- [`bezetting-parkeergarages-real-time`](https://gent.opendatasoft.com/api/records/1.0/search/?dataset=bezetting-parkeergarages-real-time)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+State that isn't there yet (P+R lots, live availability for some surface lots, Parking Kouter) is tracked in [TODO.md](TODO.md).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Credits
+
+Built by Pieter-Jan Scheir — [scheir.eu](https://scheir.eu).
+Data courtesy of [stad.gent open data](https://gent.opendatasoft.com).
