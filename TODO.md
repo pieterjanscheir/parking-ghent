@@ -8,6 +8,7 @@
 Will only take Kouter, Zuid and Center from it. + take the images as well from the api.
 - (DONE) update favicon. 
 - (DONE) Figure out addresses - some aren't known and should I display P+R? different api... => https://gent.opendatasoft.com/explore/dataset/locaties-openbare-parkings-gent/table/
+- (DONE) remove unused shadcn/ui components
 
 - add dutch to the app? (https://next-intl.dev/)
 - If the user navigates to a certain parking page and they have not filled in their profile information yet, they should instead be rerouted to the profile page. 
@@ -16,5 +17,4 @@ Will only take Kouter, Zuid and Center from it. + take the images as well from t
 - Have an embedded google map where all parkings are shown.
 - Sometimes you'll see it says that the amount that is free in a parking is -1 or so. So handle this gracefully because it won't work well with the percentages and so on. So yeah, prepare for that. 
 - add vitest unit tests
-- remove unused shadcn/ui components
 - Remove the formatted json
