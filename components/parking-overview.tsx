@@ -31,6 +31,7 @@ import {
   type SortKey,
 } from "@/lib/parkings";
 import type { Parking } from "@/lib/parkings.schema";
+import type { Trend } from "@/lib/parking-history";
 import { OnboardingForm } from "./onboarding-form";
 import { ParkingHeroCard } from "./parking-hero-card";
 import { ParkingCard } from "./parking-card";
@@ -43,6 +44,7 @@ import { AutoRefreshControl } from "./auto-refresh-control";
 
 type Props = {
   parkings: Parking[];
+  trendsById: Record<string, Trend>;
 };
 
 const VIEW_VALUES = ["cards", "list"] as const;
@@ -56,7 +58,7 @@ const VIEW_PARSER = parseAsStringEnum([...VIEW_VALUES]).withDefault("cards");
 const ARRAY_PARSER = parseAsArrayOf(parseAsString).withDefault([]);
 const Q_OPTIONS = { defaultValue: "", clearOnDefault: true } as const;
 
-export function ParkingOverview({ parkings }: Props) {
+export function ParkingOverview({ parkings, trendsById }: Props) {
   const router = useRouter();
   const { ready: profileReady, profile } = useProfile();
   const { ids: favoriteIds, ready: favReady } = useFavorites();
@@ -159,7 +161,11 @@ export function ParkingOverview({ parkings }: Props) {
             }
           >
             {favorites.map((p) => (
-              <ParkingHeroCard key={p.id} parking={p} />
+              <ParkingHeroCard
+                key={p.id}
+                parking={p}
+                trend={trendsById[p.id] ?? null}
+              />
             ))}
           </div>
         </section>
@@ -245,13 +251,18 @@ export function ParkingOverview({ parkings }: Props) {
       ) : view === "list" ? (
         <ParkingListView
           parkings={filteredRest}
+          trendsById={trendsById}
           sort={sort}
           onSortChange={(s) => setSort(s)}
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredRest.map((p) => (
-            <ParkingCard key={p.id} parking={p} />
+            <ParkingCard
+              key={p.id}
+              parking={p}
+              trend={trendsById[p.id] ?? null}
+            />
           ))}
         </div>
       )}

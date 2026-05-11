@@ -48,6 +48,10 @@ export function getHistoryDataset(parkingId: string): string | null {
   return HISTORY_DATASETS[parkingId] ?? null;
 }
 
+export function parkingsWithHistory(): string[] {
+  return Object.keys(HISTORY_DATASETS);
+}
+
 function endpoint(dataset: string, offset: number): string {
   const params = new URLSearchParams({
     limit: String(PAGE_LIMIT),
@@ -107,62 +111,228 @@ export async function fetchParkingHistory(
   return points;
 }
 
-export type TrendDirection = "rising" | "falling" | "steady";
+// Bulk-fetch trends for every parking we have history for. A failed feed for
+// one parking shouldn't take down the page, so failures are swallowed into
+// `null` and absent ids just won't get a badge in the UI.
+export async function fetchAllTrends(): Promise<Record<string, Trend>> {
+  const ids = parkingsWithHistory();
+  const results = await Promise.all(
+    ids.map(async (id) => {
+      try {
+        const points = await fetchParkingHistory(id);
+        if (!points) return [id, null] as const;
+        return [id, computeTrend(points)] as const;
+      } catch {
+        return [id, null] as const;
+      }
+    }),
+  );
+  const out: Record<string, Trend> = {};
+  for (const [id, trend] of results) {
+    if (trend) out[id] = trend;
+  }
+  return out;
+}
 
-export type Trend = {
-  // "rising" means occupancy is rising → fewer free spaces.
-  direction: TrendDirection;
-  // Average change in occupied-% per hour over the trend window.
-  slopePerHour: number;
-  // Net change in free spaces between window start and end.
-  freeSpacesDelta: number;
-  // Minutes of data the trend was computed from.
-  windowMinutes: number;
-  sampleCount: number;
+export type TrendDirection = "rising" | "falling" | "steady";
+export type TrendConfidence = "high" | "medium" | "low";
+
+export type ForecastPoint = {
+  timestamp: number;
+  freeSpaces: number;
+  freeLo: number;
+  freeHi: number;
 };
 
-// Linear regression of occupied% over time, restricted to the most recent
-// `windowMinutes` of data. We pick occupied% (not free count) so the trend
-// stays comparable across parkings of different sizes.
-export function computeTrend(
-  points: HistoryPoint[],
-  windowMinutes = 30,
-): Trend | null {
-  if (points.length < 2) return null;
-  const newest = points[points.length - 1].timestamp;
-  const cutoff = newest - windowMinutes * 60_000;
-  const window = points.filter((p) => p.timestamp >= cutoff);
-  if (window.length < 2) return null;
+export type Forecast = {
+  horizonMinutes: number;
+  atTimestamp: number;
+  predictedFreeSpaces: number;
+  predictedOccupiedPercent: number;
+  // 95% prediction-interval bounds, in free-spaces (lo ≤ predicted ≤ hi).
+  freeSpacesBand: [number, number];
+  // Series of points from now → now+horizon so the band can be drawn as it
+  // widens out with prediction distance.
+  series: ForecastPoint[];
+};
 
+export type Trend = {
+  // "rising" = occupancy rising = fewer free spaces.
+  direction: TrendDirection;
+  // Average change in occupied-% per hour. Independent of parking size.
+  slopePerHour: number;
+  // Standard error of the slope, same units. Drives the significance test.
+  slopeStdErr: number;
+  // slope / stdErr. |t| ≥ 2 ⇒ slope is distinguishable from zero at ~95%.
+  tStatistic: number;
+  // Qualitative summary of t: high (|t|≥4), medium (≥2), low (<2).
+  confidence: TrendConfidence;
+  // Net change in free spaces from window start → end (observed, not modelled).
+  freeSpacesDelta: number;
+  windowMinutes: number;
+  sampleCount: number;
+  forecast: Forecast;
+};
+
+// ---- Tunables ---------------------------------------------------------------
+// 60 min gives a stable baseline; 15-min half-life makes the last quarter-hour
+// dominate the fit, so the trend still reacts quickly to genuine shifts.
+const TREND_WINDOW_MIN = 60;
+const HALFLIFE_MIN = 15;
+// 15 min is enough to be useful ("can I make it before it fills up?") but short
+// enough that extrapolating a local linear trend is defensible.
+const FORECAST_HORIZON_MIN = 15;
+const FORECAST_STEPS = 6;
+// ~95% two-sided for the effective sample sizes we work with (n_eff ≈ 15–25,
+// t_{0.025, 13–23} ≈ 2.07–2.16). Close enough for a UI signal.
+const T_CRITICAL = 2;
+
+type WlsFit = {
+  slope: number;
+  intercept: number;
+  slopeStdErr: number;
+  residualVariance: number;
+  effectiveN: number;
+  xMean: number;
+  sxx: number;
+};
+
+// Weighted least squares y = a + b·x with arbitrary positive weights w_i.
+// Uses Kish's effective sample size for the degrees-of-freedom correction so
+// the standard error is comparable across different weight schemes.
+function weightedLeastSquares(
+  xs: number[],
+  ys: number[],
+  ws: number[],
+): WlsFit {
+  let W = 0;
+  let W2 = 0;
+  for (const w of ws) {
+    W += w;
+    W2 += w * w;
+  }
+  const effectiveN = W2 > 0 ? (W * W) / W2 : ws.length;
+  let xMean = 0;
+  let yMean = 0;
+  for (let i = 0; i < xs.length; i++) {
+    xMean += ws[i] * xs[i];
+    yMean += ws[i] * ys[i];
+  }
+  xMean /= W;
+  yMean /= W;
+  let sxx = 0;
+  let sxy = 0;
+  for (let i = 0; i < xs.length; i++) {
+    const dx = xs[i] - xMean;
+    sxx += ws[i] * dx * dx;
+    sxy += ws[i] * dx * (ys[i] - yMean);
+  }
+  const slope = sxx > 0 ? sxy / sxx : 0;
+  const intercept = yMean - slope * xMean;
+  let wrss = 0;
+  for (let i = 0; i < xs.length; i++) {
+    const r = ys[i] - (intercept + slope * xs[i]);
+    wrss += ws[i] * r * r;
+  }
+  const df = Math.max(1, effectiveN - 2);
+  const residualVariance = wrss / df;
+  const slopeStdErr = sxx > 0 ? Math.sqrt(residualVariance / sxx) : 0;
+  return { slope, intercept, slopeStdErr, residualVariance, effectiveN, xMean, sxx };
+}
+
+function clamp(v: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, v));
+}
+
+// Models occupied-% as a locally-linear function of time and projects forward.
+// Returns null if there is too little data — silence beats a misleading badge.
+export function computeTrend(points: HistoryPoint[]): Trend | null {
+  // Need at least ~5 minutes of samples for a meaningful fit.
+  if (points.length < 5) return null;
+
+  const newest = points[points.length - 1];
+  const cutoff = newest.timestamp - TREND_WINDOW_MIN * 60_000;
+  const window = points.filter((p) => p.timestamp >= cutoff);
+  if (window.length < 5) return null;
+
+  const totalSpaces = newest.totalSpaces;
   const t0 = window[0].timestamp;
-  // Convert to hours so the slope is in "percentage points per hour",
-  // which is easier to reason about than per-millisecond.
+  // Hours since window start → slope is in "percentage points per hour".
   const xs = window.map((p) => (p.timestamp - t0) / 3_600_000);
   const ys = window.map((p) => p.occupiedPercent);
-  const n = xs.length;
-  const meanX = xs.reduce((s, v) => s + v, 0) / n;
-  const meanY = ys.reduce((s, v) => s + v, 0) / n;
-  let num = 0;
-  let den = 0;
-  for (let i = 0; i < n; i++) {
-    num += (xs[i] - meanX) * (ys[i] - meanY);
-    den += (xs[i] - meanX) ** 2;
-  }
-  const slopePerHour = den === 0 ? 0 : num / den;
 
-  // 1pp/hour ≈ noise floor for these feeds. Below that, call it steady.
+  // Exponential time-decay weights: a sample N minutes old has weight
+  // 2^(-N/HALFLIFE_MIN). Recent points dominate without discarding history.
+  const newestX = xs[xs.length - 1];
+  const halflifeHours = HALFLIFE_MIN / 60;
+  const ws = xs.map((x) => Math.pow(2, (x - newestX) / halflifeHours));
+
+  const fit = weightedLeastSquares(xs, ys, ws);
+
+  const t = fit.slopeStdErr > 0 ? fit.slope / fit.slopeStdErr : 0;
+
+  // Significance gate: ignore the sign of small, noisy slopes.
   let direction: TrendDirection;
-  if (slopePerHour > 1) direction = "rising";
-  else if (slopePerHour < -1) direction = "falling";
-  else direction = "steady";
+  if (Math.abs(t) < T_CRITICAL) direction = "steady";
+  else if (t > 0) direction = "rising";
+  else direction = "falling";
 
-  const first = window[0];
-  const last = window[window.length - 1];
+  const absT = Math.abs(t);
+  const confidence: TrendConfidence =
+    absT >= 4 ? "high" : absT >= T_CRITICAL ? "medium" : "low";
+
+  // Forecast: project forward and compute a 95% prediction interval at each
+  // step. Variance has two parts — residual noise (constant) and trend
+  // uncertainty that grows with distance from the data's centre — so the band
+  // naturally widens with horizon distance.
+  const series: ForecastPoint[] = [];
+  let predictedFreeAtHorizon = newest.freeSpaces;
+  let bandAtHorizon: [number, number] = [newest.freeSpaces, newest.freeSpaces];
+  let predictedOccupiedAtHorizon = newest.occupiedPercent;
+
+  for (let i = 0; i <= FORECAST_STEPS; i++) {
+    const dxHours = (FORECAST_HORIZON_MIN / 60) * (i / FORECAST_STEPS);
+    const xFuture = newestX + dxHours;
+    const tsFuture = newest.timestamp + dxHours * 3_600_000;
+    const occupiedPred = fit.intercept + fit.slope * xFuture;
+    const xCentered = xFuture - fit.xMean;
+    // Prediction-interval variance for a *new observation* (= residual noise
+    // + uncertainty in the fitted line at xFuture).
+    const piVar =
+      fit.residualVariance *
+      (1 + 1 / fit.effectiveN + (fit.sxx > 0 ? (xCentered * xCentered) / fit.sxx : 0));
+    const halfWidth = T_CRITICAL * Math.sqrt(piVar);
+    const occupiedCentral = clamp(occupiedPred, 0, 100);
+    const occupiedHi = clamp(occupiedPred + halfWidth, 0, 100);
+    const occupiedLo = clamp(occupiedPred - halfWidth, 0, 100);
+    // Free spaces: lo occupied ⇒ hi free, and vice-versa.
+    const freeCentral = clamp(Math.round((totalSpaces * (100 - occupiedCentral)) / 100), 0, totalSpaces);
+    const freeLo = clamp(Math.round((totalSpaces * (100 - occupiedHi)) / 100), 0, totalSpaces);
+    const freeHi = clamp(Math.round((totalSpaces * (100 - occupiedLo)) / 100), 0, totalSpaces);
+    series.push({ timestamp: tsFuture, freeSpaces: freeCentral, freeLo, freeHi });
+    if (i === FORECAST_STEPS) {
+      predictedFreeAtHorizon = freeCentral;
+      bandAtHorizon = [freeLo, freeHi];
+      predictedOccupiedAtHorizon = occupiedCentral;
+    }
+  }
+
   return {
     direction,
-    slopePerHour,
-    freeSpacesDelta: last.freeSpaces - first.freeSpaces,
-    windowMinutes: Math.round((last.timestamp - first.timestamp) / 60_000),
+    slopePerHour: fit.slope,
+    slopeStdErr: fit.slopeStdErr,
+    tStatistic: t,
+    confidence,
+    freeSpacesDelta: newest.freeSpaces - window[0].freeSpaces,
+    windowMinutes: Math.round((newest.timestamp - window[0].timestamp) / 60_000),
     sampleCount: window.length,
+    forecast: {
+      horizonMinutes: FORECAST_HORIZON_MIN,
+      atTimestamp: newest.timestamp + FORECAST_HORIZON_MIN * 60_000,
+      predictedFreeSpaces: predictedFreeAtHorizon,
+      predictedOccupiedPercent: predictedOccupiedAtHorizon,
+      freeSpacesBand: bandAtHorizon,
+      series,
+    },
   };
 }

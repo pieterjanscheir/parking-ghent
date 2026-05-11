@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { MapPin, ChevronRight } from "lucide-react";
 import type { Parking } from "@/lib/parkings.schema";
+import type { Trend } from "@/lib/parking-history";
 import { AvailabilityGauge } from "./availability-gauge";
 import { FavoriteButton } from "./favorite-button";
 import { ParkingActions } from "./parking-actions";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
+import { TrendIndicator } from "./trend-indicator";
 
-export function ParkingHeroCard({ parking }: { parking: Parking }) {
+export function ParkingHeroCard({
+  parking,
+  trend,
+}: {
+  parking: Parking;
+  trend: Trend | null;
+}) {
   return (
     <Link
       href={`/parkings/${encodeURIComponent(parking.id)}`}
@@ -41,9 +49,18 @@ export function ParkingHeroCard({ parking }: { parking: Parking }) {
           size="lg"
         />
         <div className="flex flex-col">
-          <span className="font-heading text-5xl font-bold leading-none tracking-tight tabular-nums">
-            {parking.freeSpaces}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-heading text-5xl font-bold leading-none tracking-tight tabular-nums">
+              {parking.freeSpaces}
+            </span>
+            {trend ? (
+              <TrendIndicator
+                trend={trend}
+                currentFree={parking.freeSpaces}
+                size="md"
+              />
+            ) : null}
+          </div>
           <span className="mt-1 text-sm text-muted-foreground">
             free of {parking.totalSpaces}
           </span>

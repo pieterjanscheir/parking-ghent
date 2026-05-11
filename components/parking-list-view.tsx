@@ -12,9 +12,11 @@ import {
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, Star } from "lucide-react";
 import type { Parking } from "@/lib/parkings.schema";
+import type { Trend } from "@/lib/parking-history";
 import { AvailabilityGauge } from "./availability-gauge";
 import { FavoriteButton } from "./favorite-button";
 import { ParkingStatusBadge } from "./parking-status-badge";
+import { TrendIndicator } from "./trend-indicator";
 import {
   Table,
   TableBody,
@@ -29,6 +31,7 @@ import type { SortKey } from "@/lib/parkings";
 
 type Props = {
   parkings: Parking[];
+  trendsById: Record<string, Trend>;
   sort: SortKey;
   onSortChange: (next: SortKey) => void;
 };
@@ -60,7 +63,12 @@ function deriveSorting(sort: SortKey): SortingState {
   }
 }
 
-export function ParkingListView({ parkings, sort, onSortChange }: Props) {
+export function ParkingListView({
+  parkings,
+  trendsById,
+  sort,
+  onSortChange,
+}: Props) {
   const router = useRouter();
   const { isFavorite } = useFavorites();
 
@@ -105,6 +113,23 @@ export function ParkingListView({ parkings, sort, onSortChange }: Props) {
           </span>
         ),
         meta: { className: "text-right" },
+      },
+      {
+        id: "trend",
+        enableSorting: false,
+        header: () => <span className="sr-only">Trend</span>,
+        cell: ({ row }) => {
+          const trend = trendsById[row.original.id];
+          if (!trend) return null;
+          return (
+            <TrendIndicator
+              trend={trend}
+              currentFree={row.original.freeSpaces}
+              size="sm"
+            />
+          );
+        },
+        meta: { className: "w-10" },
       },
       {
         id: "freePercent",
@@ -158,7 +183,7 @@ export function ParkingListView({ parkings, sort, onSortChange }: Props) {
         ),
       },
     ],
-    [isFavorite],
+    [isFavorite, trendsById],
   );
 
   const sorting = useMemo(() => deriveSorting(sort), [sort]);
