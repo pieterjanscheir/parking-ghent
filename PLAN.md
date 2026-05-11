@@ -17,7 +17,7 @@
 8. **Auto-refresh** of the overview, on by default at a 60 s cadence, with an inline control to override the interval (e.g. 30 s, 1 min, 5 min, off) and a manual "Refresh now" button. Last-refreshed timestamp shown next to the control.
 9. **Dual views** for the overview — card grid (default) and dense list. The list view uses **TanStack Table** for column sorting, search, and pagination if needed. The view choice persists in the URL.
 10. **Availability graphic** — each card and list row prominently shows free spaces *and* the percentage free, rendered as a small radial/dial chart that recolors with the availability bucket. Headline number is the count; the dial is the at-a-glance signal.
-11. **Header + footer** — simple sticky header (app name, profile link) and a footer crediting "Pieter-Jan Scheir — [scher.eu](https://scher.eu)".
+11. **Header + footer** — simple sticky header (app name, profile link) and a footer crediting "Pieter-Jan Scheir — [scheir.eu](https://scheir.eu)".
 12. Tests — unit + component coverage with Vitest + React Testing Library.
 13. Polish — loading / error / not-found / empty states, responsive layout, accessible labels and keyboard nav.
 14. URL state for search, sort, filters, and view via **nuqs** so the overview is shareable and back/forward works. Favorites stay in localStorage (per-device).
@@ -61,7 +61,7 @@ Per Next 16 App Router conventions, each segment ships:
 ### Layout chrome
 - `app/layout.tsx` renders `<SiteHeader />` and `<SiteFooter />` around `{children}`.
   - **Header** — sticky, translucent (`bg-background/80 backdrop-blur-xl`) with `border-b border-border/40`, app wordmark left (tinted `bg-primary/15` rounded chip + lucide mark), profile pill-button right (the muted pill recipe from [theme.md](theme.md)). No nav, no search bar — search lives in the overview.
-  - **Footer** — single thin row inside `border-t border-border/40`: "Built by Pieter-Jan Scheir — [scher.eu](https://scher.eu)" rendered as a `text-primary hover:underline` link, plus a quieter `text-xs text-muted-foreground` line "Data: stad.gent open data". No social icons, no columns.
+  - **Footer** — single thin row inside `border-t border-border/40`: "Built by Pieter-Jan Scheir — [scheir.eu](https://scheir.eu)" rendered as a `text-primary hover:underline` link, plus a quieter `text-xs text-muted-foreground` line "Data: stad.gent open data". No social icons, no columns.
 
 ## Overview UI shape
 
@@ -212,7 +212,7 @@ The full visual system lives in [theme.md](theme.md). The plan adopts it wholesa
 1. **~15m** Dataset shape probe (curl) — confirm fields for filters + detail page. Write zod schemas, fetchers, derived helpers.
 2. **~15m** Vitest config (jsdom, RTL, one passing smoke test).
 3. **~15m** Theme — drop [theme.md](theme.md)'s `globals.css`, `components.json`, and `cn` helper into the project; wire Geist + Raleway + Geist Mono in `app/layout.tsx`; verify dark canvas + violet primary render correctly with a throwaway `<Button>`.
-4. **~15m** Root layout: `NuqsAdapter`, font variables on `<html>`, `<Toaster position="top-center" />`, `<SiteHeader />` (translucent + blur, tinted wordmark chip, profile pill), `<SiteFooter />` (scher.eu credit), global `error.tsx` + `not-found.tsx`.
+4. **~15m** Root layout: `NuqsAdapter`, font variables on `<html>`, `<Toaster position="top-center" />`, `<SiteHeader />` (translucent + blur, tinted wordmark chip, profile pill), `<SiteFooter />` (scheir.eu credit), global `error.tsx` + `not-found.tsx`.
 5. **~25m** Profile layer + tests.
 6. **~25m** Onboarding form + tests.
 7. **~20m** Favorites layer + tests.
