@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { RawApiCall } from "./parkings";
 
 // The Opendatasoft v2.1 "Explore" API caps `limit` at 100 per request, but
 // each "recente-bezetting" dataset only holds a few hundred recent points,
@@ -66,21 +67,47 @@ function endpoint(dataset: string, offset: number): string {
 export async function fetchParkingHistory(
   parkingId: string,
 ): Promise<HistoryPoint[] | null> {
+  const result = await fetchParkingHistoryWithRaw(parkingId);
+  return result?.points ?? null;
+}
+
+export async function fetchParkingHistoryWithRaw(
+  parkingId: string,
+): Promise<{ points: HistoryPoint[]; calls: RawApiCall[] } | null> {
   const dataset = getHistoryDataset(parkingId);
   if (!dataset) return null;
 
   const all: z.infer<typeof RecordSchema>[] = [];
+  const calls: RawApiCall[] = [];
   let offset = 0;
   let total = Infinity;
 
   for (let page = 0; page < MAX_PAGES && offset < total; page++) {
-    const res = await fetch(endpoint(dataset, offset), { cache: "no-store" });
+    const url = endpoint(dataset, offset);
+    const res = await fetch(url, { cache: "no-store" });
+    const text = await res.text();
+    let raw: unknown;
+    try {
+      raw = text ? JSON.parse(text) : null;
+    } catch {
+      raw = text;
+    }
+    calls.push({
+      id: `${dataset}-p${page}`,
+      title: `${dataset} (page ${page + 1})`,
+      subtitle: `gent.opendatasoft.com — Explore v2.1, offset ${offset}`,
+      url,
+      ok: res.ok,
+      data: res.ok
+        ? raw
+        : { error: `${res.status} ${res.statusText}`, body: raw },
+    });
     if (!res.ok) {
       throw new Error(
         `Failed to fetch history for ${parkingId}: ${res.status} ${res.statusText}`,
       );
     }
-    const parsed = ResponseSchema.parse(await res.json());
+    const parsed = ResponseSchema.parse(raw);
     total = parsed.total_count;
     all.push(...parsed.results);
     if (parsed.results.length < PAGE_LIMIT) break;
@@ -108,30 +135,44 @@ export async function fetchParkingHistory(
     });
   }
   points.sort((a, b) => a.timestamp - b.timestamp);
-  return points;
+  return { points, calls };
 }
 
 // Bulk-fetch trends for every parking we have history for. A failed feed for
 // one parking shouldn't take down the page, so failures are swallowed into
 // `null` and absent ids just won't get a badge in the UI.
 export async function fetchAllTrends(): Promise<Record<string, Trend>> {
+  const { trendsById } = await fetchAllTrendsWithRaw();
+  return trendsById;
+}
+
+export async function fetchAllTrendsWithRaw(): Promise<{
+  trendsById: Record<string, Trend>;
+  calls: RawApiCall[];
+}> {
   const ids = parkingsWithHistory();
   const results = await Promise.all(
     ids.map(async (id) => {
       try {
-        const points = await fetchParkingHistory(id);
-        if (!points) return [id, null] as const;
-        return [id, computeTrend(points)] as const;
+        const result = await fetchParkingHistoryWithRaw(id);
+        if (!result) return { id, trend: null, calls: [] as RawApiCall[] };
+        return {
+          id,
+          trend: computeTrend(result.points),
+          calls: result.calls,
+        };
       } catch {
-        return [id, null] as const;
+        return { id, trend: null, calls: [] as RawApiCall[] };
       }
     }),
   );
-  const out: Record<string, Trend> = {};
-  for (const [id, trend] of results) {
-    if (trend) out[id] = trend;
+  const trendsById: Record<string, Trend> = {};
+  const calls: RawApiCall[] = [];
+  for (const { id, trend, calls: pageCalls } of results) {
+    if (trend) trendsById[id] = trend;
+    calls.push(...pageCalls);
   }
-  return out;
+  return { trendsById, calls };
 }
 
 export type TrendDirection = "rising" | "falling" | "steady";

@@ -1,4 +1,5 @@
-import { Suspense } from "react";
+import { Suspense, cache } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -11,9 +12,13 @@ import {
 import { fetchParkingById, fetchParkingDetailById } from "@/lib/parkings";
 import {
   computeTrend,
-  fetchParkingHistory,
+  fetchParkingHistoryWithRaw,
   getHistoryDataset,
 } from "@/lib/parking-history";
+
+// React's `cache()` dedupes within a single render — the chart and the
+// JSON section can both call this without triggering two network round-trips.
+const getHistory = cache(fetchParkingHistoryWithRaw);
 import { AvailabilityGauge } from "@/components/availability-gauge";
 import { FavoriteButton } from "@/components/favorite-button";
 import { JsonBlock } from "@/components/json-block";
@@ -48,7 +53,7 @@ export default async function ParkingDetailPage({
   const { id } = await params;
   const detail = await fetchParkingDetailById(decodeURIComponent(id));
   if (!detail) notFound();
-  const { parking, raw } = detail;
+  const { parking, calls: listCalls } = detail;
 
   const mapSrc =
     parking.lat !== null && parking.lng !== null
@@ -56,7 +61,7 @@ export default async function ParkingDetailPage({
       : null;
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
+    <div className="mx-auto max-w-5xl px-6 py-10">
       <Link
         href="/"
         className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -80,40 +85,67 @@ export default async function ParkingDetailPage({
           <FavoriteButton parkingId={parking.id} size="md" />
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-1.5">
-          <ParkingStatusBadge parking={parking} />
-          {parking.category ? (
-            <MetaBadge>{parking.categoryLabel}</MetaBadge>
-          ) : null}
-          {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
-        </div>
+        <div
+          className={
+            parking.photoUrl
+              ? "md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] md:items-start md:gap-10"
+              : ""
+          }
+        >
+          <div className="min-w-0">
+            <div className="mt-6 flex flex-wrap items-center gap-1.5">
+              <ParkingStatusBadge parking={parking} />
+              {parking.category ? (
+                <MetaBadge>{parking.categoryLabel}</MetaBadge>
+              ) : null}
+              {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
+            </div>
 
-        <div className="mt-8 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
-          <AvailabilityGauge
-            percent={parking.freePercent}
-            bucket={parking.bucket}
-            size="lg"
-          />
-          <div>
-            <p className="font-heading text-5xl font-bold leading-none tracking-tight tabular-nums">
-              {parking.freeSpaces}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              of {parking.totalSpaces} spaces free
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {Math.round(parking.occupiedPercent)}% currently occupied
-            </p>
+            <div className="mt-8 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
+              <AvailabilityGauge
+                percent={parking.freePercent}
+                bucket={parking.bucket}
+                size="lg"
+              />
+              <div>
+                <p className="font-heading text-5xl font-bold leading-none tracking-tight tabular-nums">
+                  {parking.freeSpaces}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  of {parking.totalSpaces} spaces free
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {Math.round(parking.occupiedPercent)}% currently occupied
+                </p>
+              </div>
+            </div>
+
+            <ParkingActions parking={parking} variant="full" className="mt-8" />
+
+            {parking.description ? (
+              <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
+                {parking.description}
+              </p>
+            ) : null}
           </div>
+
+          {parking.photoUrl ? (
+            // Right column on md+; top-aligned with the badges row of the
+            // left column. On mobile (no grid) it stacks at the end so live
+            // availability stays the focus.
+            <div className="mt-8 md:mt-6">
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border border-border/60 bg-muted">
+                <Image
+                  src={parking.photoUrl}
+                  alt={`Photo of ${parking.name} parking`}
+                  fill
+                  sizes="(min-width: 768px) 20rem, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
-
-        <ParkingActions parking={parking} variant="full" className="mt-8" />
-
-        {parking.description ? (
-          <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
-            {parking.description}
-          </p>
-        ) : null}
 
         <dl className="mt-8 grid gap-5 sm:grid-cols-2">
           {parking.openingHours ? (
@@ -188,11 +220,28 @@ export default async function ParkingDetailPage({
         </div>
       ) : null}
 
-      <JsonBlock
-        data={raw}
-        title="Raw API response"
-        subtitle="gent.opendatasoft.com — bezetting-parkeergarages-real-time"
-      />
+      <section aria-label="Raw API responses" className="mt-10">
+        <h2 className="font-heading text-lg font-semibold tracking-tight">
+          Raw API responses
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Every upstream call this page made, in the order it was issued.
+        </p>
+        {listCalls.map((call) => (
+          <JsonBlock
+            key={call.id}
+            data={call.data}
+            title={call.title}
+            subtitle={call.subtitle}
+            defaultOpen={call.id === "bezetting-parkeergarages-real-time"}
+          />
+        ))}
+        {getHistoryDataset(parking.id) ? (
+          <Suspense fallback={<JsonSkeleton />}>
+            <HistoryJsonSection parkingId={parking.id} />
+          </Suspense>
+        ) : null}
+      </section>
     </div>
   );
 }
@@ -204,14 +253,15 @@ async function HistorySection({
   parkingId: string;
   totalSpaces: number;
 }) {
-  const points = await fetchParkingHistory(parkingId);
-  if (!points || points.length === 0) {
+  const result = await getHistory(parkingId);
+  if (!result || result.points.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         No recent history available for this parking.
       </p>
     );
   }
+  const { points } = result;
   const trend = computeTrend(points);
   return (
     <ParkingHistoryChart
@@ -220,6 +270,28 @@ async function HistorySection({
       totalSpaces={totalSpaces || points[points.length - 1].totalSpaces}
     />
   );
+}
+
+async function HistoryJsonSection({ parkingId }: { parkingId: string }) {
+  const result = await getHistory(parkingId);
+  if (!result) return null;
+  return (
+    <>
+      {result.calls.map((call) => (
+        <JsonBlock
+          key={call.id}
+          data={call.data}
+          title={call.title}
+          subtitle={call.subtitle}
+          defaultOpen={false}
+        />
+      ))}
+    </>
+  );
+}
+
+function JsonSkeleton() {
+  return <Skeleton className="mt-6 h-14 w-full rounded-xl" />;
 }
 
 function HistorySkeleton() {

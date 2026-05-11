@@ -37,6 +37,9 @@ const RawFieldsSchema = z
     id: z.string().optional().default(""),
     location: z.array(z.number()).optional(),
     locationanddimension: z.string().optional().default(""),
+    // Present only on records sourced from the mobi-parkings fallback feed
+    // (the three Interparking garages). The primary feed never sets it.
+    fotourl: z.string().optional().default(""),
   })
   .passthrough();
 
@@ -74,6 +77,9 @@ export type Parking = {
   lng: number | null;
   phone: string | null;
   lastUpdate: string;
+  // Optional photo URL — only populated for parkings from the secondary
+  // mobi-parkings feed (Kouter, Zuid, Center).
+  photoUrl: string | null;
 };
 
 function parseLocation(raw: string): {
@@ -198,5 +204,6 @@ export function normalizeParking(record: {
     lng,
     phone,
     lastUpdate: f.lastupdate ?? "",
+    photoUrl: (f.fotourl ?? "").trim() || null,
   };
 }
