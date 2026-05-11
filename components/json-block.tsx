@@ -29,16 +29,18 @@ export function JsonBlock({
   data,
   title = "Raw API response",
   subtitle,
+  defaultOpen = true,
 }: {
   data: unknown;
   title?: string;
   subtitle?: string;
+  defaultOpen?: boolean;
 }) {
   const pretty = JSON.stringify(data, null, 2) ?? "";
   const html = highlightJson(pretty);
   return (
     <details
-      open
+      open={defaultOpen}
       className="surface-card group mt-6 overflow-hidden rounded-xl border border-border/70"
     >
       <summary className="flex cursor-pointer select-none items-center gap-2 px-6 py-4 text-sm font-medium transition-colors hover:bg-accent/40 [&::-webkit-details-marker]:hidden">
