@@ -15,6 +15,7 @@ import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { AvailabilityGauge } from "./availability-gauge";
 import { FavoriteButton } from "./favorite-button";
+import { LiveDataWarning } from "./live-data-warning";
 import { ParkingStatusBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
 import {
@@ -108,9 +109,17 @@ export function ParkingListView({
         accessorKey: "freeSpaces",
         header: "Free",
         cell: ({ row }) => (
-          <span className="font-heading font-semibold tabular-nums">
-            {row.original.freeSpaces}
-          </span>
+          <div className="flex items-center justify-end gap-1.5">
+            <span
+              className={cn(
+                "font-heading font-semibold tabular-nums",
+                !row.original.hasLiveData && "text-muted-foreground",
+              )}
+            >
+              {row.original.hasLiveData ? row.original.freeSpaces : "—"}
+            </span>
+            {!row.original.hasLiveData ? <LiveDataWarning /> : null}
+          </div>
         ),
         meta: { className: "text-right" },
       },
@@ -119,6 +128,7 @@ export function ParkingListView({
         enableSorting: false,
         header: () => <span className="sr-only">Trend</span>,
         cell: ({ row }) => {
+          if (!row.original.hasLiveData) return null;
           const trend = trendsById[row.original.id];
           if (!trend) return null;
           return (
@@ -143,8 +153,10 @@ export function ParkingListView({
               size="sm"
               showLabel={false}
             />
-            <span className="tabular-nums text-sm">
-              {Math.round(row.original.freePercent)}%
+            <span className="tabular-nums text-sm text-muted-foreground">
+              {row.original.hasLiveData
+                ? `${Math.round(row.original.freePercent)}%`
+                : "—"}
             </span>
           </div>
         ),

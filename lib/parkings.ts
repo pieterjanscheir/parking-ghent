@@ -119,11 +119,12 @@ function mobiToParking(record: MobiRecord): Parking | null {
   const override = MOBI_FALLBACK[record.fields.id_parking];
   if (!override) return null;
   const f = record.fields;
-  // Guard against the dataset's "data unavailable" sentinels: -1 free spaces
-  // and 0 capacity both show up periodically. Drop those rather than feed the
-  // UI nonsense percentages.
+  // Without totalcapacity we can't render anything meaningful, so drop the
+  // record. A negative `availablecapacity` is the dataset's "data unavailable"
+  // sentinel — let it flow through; normalizeParking will clamp it to 0 and
+  // mark hasLiveData=false so the UI can warn the user instead of silently
+  // claiming the parking is full.
   if (f.totalcapacity <= 0) return null;
-  if (f.availablecapacity < 0) return null;
 
   // The secondary feed has no `operatorinformation`, but `parkingdatalink`
   // ("Interparking Kouter") encodes it. Strip the parking name to leave the

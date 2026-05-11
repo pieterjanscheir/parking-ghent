@@ -10,11 +10,12 @@ Will only take Kouter, Zuid and Center from it. + take the images as well from t
 - (DONE) Figure out addresses - some aren't known and should I display P+R? different api... => https://gent.opendatasoft.com/explore/dataset/locaties-openbare-parkings-gent/table/
 - (DONE) remove unused shadcn/ui components
 - (DONE) If the user navigates to a certain parking page and they have not filled in their profile information yet, they should instead be rerouted to the profile page. 
+- (DONE) personalize loading skeleton for the profile page so it fits it better. 
+- (DONE) Adapt main loading skeleton based on list view vs card view and amount of favorites.
+- (DONE) Remove the formatted json
+- (DONE) Sometimes you'll see it says that the amount that is free in a parking is -1 or so. So handle this gracefully because it won't work well with the percentages and so on. So yeah, prepare for that. 
 
 - add dutch to the app? (https://next-intl.dev/)
-- personalize loading skeleton for the profile page so it fits it better. 
-- Adapt main loading skeleton based on list view vs card view and amount of favorites.
 - Have an embedded google map where all parkings are shown.
-- Sometimes you'll see it says that the amount that is free in a parking is -1 or so. So handle this gracefully because it won't work well with the percentages and so on. So yeah, prepare for that. 
 - add vitest unit tests
-- Remove the formatted json
+- Update Readme

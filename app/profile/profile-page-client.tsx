@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useProfile } from "@/lib/profile";
 import { OnboardingForm } from "@/components/onboarding-form";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,11 +27,7 @@ export function ProfilePageClient() {
   const [open, setOpen] = useState(false);
 
   if (!ready) {
-    return (
-      <div className="mx-auto max-w-lg px-6 py-12">
-        <div className="h-64 animate-pulse rounded-xl bg-muted/30" />
-      </div>
-    );
+    return <ProfilePageSkeleton />;
   }
 
   if (!profile) {
@@ -98,6 +95,47 @@ export function ProfilePageClient() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+      </div>
+    </div>
+  );
+}
+
+function ProfilePageSkeleton() {
+  return (
+    <div className="mx-auto max-w-lg px-6 py-12">
+      <Skeleton className="mb-4 h-4 w-32" />
+      <div className="surface-card mx-auto w-full max-w-lg rounded-xl ring-1 ring-foreground/10 p-6 sm:p-8">
+        <header className="mb-6 space-y-2">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-4 w-72" />
+        </header>
+        <div className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Skeleton className="h-3.5 w-20" />
+              <Skeleton className="h-9 w-full rounded-md" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-3.5 w-20" />
+              <Skeleton className="h-9 w-full rounded-md" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-9 w-full rounded-md" />
+            <Skeleton className="h-3 w-64" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-3.5 w-28" />
+            <Skeleton className="h-9 w-full rounded-md" />
+          </div>
+        </div>
+        <Skeleton className="mt-6 h-9 w-full rounded-md" />
+      </div>
+      <div className="mt-8 surface-card rounded-xl border border-destructive/30 p-5 space-y-2">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-3 w-72" />
+        <Skeleton className="mt-3 h-8 w-44 rounded-md" />
       </div>
     </div>
   );

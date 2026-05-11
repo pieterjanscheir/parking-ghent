@@ -12,16 +12,13 @@ import {
 import { fetchParkingById, fetchParkingDetailById } from "@/lib/parkings";
 import {
   computeTrend,
-  fetchParkingHistoryWithRaw,
+  fetchParkingHistory,
   getHistoryDataset,
 } from "@/lib/parking-history";
 
-// React's `cache()` dedupes within a single render — the chart and the
-// JSON section can both call this without triggering two network round-trips.
-const getHistory = cache(fetchParkingHistoryWithRaw);
 import { AvailabilityGauge } from "@/components/availability-gauge";
 import { FavoriteButton } from "@/components/favorite-button";
-import { JsonBlock } from "@/components/json-block";
+import { LiveDataWarning } from "@/components/live-data-warning";
 import { ParkingActions } from "@/components/parking-actions";
 import { ParkingHistoryChart } from "@/components/parking-history-chart";
 import { ProfileRequired } from "@/components/profile-required";
@@ -31,6 +28,10 @@ import {
 } from "@/components/parking-status-badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// React's `cache()` dedupes within a single render if the chart is invoked
+// more than once.
+const getHistory = cache(fetchParkingHistory);
 
 export async function generateMetadata({
   params,
@@ -54,7 +55,7 @@ export default async function ParkingDetailPage({
   const { id } = await params;
   const detail = await fetchParkingDetailById(decodeURIComponent(id));
   if (!detail) notFound();
-  const { parking, calls: listCalls } = detail;
+  const { parking } = detail;
 
   const mapSrc =
     parking.lat !== null && parking.lng !== null
@@ -110,15 +111,30 @@ export default async function ParkingDetailPage({
                 size="lg"
               />
               <div>
-                <p className="font-heading text-5xl font-bold leading-none tracking-tight tabular-nums">
-                  {parking.freeSpaces}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p
+                    className={
+                      parking.hasLiveData
+                        ? "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums"
+                        : "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums text-muted-foreground"
+                    }
+                  >
+                    {parking.hasLiveData ? parking.freeSpaces : "—"}
+                  </p>
+                  {!parking.hasLiveData ? <LiveDataWarning size="md" /> : null}
+                </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   of {parking.totalSpaces} spaces free
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {Math.round(parking.occupiedPercent)}% currently occupied
-                </p>
+                {parking.hasLiveData ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {Math.round(parking.occupiedPercent)}% currently occupied
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Live occupancy is unavailable right now.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -222,28 +238,6 @@ export default async function ParkingDetailPage({
         </div>
       ) : null}
 
-      <section aria-label="Raw API responses" className="mt-10">
-        <h2 className="font-heading text-lg font-semibold tracking-tight">
-          Raw API responses
-        </h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Every upstream call this page made, in the order it was issued.
-        </p>
-        {listCalls.map((call) => (
-          <JsonBlock
-            key={call.id}
-            data={call.data}
-            title={call.title}
-            subtitle={call.subtitle}
-            defaultOpen={call.id === "bezetting-parkeergarages-real-time"}
-          />
-        ))}
-        {getHistoryDataset(parking.id) ? (
-          <Suspense fallback={<JsonSkeleton />}>
-            <HistoryJsonSection parkingId={parking.id} />
-          </Suspense>
-        ) : null}
-      </section>
     </div>
   );
 }
@@ -255,15 +249,14 @@ async function HistorySection({
   parkingId: string;
   totalSpaces: number;
 }) {
-  const result = await getHistory(parkingId);
-  if (!result || result.points.length === 0) {
+  const points = await getHistory(parkingId);
+  if (!points || points.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         No recent history available for this parking.
       </p>
     );
   }
-  const { points } = result;
   const trend = computeTrend(points);
   return (
     <ParkingHistoryChart
@@ -272,28 +265,6 @@ async function HistorySection({
       totalSpaces={totalSpaces || points[points.length - 1].totalSpaces}
     />
   );
-}
-
-async function HistoryJsonSection({ parkingId }: { parkingId: string }) {
-  const result = await getHistory(parkingId);
-  if (!result) return null;
-  return (
-    <>
-      {result.calls.map((call) => (
-        <JsonBlock
-          key={call.id}
-          data={call.data}
-          title={call.title}
-          subtitle={call.subtitle}
-          defaultOpen={false}
-        />
-      ))}
-    </>
-  );
-}
-
-function JsonSkeleton() {
-  return <Skeleton className="mt-6 h-14 w-full rounded-xl" />;
 }
 
 function HistorySkeleton() {

@@ -71,6 +71,10 @@ export type Parking = {
   freeSpaces: number;
   occupiedPercent: number;
   freePercent: number;
+  // False when the feed reports a sentinel like availablecapacity=-1 — the
+  // numeric fields are still clamped to a renderable 0, but UI should warn
+  // the user that the live count is currently unreliable.
+  hasLiveData: boolean;
   bucket: "available" | "almost-full" | "full" | "closed";
   address: string;
   lat: number | null;
@@ -177,12 +181,20 @@ export function normalizeParking(record: {
   // `occupation` is the % occupied (= 100 − free/total × 100). The
   // `freeparking` field is unrelated to availability (likely "free of
   // charge"), so we ignore it for the count.
-  const freeSpaces = Math.max(0, f.availablecapacity ?? 0);
+  const rawAvailable = f.availablecapacity ?? 0;
+  // The feed periodically emits -1 as a "data unavailable" sentinel. Clamp
+  // it to 0 so the numeric UI doesn't break, and surface the unknown state
+  // separately via `hasLiveData`.
+  const hasLiveData = rawAvailable >= 0 && totalSpaces > 0;
+  const freeSpaces = Math.max(0, rawAvailable);
   const freePercent =
     totalSpaces > 0 ? (freeSpaces / totalSpaces) * 100 : 0;
   // Derive occupied from free so the two always sum to 100. The API's
   // `occupation` is pre-rounded to an integer and can disagree by 1pp.
   const occupiedPercent = 100 - freePercent;
+  // When live data is unavailable we don't want the gauge to scream "full"
+  // (red) at 0% — fall back to the gray "closed" styling.
+  const bucket = hasLiveData ? bucketFor(isOpen, freePercent) : "closed";
   const isInsideLez = (f.categorie ?? "").toLowerCase().includes("buiten")
     ? false
     : (f.categorie ?? "").toLowerCase().includes("lez");
@@ -205,7 +217,8 @@ export function normalizeParking(record: {
     freeSpaces,
     occupiedPercent,
     freePercent,
-    bucket: bucketFor(isOpen, freePercent),
+    hasLiveData,
+    bucket,
     address,
     lat,
     lng,

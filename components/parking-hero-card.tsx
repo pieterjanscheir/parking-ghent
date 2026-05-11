@@ -2,8 +2,10 @@ import Link from "next/link";
 import { MapPin, ChevronRight } from "lucide-react";
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
+import { cn } from "@/lib/utils";
 import { AvailabilityGauge } from "./availability-gauge";
 import { FavoriteButton } from "./favorite-button";
+import { LiveDataWarning } from "./live-data-warning";
 import { ParkingActions } from "./parking-actions";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
@@ -50,16 +52,22 @@ export function ParkingHeroCard({
         />
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <span className="font-heading text-5xl font-bold leading-none tracking-tight tabular-nums">
-              {parking.freeSpaces}
+            <span
+              className={cn(
+                "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums",
+                !parking.hasLiveData && "text-muted-foreground",
+              )}
+            >
+              {parking.hasLiveData ? parking.freeSpaces : "—"}
             </span>
-            {trend ? (
+            {parking.hasLiveData && trend ? (
               <TrendIndicator
                 trend={trend}
                 currentFree={parking.freeSpaces}
                 size="md"
               />
             ) : null}
+            {!parking.hasLiveData ? <LiveDataWarning size="md" /> : null}
           </div>
           <span className="mt-1 text-sm text-muted-foreground">
             free of {parking.totalSpaces}

@@ -49,7 +49,9 @@ async function handleShare(parking: Parking, e: React.MouseEvent) {
   e.preventDefault();
   e.stopPropagation();
   const url = `${window.location.origin}/parkings/${encodeURIComponent(parking.id)}`;
-  const text = `${parking.freeSpaces} of ${parking.totalSpaces} spaces free`;
+  const text = parking.hasLiveData
+    ? `${parking.freeSpaces} of ${parking.totalSpaces} spaces free`
+    : `Live availability unavailable (${parking.totalSpaces} total spaces)`;
   const data = { title: parking.name, text, url };
   try {
     if (navigator.share && navigator.canShare?.(data) !== false) {
