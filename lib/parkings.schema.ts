@@ -91,7 +91,14 @@ function parseLocation(raw: string): {
   if (!raw) return { address: "", lat: null, lng: null, phone: null };
   try {
     const parsed = LocationAndDimensionSchema.parse(JSON.parse(raw));
-    let address = (parsed.roadName ?? "").replace(/\s+/g, " ").trim();
+    let address = (parsed.roadName ?? "")
+      // Collapse "Streetname N\n9000 Gent" → "Streetname N 9000 Gent" first.
+      .replace(/\s+/g, " ")
+      // Then drop the city/postal suffix entirely — the address-enrichment
+      // path (from locations dataset) never includes it, and this is a Ghent
+      // parking app so the city is implicit.
+      .replace(/\s*\b\d{4}\s+Gent\b\s*/i, "")
+      .trim();
     // Some records store unknown values as literal "?" — treat as missing.
     if (address === "?" || address === "" || /^\?+$/.test(address)) {
       address = "";

@@ -11,6 +11,12 @@ const ENDPOINT =
 const MOBI_ENDPOINT =
   "https://data.stad.gent/api/records/1.0/search/?dataset=mobi-parkings&q=(parkingtype:Parking+OR+parkingtype:P%2BR)&sort=-availablecapacity&rows=100&lang=nl&apikey=5e015407b7e6f1e916f294d145a90be13c288ee4a8fc565001b805a4";
 
+// Tertiary feed: a static catalogue of city parkings used purely to fill in
+// addresses that the primary feed leaves as "?". Same opendatasoft host as
+// the primary, so no extra origin to trust.
+const LOCATIONS_ENDPOINT =
+  "https://gent.opendatasoft.com/api/records/1.0/search/?dataset=locaties-openbare-parkings-gent&rows=100";
+
 // id_parking → desired ({ id, name }) for the parkings we adopt from the
 // secondary feed. Acts as both an allow-list and a name-normalisation table.
 const MOBI_FALLBACK: Record<string, { id: string; name: string }> = {
@@ -158,6 +164,82 @@ function mobiToParking(record: MobiRecord): Parking | null {
   return { ...normalizeParking(synthetic), id: override.id };
 }
 
+const LocationsFieldsSchema = z
+  .object({
+    naam: z.string().optional().default(""),
+    straatnaam: z.string().optional().default(""),
+    huisnr: z.string().optional().default(""),
+  })
+  .passthrough();
+
+const LocationsResponseSchema = z.object({
+  nhits: z.number(),
+  records: z.array(
+    z.object({ recordid: z.string(), fields: LocationsFieldsSchema }),
+  ),
+});
+
+// Strip the prefixes/articles/suffixes that differ between the primary feed's
+// display names and the locations dataset's names so e.g. "B-Park Dampoort"
+// matches "Dampoort", "Getouw" matches "Het Getouw", and "Center" matches
+// "Center parking".
+function normalizeNameKey(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/^b-park\s+/, "")
+    .replace(/^het\s+/, "")
+    .replace(/\s+parking$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Hand-picked addresses for parkings that the locations dataset can't resolve
+// unambiguously. "The Loop" in the live feed is one entry, but the static
+// catalogue splits it into A0/B/C/D on different streets — pick the central
+// access road shared by Loop B and Loop C.
+const ADDRESS_OVERRIDES: Record<string, string> = {
+  "the loop": "Louis Blériotlaan",
+};
+
+async function fetchAddressOverrides(): Promise<{
+  addresses: Map<string, string>;
+  call: RawApiCall;
+}> {
+  const { json, record } = await fetchAndRecord({
+    id: "locaties-openbare-parkings-gent",
+    title: "locaties-openbare-parkings-gent",
+    subtitle: "gent.opendatasoft.com — static parking locations",
+    url: LOCATIONS_ENDPOINT,
+  });
+  const parsed = LocationsResponseSchema.parse(json);
+  const byKey = new Map<string, string>();
+  // Track keys whose records disagree on address — drop them so we never
+  // guess (e.g. "The Loop" splits into A0/B/C/D with different streets, but
+  // those normalize to distinct keys anyway; this is a defensive belt).
+  const conflicts = new Set<string>();
+  for (const r of parsed.records) {
+    const f = r.fields;
+    if (!f.naam || !f.straatnaam) continue;
+    const key = normalizeNameKey(f.naam);
+    const addr = f.huisnr ? `${f.straatnaam} ${f.huisnr}` : f.straatnaam;
+    const existing = byKey.get(key);
+    if (existing && existing !== addr) conflicts.add(key);
+    else byKey.set(key, addr);
+  }
+  for (const k of conflicts) byKey.delete(k);
+  return { addresses: byKey, call: record };
+}
+
+function enrichAddress(
+  parking: Parking,
+  addresses: Map<string, string>,
+): Parking {
+  if (parking.address) return parking;
+  const key = normalizeNameKey(parking.name);
+  const found = ADDRESS_OVERRIDES[key] ?? addresses.get(key);
+  return found ? { ...parking, address: found } : parking;
+}
+
 async function fetchMobiFallbackParkings(): Promise<{
   parkings: Parking[];
   rawById: Record<string, MobiRecord>;
@@ -190,33 +272,50 @@ async function fetchParkingsResponse(): Promise<{
   // Live data — never cache. Auto-refresh on the client triggers
   // router.refresh() which re-runs this fetch on the server.
   const calls: RawApiCall[] = [];
-  const { json, record } = await fetchAndRecord({
-    id: "bezetting-parkeergarages-real-time",
-    title: "bezetting-parkeergarages-real-time",
-    subtitle: "gent.opendatasoft.com — primary live feed",
-    url: ENDPOINT,
-  }).catch((err: Error & { record?: RawApiCall }) => {
-    if (err.record) calls.push(err.record);
-    throw err;
-  });
+  // Kick off all three feeds in parallel: primary (live, required), mobi
+  // (interparking fallback, optional) and locations (static address book,
+  // optional). Both optional feeds must not break the page if they fail.
+  const [primaryResult, mobiResult, locationsResult] = await Promise.allSettled([
+    fetchAndRecord({
+      id: "bezetting-parkeergarages-real-time",
+      title: "bezetting-parkeergarages-real-time",
+      subtitle: "gent.opendatasoft.com — primary live feed",
+      url: ENDPOINT,
+    }),
+    fetchMobiFallbackParkings(),
+    fetchAddressOverrides(),
+  ]);
+
+  if (primaryResult.status === "rejected") {
+    const e = primaryResult.reason as Error & { record?: RawApiCall };
+    if (e.record) calls.push(e.record);
+    throw primaryResult.reason;
+  }
+  const { json, record } = primaryResult.value;
   calls.push(record);
   const parsed = RawResponseSchema.parse(json);
-  const parkings = parsed.records.map(normalizeParking);
+  let parkings = parsed.records.map(normalizeParking);
 
-  // Best-effort append of the two Interparking garages from the secondary
-  // feed. Primary always wins on overlap (by id), and a failure here must not
-  // break the page — the secondary feed has occasional outages.
-  try {
-    const { parkings: fallback, call } = await fetchMobiFallbackParkings();
-    calls.push(call);
+  if (mobiResult.status === "fulfilled") {
+    calls.push(mobiResult.value.call);
     const knownIds = new Set(parkings.map((p) => p.id));
-    for (const extra of fallback) {
+    for (const extra of mobiResult.value.parkings) {
       if (!knownIds.has(extra.id)) parkings.push(extra);
     }
-  } catch (err) {
-    const e = err as Error & { record?: RawApiCall };
+  } else {
+    const e = mobiResult.reason as Error & { record?: RawApiCall };
     if (e.record) calls.push(e.record);
     /* swallow — secondary feed is unreliable by design */
+  }
+
+  if (locationsResult.status === "fulfilled") {
+    calls.push(locationsResult.value.call);
+    const { addresses } = locationsResult.value;
+    parkings = parkings.map((p) => enrichAddress(p, addresses));
+  } else {
+    const e = locationsResult.reason as Error & { record?: RawApiCall };
+    if (e.record) calls.push(e.record);
+    /* swallow — address enrichment is best-effort */
   }
 
   // Stable name sort by default so the order is deterministic across refreshes.
@@ -255,27 +354,40 @@ export async function fetchParkingDetailById(id: string): Promise<
   | null
 > {
   const calls: RawApiCall[] = [];
-  let primary: RawListResponse;
-  try {
-    const { json, record } = await fetchAndRecord({
+  // Primary is required; locations runs in parallel since most parkings live
+  // in the primary feed and benefit from address enrichment.
+  const [primaryResult, locationsResult] = await Promise.allSettled([
+    fetchAndRecord({
       id: "bezetting-parkeergarages-real-time",
       title: "bezetting-parkeergarages-real-time",
       subtitle: "gent.opendatasoft.com — primary live feed",
       url: ENDPOINT,
-    });
-    calls.push(record);
-    primary = RawResponseSchema.parse(json);
-  } catch (err) {
-    const e = err as Error & { record?: RawApiCall };
+    }),
+    fetchAddressOverrides(),
+  ]);
+
+  if (primaryResult.status === "rejected") {
+    const e = primaryResult.reason as Error & { record?: RawApiCall };
     if (e.record) calls.push(e.record);
-    throw err;
+    throw primaryResult.reason;
+  }
+  calls.push(primaryResult.value.record);
+  const primary = RawResponseSchema.parse(primaryResult.value.json);
+
+  let addresses: Map<string, string> | null = null;
+  if (locationsResult.status === "fulfilled") {
+    calls.push(locationsResult.value.call);
+    addresses = locationsResult.value.addresses;
+  } else {
+    const e = locationsResult.reason as Error & { record?: RawApiCall };
+    if (e.record) calls.push(e.record);
   }
 
   for (const record of primary.records) {
     const parking = normalizeParking(record);
     if (parking.id === id) {
       return {
-        parking,
+        parking: addresses ? enrichAddress(parking, addresses) : parking,
         raw: record as RawRecord,
         source: PRIMARY_DATASET,
         calls,
@@ -290,7 +402,7 @@ export async function fetchParkingDetailById(id: string): Promise<
     const parking = parkings.find((p) => p.id === id);
     if (parking) {
       return {
-        parking,
+        parking: addresses ? enrichAddress(parking, addresses) : parking,
         raw: rawById[id] as RawRecord,
         source: MOBI_DATASET,
         calls,
