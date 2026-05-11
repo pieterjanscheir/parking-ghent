@@ -14,8 +14,8 @@ Will only take Kouter, Zuid and Center from it. + take the images as well from t
 - (DONE) Adapt main loading skeleton based on list view vs card view and amount of favorites.
 - (DONE) Remove the formatted json
 - (DONE) Sometimes you'll see it says that the amount that is free in a parking is -1 or so. So handle this gracefully because it won't work well with the percentages and so on. So yeah, prepare for that. 
+- (DONE) add vitest unit tests
 
-- add dutch to the app? (https://next-intl.dev/)
-- Have an embedded google map where all parkings are shown.
-- add vitest unit tests
+- (WON'T DO - NO TIME) Add dutch to the app? (https://next-intl.dev/)
+- (WON'T DO - NO TIME) Have an embedded google map where all parkings are shown.
 - Update Readme
