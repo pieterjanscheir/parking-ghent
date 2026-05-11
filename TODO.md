@@ -9,9 +9,9 @@ Will only take Kouter, Zuid and Center from it. + take the images as well from t
 - (DONE) update favicon. 
 - (DONE) Figure out addresses - some aren't known and should I display P+R? different api... => https://gent.opendatasoft.com/explore/dataset/locaties-openbare-parkings-gent/table/
 - (DONE) remove unused shadcn/ui components
+- (DONE) If the user navigates to a certain parking page and they have not filled in their profile information yet, they should instead be rerouted to the profile page. 
 
 - add dutch to the app? (https://next-intl.dev/)
-- If the user navigates to a certain parking page and they have not filled in their profile information yet, they should instead be rerouted to the profile page. 
 - personalize loading skeleton for the profile page so it fits it better. 
 - Adapt main loading skeleton based on list view vs card view and amount of favorites.
 - Have an embedded google map where all parkings are shown.

@@ -24,6 +24,7 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { JsonBlock } from "@/components/json-block";
 import { ParkingActions } from "@/components/parking-actions";
 import { ParkingHistoryChart } from "@/components/parking-history-chart";
+import { ProfileRequired } from "@/components/profile-required";
 import {
   ParkingStatusBadge,
   MetaBadge,
@@ -62,6 +63,7 @@ export default async function ParkingDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
+      <ProfileRequired />
       <Link
         href="/"
         className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
