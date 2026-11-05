@@ -55,29 +55,30 @@ function trendLabel(trend: Trend, currentFree: number): BadgeContent {
   const f = trend.forecast;
   const delta = f.predictedFreeSpaces - currentFree;
   const horizon = f.horizonMinutes;
+  const [lo, hi] = f.freeSpacesBand;
 
-  // Phrase the change against "now" so the direction word and the number
-  // tell the same story (e.g. "Filling up" + "16 fewer than now"). For the
-  // "steady" case the slope wasn't statistically real, so don't bake a
-  // directional delta into the headline — let the band on line 3 carry the
-  // uncertainty.
   let primary: string;
-  if (trend.direction === "steady") {
-    primary = `In ${horizon} min: no clear change expected · ${f.freeSpacesBand[0]}–${f.freeSpacesBand[1]} free`;
+  if (f.method === "persistence") {
+    primary = `Too erratic to forecast · likely ${lo}–${hi} free in ${horizon} min`;
+  } else if (f.minutesUntilFull !== null) {
+    primary = `Likely full in ~${f.minutesUntilFull} min`;
+  } else if (trend.direction === "steady") {
+    primary = `In ${horizon} min: no clear change · likely ${lo}–${hi} free`;
   } else {
     const deltaPhrase =
-      delta === 0
-        ? "no change from now"
-        : delta < 0
-          ? `${Math.abs(delta)} fewer space${Math.abs(delta) === 1 ? "" : "s"} than now`
-          : `${delta} more space${delta === 1 ? "" : "s"} than now`;
+      delta < 0
+        ? `${Math.abs(delta)} fewer than now`
+        : `${delta} more than now`;
     primary = `In ${horizon} min: ~${f.predictedFreeSpaces} free · ${deltaPhrase}`;
   }
 
-  const slope = trend.slopePerHour;
-  const se = trend.slopeStdErr;
-  const slopeSign = slope >= 0 ? "+" : "−";
-  const secondary = `${slopeSign}${Math.abs(slope).toFixed(1)}±${se.toFixed(1)} pp/h occupied · 95% band ${f.freeSpacesBand[0]}–${f.freeSpacesBand[1]} free`;
+  const acc = f.accuracy;
+  const secondary =
+    acc.backtestCount > 0 && Number.isFinite(acc.maeSpaces)
+      ? f.method === "trend"
+        ? `Off by ~${Math.round(acc.maeSpaces)} spaces on average at ${horizon} min over the last few hours (${Math.round(acc.skill * 100)}% better than assuming no change)`
+        : `Following the trend did worse than assuming no change here recently`
+      : "Not enough history yet to measure accuracy";
 
   if (trend.direction === "rising") {
     return { label: "Filling up", primary, secondary, Icon: TrendingUp, tone: "rising" };
@@ -172,7 +173,7 @@ export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
           <p className="text-xs text-muted-foreground">
             {points.length} samples · last {minutesSpan} min ·{" "}
             {formatTime(firstTs)} → {formatTime(lastTs)}
-            {trend ? ` · forecast +${trend.forecast.horizonMinutes} min` : ""}
+            {trend ? " · forecast next 60 min" : ""}
           </p>
         </div>
         {trend ? (
@@ -187,7 +188,7 @@ export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <ComposedChart
             data={data}
-            margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
+            margin={{ top: 8, right: 8, bottom: 0, left: -4 }}
           >
             <defs>
               <linearGradient id="freeFill" x1="0" y1="0" x2="0" y2="1">
@@ -309,6 +310,18 @@ export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
         </ResponsiveContainer>
       </div>
 
+      {trend ? (
+        <div className="grid grid-cols-3 gap-3 text-center sm:text-left">
+          {trend.forecast.horizons.map((h) => (
+            <Stat
+              key={h.minutes}
+              label={`In ${h.minutes} min`}
+              value={`~${h.freeSpaces}`}
+              detail={h.freeLo === h.freeHi ? undefined : `${h.freeLo}–${h.freeHi}`}
+            />
+          ))}
+        </div>
+      ) : null}
       <div className="grid grid-cols-3 gap-3 text-center sm:text-left">
         <Stat label="Min free" value={minFree} />
         <Stat label="Max free" value={maxFree} />
@@ -350,7 +363,15 @@ function TrendBadge({
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: number | string;
+  detail?: string;
+}) {
   return (
     <div className="rounded-md border border-border/60 bg-muted/30 px-3 py-2">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -358,6 +379,11 @@ function Stat({ label, value }: { label: string; value: number }) {
       </div>
       <div className="font-heading text-lg font-semibold tabular-nums">
         {value}
+        {detail ? (
+          <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+            {detail}
+          </span>
+        ) : null}
       </div>
     </div>
   );
@@ -386,7 +412,7 @@ function HistoryTooltip({
           {formatTime(p.t)} · forecast
         </div>
         <div className="mt-0.5 text-muted-foreground tabular-nums">
-          ≈ {p.forecastFree} free (95% CI {lo}–{hi}) of {totalSpaces}
+          ≈ {p.forecastFree} free (likely {lo}–{hi}) of {totalSpaces}
         </div>
       </div>
     );

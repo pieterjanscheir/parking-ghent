@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   useReactTable,
   type ColumnDef,
   type SortingState,
@@ -18,6 +17,8 @@ import { FavoriteButton } from "./favorite-button";
 import { LiveDataWarning } from "./live-data-warning";
 import { ParkingStatusBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
+import { ForecastHint } from "./forecast-hint";
+import { formatDistance } from "@/lib/geo";
 import {
   Table,
   TableBody,
@@ -33,6 +34,7 @@ import type { SortKey } from "@/lib/parkings";
 type Props = {
   parkings: Parking[];
   trendsById: Record<string, Trend>;
+  distances: Record<string, number | null>;
   sort: SortKey;
   onSortChange: (next: SortKey) => void;
 };
@@ -49,6 +51,8 @@ const SORT_KEY_MAP: Record<
 
 function deriveSorting(sort: SortKey): SortingState {
   switch (sort) {
+    case "distance":
+      return [];
     case "name-asc":
       return [{ id: "name", desc: false }];
     case "name-desc":
@@ -67,6 +71,7 @@ function deriveSorting(sort: SortKey): SortingState {
 export function ParkingListView({
   parkings,
   trendsById,
+  distances,
   sort,
   onSortChange,
 }: Props) {
@@ -93,7 +98,10 @@ export function ParkingListView({
             {isFavorite(row.original.id) ? (
               <Star className="size-3 fill-primary text-primary" />
             ) : null}
-            <span className="font-medium">{row.original.name}</span>
+            <div className="min-w-0">
+              <span className="font-medium">{row.original.name}</span>
+              <ForecastHint parking={row.original} trend={trendsById[row.original.id] ?? null} className="flex" />
+            </div>
           </div>
         ),
       },
@@ -188,14 +196,18 @@ export function ParkingListView({
         accessorKey: "address",
         enableSorting: false,
         header: "Address",
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.address}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const d = distances[row.original.id];
+          return (
+            <span className="text-sm text-muted-foreground">
+              {row.original.address}
+              {d !== null && d !== undefined ? ` · ${formatDistance(d)}` : ""}
+            </span>
+          );
+        },
       },
     ],
-    [isFavorite, trendsById],
+    [isFavorite, trendsById, distances],
   );
 
   const sorting = useMemo(() => deriveSorting(sort), [sort]);
@@ -217,9 +229,10 @@ export function ParkingListView({
     data: parkings,
     columns,
     state: tableState,
-    manualSorting: false,
+    // Rows arrive pre-sorted by sortParkings (which also handles distance
+    // and pushes closed parkings last); the table only renders the arrows.
+    manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     onSortingChange: handleSortingChange,
   });
 

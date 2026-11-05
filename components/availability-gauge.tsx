@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type Bucket = "available" | "almost-full" | "full" | "closed";
+export type Bucket = "available" | "almost-full" | "full" | "closed";
 
 type Props = {
   percent: number;
@@ -10,7 +10,7 @@ type Props = {
   className?: string;
 };
 
-const BUCKET_COLOR: Record<Bucket, string> = {
+export const BUCKET_COLOR: Record<Bucket, string> = {
   available: "oklch(0.72 0.17 142)",
   "almost-full": "oklch(0.75 0.16 70)",
   full: "oklch(0.66 0.21 25)",
