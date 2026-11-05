@@ -30,7 +30,8 @@ Built in the same three-hour window because the data made them cheap:
 - **Auto-refresh** — visibility-aware polling (default 60 s, configurable, pauses when the tab is hidden), with a manual refresh button and last-updated stamp.
 - **Navigation/contact actions** — open in Google Maps / Waze / Apple Maps, call the published phone number, share via Web Share API (falls back to clipboard).
 - **Live-data warning** — banner when a feed entry looks stale or returns `-1` free spaces.
-- **Vitest unit tests** — schema parsing, fetch merging, history pagination, profile schema.
+- **Vitest tests** — schema parsing, fetch merging, history pagination, profile schema, plus jsdom tests for the localStorage-backed hooks (favorites, profile, auto-refresh) and a few components.
+- **CI** — GitHub Actions runs lint, typecheck, tests (with coverage) and a production build on every push and PR.
 
 ### What I didn't do (and why)
 
@@ -79,9 +80,16 @@ Open [http://localhost:3000](http://localhost:3000). The first paint will show t
 | `pnpm dev`         | Start the dev server                  |
 | `pnpm build`       | Production build                      |
 | `pnpm start`       | Serve the production build            |
-| `pnpm lint`        | Run ESLint                            |
+| `pnpm lint`        | Run ESLint (fails on warnings)        |
+| `pnpm typecheck`   | Run `tsc --noEmit`                    |
 | `pnpm test`        | Run the Vitest suite once             |
 | `pnpm test:watch`  | Run Vitest in watch mode              |
+| `pnpm test:coverage` | Run Vitest with a coverage report   |
+| `pnpm ci`          | Everything CI runs, in order          |
+
+### CI
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs `lint → typecheck → test:coverage → build`. The runner is picked by the repo variable `CI_RUNNER`: set it to `mac-mini` to use the self-hosted Mac mini, or leave it unset for `ubuntu-latest`.
 
 ## Project layout
 
@@ -118,7 +126,7 @@ lib/
   favorites.tsx               FavoritesProvider (localStorage, max 3)
   local-storage-store.ts      SSR-safe localStorage helper
   use-auto-refresh.ts         Visibility-aware refresh hook
-  *.test.ts                   Vitest unit tests
+  *.test.ts(x)                Vitest unit / hook tests
 ```
 
 ## Data sources
