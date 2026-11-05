@@ -238,7 +238,9 @@ export function computeTrend(points: HistoryPoint[]): Trend | null {
 
   // Trust the trend unless replaying this parking's history says it hurts.
   // With too little history to judge, go with the trend (it wins on average).
-  const method: ForecastMethod = !haveBacktest || skill > 0 ? "trend" : "persistence";
+  // A zero baseline error means nothing moved, so the trend can't have hurt.
+  const trendHurt = haveBacktest && naive.mae > 0 && skill <= 0;
+  const method: ForecastMethod = trendHurt ? "persistence" : "trend";
   const widths = bandWidths(method === "trend" ? bt.model : bt.naive, totalSpaces);
   const slope = method === "trend" ? recentSlope(points) : 0;
   const now = newest.freeSpaces;
@@ -317,7 +319,8 @@ export function computeTrend(points: HistoryPoint[]): Trend | null {
         maeSpaces: chosen.mae,
         naiveMaeSpaces: naive.mae,
         skill: method === "trend" ? skill : 0,
-        backtestCount: chosen.n,
+        // 0 when the sample is too small to trust, so the UI says so.
+        backtestCount: haveBacktest ? chosen.n : 0,
       },
     },
   };

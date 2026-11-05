@@ -12,6 +12,10 @@ export function forecastHint(parking: Parking, trend: Trend | null): Hint | null
   if (f.minutesUntilFull !== null) {
     return { text: `Likely full in ~${f.minutesUntilFull} min`, tone: "warn" };
   }
+  // The trend was rejected for this garage: don't imply it's stable.
+  if (f.method === "persistence") {
+    return { text: "Hard to predict right now", tone: "neutral" };
+  }
   if (trend.direction === "steady") {
     return { text: `Stable for the next ${f.horizonMinutes} min`, tone: "neutral" };
   }

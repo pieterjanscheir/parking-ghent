@@ -272,7 +272,7 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
             disabled={geo.status === "locating"}
             className="gap-1.5"
           >
-            <LocateFixed className={cn("size-3.5", geo.status === "locating" && "animate-pulse")} />
+            <LocateFixed className={cn("size-3.5", geo.status === "locating" && "motion-safe:animate-pulse")} />
             {geo.status === "locating" ? "Locating…" : "Near me"}
           </Button>
           <Select

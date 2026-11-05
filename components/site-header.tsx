@@ -20,7 +20,7 @@ export function SiteHeader() {
           </span>
         </Link>
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="size-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden />
+          <span className="size-1.5 motion-safe:animate-pulse rounded-full bg-emerald-400" aria-hidden />
           Live data · Stad Gent
         </span>
       </div>

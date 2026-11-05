@@ -152,3 +152,19 @@ describe("computeTrend — robustness", () => {
     expect(computeTrend(pts)).not.toBeNull();
   });
 });
+
+describe("computeTrend — review fixes", () => {
+  it("keeps the trend method when nothing moved (zero baseline error)", () => {
+    const t = computeTrend(series(() => 200, { noise: 0 }))!;
+    expect(t.forecast.accuracy.naiveMaeSpaces).toBe(0);
+    expect(t.forecast.method).toBe("trend");
+    expect(t.direction).toBe("steady");
+  });
+
+  it("reports backtestCount 0 when the backtest is too small to trust", () => {
+    // Just over the 20-min slope window: at most a couple of backtest origins.
+    const t = computeTrend(series((m) => 300 - m, { minutes: 24 }))!;
+    expect(t.forecast.accuracy.backtestCount).toBe(0);
+    expect(t.confidence).toBe("low");
+  });
+});
