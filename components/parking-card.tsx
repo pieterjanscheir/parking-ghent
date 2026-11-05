@@ -8,13 +8,17 @@ import { FavoriteButton } from "./favorite-button";
 import { LiveDataWarning } from "./live-data-warning";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
+import { ForecastHint } from "./forecast-hint";
+import { formatDistance } from "@/lib/geo";
 
 export function ParkingCard({
   parking,
   trend,
+  distanceKm = null,
 }: {
   parking: Parking;
   trend: Trend | null;
+  distanceKm?: number | null;
 }) {
   return (
     <Link
@@ -34,6 +38,9 @@ export function ParkingCard({
             <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
               <MapPin className="size-3" />
               <span className="truncate">{parking.address}</span>
+              {distanceKm !== null && distanceKm !== undefined ? (
+                <span className="shrink-0 text-foreground/80">· {formatDistance(distanceKm)}</span>
+              ) : null}
             </p>
           ) : null}
         </div>
@@ -68,6 +75,7 @@ export function ParkingCard({
           <span className="text-xs text-muted-foreground">
             of {parking.totalSpaces} free
           </span>
+          <ForecastHint parking={parking} trend={trend} className="mt-1" />
         </div>
       </div>
 

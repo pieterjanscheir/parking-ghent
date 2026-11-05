@@ -1,49 +1,39 @@
 # Ghent Parking
 
-Live availability for Ghent's parking garages, built against the city's open data feeds.
+Live availability for Ghent's parking garages, built on the city's open data feeds. Open it, see where there's space, and get a short-term forecast of how that will change before you arrive. No sign-up, no personal data.
 
-Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)) with a three-hour budget. The implementation plan is in [PLAN.md](PLAN.md), the visual system in [THEME.md](THEME.md), and the working punch list in [TODO.md](TODO.md).
+Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); since reworked into a public tool. The original plan is in [PLAN.md](PLAN.md), the visual system in [THEME.md](THEME.md).
 
-## How this maps to the assignment
+## Features
 
-The brief asks for a small React app that helps the Lynx team check parking availability around the Kouter office before driving in. Everything the assignment lists is implemented, plus both bonus items:
+- **Overview built for "where can I park?"** — headline stats (open garages, garages with space, total free spaces, the emptiest garage), sorted by most free spaces by default, with closed or no-data garages pushed to the bottom ([components/parking-overview.tsx](components/parking-overview.tsx), sorting in [lib/parkings.ts](lib/parkings.ts)).
+- **Map view** — every garage on one map with its live free-space count, coloured by availability ([components/parking-map.tsx](components/parking-map.tsx), Leaflet + OpenStreetMap).
+- **Near me** — optional browser geolocation to sort by distance and show how far each garage is. The location stays in memory, is never stored, and is never sent anywhere ([lib/use-geolocation.ts](lib/use-geolocation.ts)).
+- **Open with space** quick filter, plus search by name or street and status / LEZ / type / availability filters, all synced to the URL so any view is shareable.
+- **Short-term forecast** on cards ("~120 free in 30 min", "Likely full in ~20 min") and a 60-minute forecast with ranges on detail pages — see [Forecasting](#forecasting).
+- **Favorites** — pin up to 3 garages to the top (stored only in the browser).
+- **Detail pages** — opening hours, operator, LEZ, embedded map, navigation via Google Maps / Waze / Apple Maps, call, share.
+- **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh.
+- **Live-data warning** when a feed entry looks stale or returns `-1` free spaces, and a clear message when the feed is down.
 
-| Assignment | Where it lives |
-| --- | --- |
-| First-visit form (first name, last name, license plate, car make/model) persisted across reloads | [components/onboarding-form.tsx](components/onboarding-form.tsx), schema in [lib/profile.schema.ts](lib/profile.schema.ts), persistence in [lib/profile.tsx](lib/profile.tsx) |
-| Form hidden once the profile exists on the device | Gated by [components/profile-required.tsx](components/profile-required.tsx) on `/` and on every detail page |
-| Profile page that edits and fully deletes the stored profile | [app/profile/](app/profile/) |
-| Overview with name, open/closed, free spaces, address | [components/parking-card.tsx](components/parking-card.tsx) and [components/parking-list-view.tsx](components/parking-list-view.tsx) |
-| Sort by name asc/desc, sort by free spaces asc/desc, search by name | [lib/parkings.ts](lib/parkings.ts) (`SORT_KEYS`, `sortParkings`) wired through [components/parking-overview.tsx](components/parking-overview.tsx) |
-| Detail page with name, description, opening hours, website, operator, LEZ category, type | [app/parkings/[id]/page.tsx](app/parkings/%5Bid%5D/page.tsx) |
-| **Bonus** — favorite parking pinned at the top | Up to 3 favorites as hero cards ([components/parking-hero-card.tsx](components/parking-hero-card.tsx)), state in [lib/favorites.tsx](lib/favorites.tsx) |
-| **Bonus** — embedded Google Map on the detail page | iframe embed in [app/parkings/[id]/page.tsx](app/parkings/%5Bid%5D/page.tsx) |
+## Forecasting
 
-### Beyond the brief
+The city publishes only ~3 hours of minute-level history per garage, and there is no longer archive, so there are no daily or weekly patterns to learn from. The model in [lib/forecast.ts](lib/forecast.ts) is deliberately simple:
 
-Built in the same three-hour window because the data made them cheap:
+```
+predicted free(t + m) = now + K · slope · τ · (1 − e^(−m/τ))
+```
 
-- **Parking Kouter, Zuid, Center** — the primary `bezetting-parkeergarages-real-time` feed doesn't include the Interparking garages, including the one directly under the Lynx office. Pulled from the secondary `mobi-parkings` feed and merged in ([lib/parkings.ts:7-26](lib/parkings.ts#L7-L26)).
-- **Address fill-in** — primary feed leaves some addresses as `?`; backfilled from `locaties-openbare-parkings-gent` ([lib/parkings.ts:14-18](lib/parkings.ts#L14-L18)).
-- **Occupancy history + trend** — `recente-bezetting-*` per-garage feeds power a recharts chart with a filling / emptying / stable indicator on detail pages ([components/parking-history-chart.tsx](components/parking-history-chart.tsx), [lib/parking-history.ts](lib/parking-history.ts)).
-- **Filters + URL state** — status, LEZ, type, and availability bucket filters, plus list/card view toggle, all synced to the URL via nuqs so any view is shareable.
-- **Auto-refresh** — visibility-aware polling (default 60 s, configurable, pauses when the tab is hidden), with a manual refresh button and last-updated stamp.
-- **Navigation/contact actions** — open in Google Maps / Waze / Apple Maps, call the published phone number, share via Web Share API (falls back to clipboard).
-- **Live-data warning** — banner when a feed entry looks stale or returns `-1` free spaces.
-- **Vitest unit tests** — schema parsing, fetch merging, history pagination, profile schema.
+`slope` is the least-squares trend over the last 20 minutes (K = 0.75, τ = 15 min). The predicted change levels off instead of growing forever, because garages rarely keep filling at their current rate for a whole hour.
 
-### What I didn't do (and why)
+**How it was chosen.** On a replay of the live feeds (each forecast uses only data before its start time) it beat "nothing changes" by ~13% at 15 min, ~11% at 30 min and ~5% at 60 min. The previous model (a plain 60-minute linear extrapolation) did *worse* than "nothing changes", and its "95%" band held the real value only ~40% of the time. Settings near the chosen ones score within about a percent, so the constants aren't tuned to one afternoon, but the evaluation covers only a few hours of data, so treat the exact percentages as indicative.
 
-These were considered and consciously cut to stay inside the three-hour budget; see the bottom of [TODO.md](TODO.md):
+**Per-garage checks.** Each forecast is replayed against that garage's own recent history, which gives:
+- an accuracy line on the detail page ("off by ~11 spaces at 30 min, 14% better than assuming no change"),
+- prediction ranges taken from the actual errors at each horizon (no Gaussian assumption), and
+- a kill switch: if following the trend recently did worse than "nothing changes" for that garage, the app falls back to that and says so.
 
-- **Dutch translations** via `next-intl`. English-only for now.
-- **An embedded map showing all parkings at once** alongside the per-parking map.
-
-The "live availability for some surface lots" gap is a data-source limitation — those lots aren't published in any of the three feeds.
-
-## Workflow
-
-20 small commits over ~3h on a single branch — see `git log` for the play-by-play. The shape: scaffold → data layer → list/detail UI → bonuses → polish (loading states, profile gate, tests, docs). [TODO.md](TODO.md) is the running scratchpad I kept open while working; left intact on purpose as a record of what I considered and decided.
+Forecasts exist only for the city-run garages that publish history (see `HISTORY_DATASETS` in [lib/parking-history.ts](lib/parking-history.ts)).
 
 ## Stack
 
@@ -53,7 +43,7 @@ The "live availability for some surface lots" gap is a data-source limitation �
 - **nuqs** for URL-synced search / sort / filters / view
 - **@tanstack/react-table** for the list view
 - **recharts** for the occupancy-history chart
-- **react-hook-form** + `zodResolver` for the profile form
+- **Leaflet** + **react-leaflet** for the overview map (OpenStreetMap tiles)
 - **sonner** for toasts
 - **lucide-react** for icons
 - **Vitest** for unit tests
@@ -70,7 +60,7 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The first paint will show the onboarding form; complete it once and the overview takes over on subsequent visits.
+Open [http://localhost:3000](http://localhost:3000).
 
 ### Scripts
 
@@ -87,11 +77,12 @@ Open [http://localhost:3000](http://localhost:3000). The first paint will show t
 
 ```
 app/                          App Router routes
-  page.tsx                    Overview (server) + onboarding gate
+  page.tsx                    Overview (server)
   parkings/[id]/              Detail page (server) + loading / error / not-found
-  profile/                    Profile edit + delete
 components/                   UI building blocks
-  parking-overview.tsx        Overview client shell (search / sort / filter / view)
+  parking-overview.tsx        Overview client shell (summary / search / sort / filter / view)
+  parking-map.tsx             Leaflet map of all parkings (client-only)
+  forecast-hint.tsx           One-line forecast for cards / list / map
   parking-actions.tsx         Maps / Waze / Apple Maps / Call / Share row
   parking-hero-card.tsx       Favorite card
   parking-card.tsx            Standard grid card
@@ -104,17 +95,16 @@ components/                   UI building blocks
   auto-refresh-control.tsx    Interval picker + manual refresh
   favorite-button.tsx         Favorite toggle
   live-data-warning.tsx       Stale-feed banner
-  onboarding-form.tsx         First-visit profile form
-  profile-required.tsx        Profile gate wrapper
   trend-indicator.tsx         Filling / emptying / stable badge
   site-header.tsx, site-footer.tsx
   ui/                         shadcn primitives
 lib/
   parkings.ts                 Server fetchers + merge across feeds
   parkings.schema.ts          Zod schema + Parking type + normaliser
-  parking-history.ts          History fetcher + trend calculation
-  profile.tsx                 ProfileProvider (localStorage)
-  profile.schema.ts           Zod schema for the profile form
+  parking-history.ts          History fetcher
+  forecast.ts                 Forecast model + per-parking backtest
+  geo.ts                      Distance helpers
+  use-geolocation.ts          Opt-in browser location
   favorites.tsx               FavoritesProvider (localStorage, max 3)
   local-storage-store.ts      SSR-safe localStorage helper
   use-auto-refresh.ts         Visibility-aware refresh hook
@@ -126,7 +116,7 @@ lib/
 All from the City of Ghent open data portal:
 
 - [`bezetting-parkeergarages-real-time`](https://gent.opendatasoft.com/api/records/1.0/search/?dataset=bezetting-parkeergarages-real-time) — primary feed, current availability for most garages.
-- [`mobi-parkings`](https://data.stad.gent/explore/dataset/mobi-parkings/) — secondary feed used only for the three Interparking garages (Kouter, Zuid, Center) the primary feed omits.
+- [`mobi-parkings`](https://data.stad.gent/explore/dataset/mobi-parkings/) — secondary feed for the three Interparking garages (Kouter, Zuid, Center) the primary feed omits. **As of November 2026 this dataset has been removed from the portal (404)**, so those garages don't show up; the app tolerates the failure.
 - [`locaties-openbare-parkings-gent`](https://gent.opendatasoft.com/explore/dataset/locaties-openbare-parkings-gent/) — static catalogue used to backfill missing addresses.
 - `recente-bezetting-parking-<name>-gent` — per-garage recent-occupancy series powering the detail-page history chart (only published for a subset of garages).
 

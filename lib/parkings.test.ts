@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   filterParkings,
+  isUsable,
   sortParkings,
   uniqueTypes,
   type Filters,
@@ -176,5 +177,85 @@ describe("uniqueTypes", () => {
     expect(uniqueTypes(list)).toEqual([
       { value: "carPark", label: "Indoor garage" },
     ]);
+  });
+});
+
+describe("sortParkings — availability-first", () => {
+  const list = [
+    p({ id: "closed", name: "Closed", isOpen: false, freeSpaces: 500, bucket: "closed" }),
+    p({ id: "nodata", name: "NoData", hasLiveData: false, freeSpaces: 0, bucket: "closed" }),
+    p({ id: "small", name: "Small", freeSpaces: 10 }),
+    p({ id: "big", name: "Big", freeSpaces: 300 }),
+  ];
+
+  it("puts closed / no-data parkings last when sorting by space", () => {
+    expect(sortParkings(list, "spaces-desc").map((x) => x.id)).toEqual([
+      "big",
+      "small",
+      "closed",
+      "nodata",
+    ]);
+    expect(sortParkings(list, "spaces-asc").slice(0, 2).map((x) => x.id)).toEqual([
+      "small",
+      "big",
+    ]);
+  });
+
+  it("keeps name sorts purely alphabetical", () => {
+    expect(sortParkings(list, "name-asc")[0].id).toBe("big");
+  });
+});
+
+describe("sortParkings — distance", () => {
+  const here = { lat: 51.054, lng: 3.72 };
+  const list = [
+    p({ id: "far", lat: 51.1, lng: 3.8 }),
+    p({ id: "near", lat: 51.055, lng: 3.721 }),
+    p({ id: "near-full", lat: 51.0541, lng: 3.7201, bucket: "full", freeSpaces: 1 }),
+    p({ id: "unknown", lat: null, lng: null }),
+  ];
+
+  it("orders usable parkings by distance, unusable ones last", () => {
+    expect(sortParkings(list, "distance", here).map((x) => x.id)).toEqual([
+      "near",
+      "far",
+      "unknown",
+      "near-full",
+    ]);
+  });
+
+  it("falls back to most free spaces without a location", () => {
+    const l = [p({ id: "a", freeSpaces: 5 }), p({ id: "b", freeSpaces: 50 })];
+    expect(sortParkings(l, "distance", null).map((x) => x.id)).toEqual(["b", "a"]);
+  });
+});
+
+describe("filterParkings — quick filters", () => {
+  const list = [
+    p({ id: "ok", name: "Ok", address: "Kouter 1" }),
+    p({ id: "full", name: "Full", bucket: "full" }),
+    p({ id: "closed", name: "Shut", isOpen: false, bucket: "closed" }),
+    p({ id: "nodata", name: "Blind", hasLiveData: false, bucket: "closed" }),
+  ];
+
+  it("onlyAvailable keeps parkings that are open with live space", () => {
+    expect(
+      filterParkings(list, { ...emptyFilters, onlyAvailable: true }).map((x) => x.id),
+    ).toEqual(["ok"]);
+  });
+
+  it("search also matches the address", () => {
+    expect(filterParkings(list, { ...emptyFilters, q: "kouter" }).map((x) => x.id)).toEqual([
+      "ok",
+    ]);
+  });
+});
+
+describe("isUsable", () => {
+  it("requires open, live data and not full", () => {
+    expect(isUsable(p())).toBe(true);
+    expect(isUsable(p({ isOpen: false }))).toBe(false);
+    expect(isUsable(p({ hasLiveData: false }))).toBe(false);
+    expect(isUsable(p({ bucket: "full" }))).toBe(false);
   });
 });

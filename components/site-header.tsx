@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CircleParking, User } from "lucide-react";
+import { CircleParking } from "lucide-react";
 
 export function SiteHeader() {
   return (
@@ -19,13 +19,10 @@ export function SiteHeader() {
             Ghent Parking
           </span>
         </Link>
-        <Link
-          href="/profile"
-          className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/50 px-3 py-1.5 text-sm text-muted-foreground transition-all hover:border-border hover:bg-card hover:text-foreground"
-        >
-          <User className="size-3.5" />
-          <span>Profile</span>
-        </Link>
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="size-1.5 motion-safe:animate-pulse rounded-full bg-emerald-400" aria-hidden />
+          Live data · Stad Gent
+        </span>
       </div>
     </header>
   );
