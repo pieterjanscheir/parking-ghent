@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { normalizeParking, RawResponseSchema, type Parking } from "./parkings.schema";
+import { distanceKm, type LatLng } from "./geo";
 
 const ENDPOINT =
   "https://gent.opendatasoft.com/api/records/1.0/search/?dataset=bezetting-parkeergarages-real-time&rows=100";
@@ -418,46 +419,80 @@ export async function fetchParkingDetailById(id: string): Promise<
 }
 
 export type SortKey =
+  | "spaces-desc"
+  | "distance"
+  | "percent-desc"
   | "name-asc"
   | "name-desc"
   | "spaces-asc"
-  | "spaces-desc"
-  | "percent-asc"
-  | "percent-desc";
+  | "percent-asc";
 
 export const SORT_KEYS: readonly SortKey[] = [
+  "spaces-desc",
+  "distance",
+  "percent-desc",
   "name-asc",
   "name-desc",
   "spaces-asc",
-  "spaces-desc",
   "percent-asc",
-  "percent-desc",
 ] as const;
 
+export const DEFAULT_SORT: SortKey = "spaces-desc";
+
 export const SORT_LABELS: Record<SortKey, string> = {
+  "spaces-desc": "Most free spaces",
+  distance: "Nearest to me",
+  "percent-desc": "Emptiest (% free)",
   "name-asc": "Name (A → Z)",
   "name-desc": "Name (Z → A)",
-  "spaces-asc": "Free spaces (low → high)",
-  "spaces-desc": "Free spaces (high → low)",
-  "percent-asc": "% free (low → high)",
-  "percent-desc": "% free (high → low)",
+  "spaces-asc": "Fewest free spaces",
+  "percent-asc": "Fullest (% free)",
 };
 
-export function sortParkings(list: Parking[], key: SortKey): Parking[] {
+// Can you actually drive there and park right now (as far as we know)?
+export function isUsable(p: Parking): boolean {
+  return p.isOpen && p.hasLiveData && p.bucket !== "full";
+}
+
+export function distanceTo(p: Parking, origin: LatLng | null): number | null {
+  if (!origin || p.lat === null || p.lng === null) return null;
+  return distanceKm(origin, { lat: p.lat, lng: p.lng });
+}
+
+// Availability-style sorts push closed / no-data parkings to the end: when
+// you're looking for a spot, "0 free (closed)" is noise, not a result. Name
+// sorts are plain alphabetical. "distance" without a location falls back to
+// most free spaces.
+export function sortParkings(
+  list: Parking[],
+  key: SortKey,
+  origin: LatLng | null = null,
+): Parking[] {
   const sorted = [...list];
+  const usableFirst = (a: Parking, b: Parking) =>
+    Number(b.isOpen && b.hasLiveData) - Number(a.isOpen && a.hasLiveData);
   switch (key) {
     case "name-asc":
       return sorted.sort((a, b) => a.name.localeCompare(b.name));
     case "name-desc":
       return sorted.sort((a, b) => b.name.localeCompare(a.name));
     case "spaces-asc":
-      return sorted.sort((a, b) => a.freeSpaces - b.freeSpaces);
+      return sorted.sort((a, b) => usableFirst(a, b) || a.freeSpaces - b.freeSpaces);
     case "spaces-desc":
-      return sorted.sort((a, b) => b.freeSpaces - a.freeSpaces);
+      return sorted.sort((a, b) => usableFirst(a, b) || b.freeSpaces - a.freeSpaces);
     case "percent-asc":
-      return sorted.sort((a, b) => a.freePercent - b.freePercent);
+      return sorted.sort((a, b) => usableFirst(a, b) || a.freePercent - b.freePercent);
     case "percent-desc":
-      return sorted.sort((a, b) => b.freePercent - a.freePercent);
+      return sorted.sort((a, b) => usableFirst(a, b) || b.freePercent - a.freePercent);
+    case "distance": {
+      if (!origin) return sortParkings(list, "spaces-desc");
+      // Unusable parkings go last even if they're next door.
+      return sorted.sort((a, b) => {
+        const u = Number(isUsable(b)) - Number(isUsable(a));
+        if (u) return u;
+        return (distanceTo(a, origin) ?? Infinity) - (distanceTo(b, origin) ?? Infinity);
+      });
+    }
   }
 }
 
@@ -467,12 +502,21 @@ export type Filters = {
   lez: string[]; // "inside" | "outside"
   type: string[]; // raw type values, e.g. "carPark"
   bucket: string[]; // "available" | "almost-full" | "full"
+  // Quick toggle: only parkings that are open with live space right now.
+  onlyAvailable?: boolean;
 };
 
 export function filterParkings(list: Parking[], filters: Filters): Parking[] {
   const q = filters.q.trim().toLowerCase();
   return list.filter((p) => {
-    if (q && !p.name.toLowerCase().includes(q)) return false;
+    if (filters.onlyAvailable && !isUsable(p)) return false;
+    if (
+      q &&
+      !p.name.toLowerCase().includes(q) &&
+      !p.address.toLowerCase().includes(q)
+    ) {
+      return false;
+    }
     if (filters.status.length > 0) {
       const status = p.isOpen ? "open" : "closed";
       if (!filters.status.includes(status)) return false;

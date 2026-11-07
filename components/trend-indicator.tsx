@@ -48,17 +48,17 @@ const SIZE_CLASS: Record<Size, string> = {
 function tooltipDetail(trend: Trend, currentFree: number): string {
   const f = trend.forecast;
   const horizon = f.horizonMinutes;
+  if (f.method === "persistence") {
+    return "Too unpredictable right now to forecast a change";
+  }
+  if (f.minutesUntilFull !== null) {
+    return `Likely full in about ${f.minutesUntilFull} min`;
+  }
   if (trend.direction === "steady") {
     return `No clear change in the next ${horizon} min`;
   }
   const delta = f.predictedFreeSpaces - currentFree;
   const abs = Math.abs(delta);
-  if (abs === 0) {
-    // Significant slope but forecast hit a boundary (e.g. 0% or 100% clamp).
-    return trend.direction === "rising"
-      ? `Slowly filling up over the next ${horizon} min`
-      : `Slowly emptying over the next ${horizon} min`;
-  }
   const word = abs === 1 ? "space" : "spaces";
   return delta < 0
     ? `About ${abs} fewer ${word} in the next ${horizon} min`

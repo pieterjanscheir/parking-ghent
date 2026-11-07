@@ -9,13 +9,17 @@ import { LiveDataWarning } from "./live-data-warning";
 import { ParkingActions } from "./parking-actions";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
+import { ForecastHint } from "./forecast-hint";
+import { formatDistance } from "@/lib/geo";
 
 export function ParkingHeroCard({
   parking,
   trend,
+  distanceKm = null,
 }: {
   parking: Parking;
   trend: Trend | null;
+  distanceKm?: number | null;
 }) {
   return (
     <Link
@@ -38,6 +42,9 @@ export function ParkingHeroCard({
             <p className="mt-1.5 inline-flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="size-3.5" />
               <span className="truncate">{parking.address}</span>
+              {distanceKm !== null && distanceKm !== undefined ? (
+                <span className="shrink-0 text-foreground/80">· {formatDistance(distanceKm)}</span>
+              ) : null}
             </p>
           ) : null}
         </div>
@@ -72,6 +79,7 @@ export function ParkingHeroCard({
           <span className="mt-1 text-sm text-muted-foreground">
             free of {parking.totalSpaces}
           </span>
+          <ForecastHint parking={parking} trend={trend} className="mt-1.5" />
         </div>
       </div>
 
