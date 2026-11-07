@@ -225,6 +225,9 @@ export function ParkingListView({
     [sorting, onSortChange],
   );
 
+  // TanStack Table is known-incompatible with the React Compiler; the compiler
+  // already skips this component, so the warning carries no action for us.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: parkings,
     columns,

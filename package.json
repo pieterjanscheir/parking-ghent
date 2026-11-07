@@ -6,9 +6,12 @@
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"lint": "eslint",
+		"lint": "eslint --max-warnings=0",
 		"test": "vitest run",
-		"test:watch": "vitest"
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit",
+		"test:coverage": "vitest run --coverage",
+		"verify": "pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build"
 	},
 	"dependencies": {
 		"@tanstack/react-table": "^8.21.3",
@@ -32,14 +35,22 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/postcss": "^4",
+		"@testing-library/dom": "^10.4.2",
+		"@testing-library/react": "^16.3.3",
 		"@types/leaflet": "1.9.20",
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
+		"@vitest/coverage-v8": "4.1.6",
 		"eslint": "^9",
 		"eslint-config-next": "16.2.6",
+		"jsdom": "^31.0.0",
 		"tailwindcss": "^4",
 		"typescript": "^5",
 		"vitest": "^4.1.6"
+	},
+	"packageManager": "pnpm@10.33.0",
+	"engines": {
+		"node": ">=20.9.0"
 	}
 }

@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on the same branch/PR so the (single-job) Mac mini
+# runner doesn't queue up stale work.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  ci:
+    name: Lint, typecheck, test, build
+    # Set the repo variable CI_RUNNER=mac-mini to run on the self-hosted
+    # Mac mini; delete it to fall back to GitHub-hosted runners.
+    # Pull requests from forks always use GitHub-hosted runners so untrusted
+    # code never runs on the persistent Mac mini. (A fork can still edit this
+    # file in its PR, so keep "Require approval for fork PR workflows" on in
+    # Settings → Actions → General as the real gate.)
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests (with coverage)
+        run: pnpm test:coverage
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('app/**', 'components/**', 'lib/**') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      - name: Build
+        run: pnpm build

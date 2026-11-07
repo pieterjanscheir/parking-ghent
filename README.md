@@ -46,7 +46,8 @@ Forecasts exist only for the city-run garages that publish history (see `HISTORY
 - **Leaflet** + **react-leaflet** for the overview map (OpenStreetMap tiles)
 - **sonner** for toasts
 - **lucide-react** for icons
-- **Vitest** for unit tests
+- **Vitest** + Testing Library (jsdom) for unit, hook and component tests
+- **GitHub Actions** CI: lint, typecheck, tests with coverage, production build
 - Fonts: **Geist** (headings + mono), **Raleway** (body) via `next/font/google`
 
 > ⚠️ This is Next.js 16, which has breaking changes from older releases (see [AGENTS.md](AGENTS.md)). Consult `node_modules/next/dist/docs/` before reaching for App Router APIs from memory.
@@ -69,9 +70,16 @@ Open [http://localhost:3000](http://localhost:3000).
 | `pnpm dev`         | Start the dev server                  |
 | `pnpm build`       | Production build                      |
 | `pnpm start`       | Serve the production build            |
-| `pnpm lint`        | Run ESLint                            |
+| `pnpm lint`        | Run ESLint (fails on warnings)        |
+| `pnpm typecheck`   | Run `tsc --noEmit`                    |
 | `pnpm test`        | Run the Vitest suite once             |
 | `pnpm test:watch`  | Run Vitest in watch mode              |
+| `pnpm test:coverage` | Run Vitest with a coverage report   |
+| `pnpm verify`      | Everything CI runs, in order          |
+
+### CI
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs `lint → typecheck → test:coverage → build` on every push to `master` and every PR. The runner is picked by the repo variable `CI_RUNNER`: set it to `mac-mini` to use the self-hosted Mac mini, or leave it unset for `ubuntu-latest`.
 
 ## Project layout
 
@@ -108,7 +116,7 @@ lib/
   favorites.tsx               FavoritesProvider (localStorage, max 3)
   local-storage-store.ts      SSR-safe localStorage helper
   use-auto-refresh.ts         Visibility-aware refresh hook
-  *.test.ts                   Vitest unit tests
+  *.test.ts(x)                Vitest unit / hook tests
 ```
 
 ## Data sources
