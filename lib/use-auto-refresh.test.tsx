@@ -22,6 +22,9 @@ describe("useAutoRefresh", () => {
   afterEach(() => {
     vi.useRealTimers();
     window.localStorage.clear();
+    // Drop the own-property override so `document.hidden` falls back to
+    // jsdom's prototype getter.
+    Reflect.deleteProperty(document, "hidden");
   });
 
   it("ticks on the default interval", () => {
