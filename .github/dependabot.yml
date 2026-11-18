@@ -1,0 +1,27 @@
+# Automated dependency updates.
+# Security updates are raised as soon as an advisory is published (enable
+# "Dependabot security updates" under Settings → Code security).
+# Routine version bumps are batched weekly to keep PR noise low.
+version: 2
+updates:
+  - package-ecosystem: "npm" # also covers pnpm (pnpm-lock.yaml)
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Brussels"
+    open-pull-requests-limit: 5
+    groups:
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
+      minor-and-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
+        patterns: ["*"]
+    ignore:
+      # Major bumps (TypeScript 7, ESLint 10, Vitest 5, TanStack Table 9, ...)
+      # need manual migration; take them deliberately.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
