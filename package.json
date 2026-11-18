@@ -2,6 +2,7 @@
 	"name": "parking-ghent",
 	"version": "0.1.0",
 	"private": true,
+	"packageManager": "pnpm@10.28.0",
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
@@ -46,6 +47,11 @@
 	"pnpm": {
 		"overrides": {
 			"@ts-morph/common>minimatch": "^11.0.1"
+		},
+		"auditConfig": {
+			"ignoreGhsas": [
+				"GHSA-fc5q-39xc-vjpf"
+			]
 		}
 	}
 }

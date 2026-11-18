@@ -1,0 +1,42 @@
+name: Security audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Daily at 06:17 UTC: catches new advisories even when nobody pushes.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pnpm-audit:
+    name: pnpm audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      # pnpm version comes from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      # pnpm audit reads pnpm-lock.yaml directly; no install needed.
+      # Fails on moderate+ advisories. Accepted advisories (no fix yet) are
+      # listed in package.json → pnpm.auditConfig.ignoreGhsas.
+      - name: Audit dependencies
+        run: pnpm audit --audit-level moderate
+
+      - name: Full report (incl. low)
+        if: always()
+        run: pnpm audit || true
