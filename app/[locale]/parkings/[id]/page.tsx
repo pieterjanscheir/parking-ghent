@@ -130,8 +130,13 @@ export default async function ParkingDetailPage({ params }: Props) {
     return <ExtraParkingDetail entry={entry} routes={await approachRoutes(entry.name)} />;
   }
   const { parking } = detail;
-  // Same cached feed as above, so this costs no extra upstream call.
-  const [allParkings, routes] = await Promise.all([fetchParkings(), approachRoutes(parking.name)]);
+  // Normally the same cached feed as above. If the cache just expired and
+  // the feed fails this time, the page goes without the alternatives rather
+  // than fail: the garage itself was read fine.
+  const [allParkings, routes] = await Promise.all([
+    fetchParkings().catch(() => []),
+    approachRoutes(parking.name),
+  ]);
   const alternatives = nearbyAlternatives(parking, allParkings, serverClock());
   const tAlt = await getTranslations("alternatives");
   const tAdvice = await getTranslations("advice");

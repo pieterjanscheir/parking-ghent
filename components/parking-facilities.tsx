@@ -1,6 +1,6 @@
 import { Bus, Info, Tag, Zap } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { noteFor, type LocalizedNote } from "@/lib/directory";
+import { localizedNote, type LocalizedNote } from "@/lib/directory";
 
 type Props = {
   parkAndRide: boolean;
@@ -18,7 +18,7 @@ const TERM =
 export function ParkingFacilities({ parkAndRide, isFree, evChargers, evMaxKw, note }: Props) {
   const t = useTranslations("facilities");
   const locale = useLocale();
-  const remark = noteFor(note, locale);
+  const remark = localizedNote(note, locale);
   if (!parkAndRide && isFree === null && evChargers === 0 && !remark) return null;
   return (
     <dl className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -55,9 +55,9 @@ export function ParkingFacilities({ parkAndRide, isFree, evChargers, evMaxKw, no
           <dt className={TERM}>
             <Info className="size-3.5" aria-hidden /> {t("cityNote")}
           </dt>
-          {/* The city writes these in Dutch, English and French only. */}
-          <dd className="mt-1 text-sm" lang={locale === "nl" || locale === "fr" ? locale : "en"}>
-            {remark}
+          {/* The city writes these in Dutch, and often in English and French. */}
+          <dd className="mt-1 text-sm" lang={remark.lang}>
+            {remark.text}
           </dd>
           <dd className="mt-1 text-xs text-muted-foreground">{t("cityNoteSource")}</dd>
         </div>

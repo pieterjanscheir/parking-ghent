@@ -114,7 +114,7 @@ export function parseDirectory(json: unknown): DirectoryEntry[] {
         : null,
       // The notes open with "P+R gratis." or "Parking betalend." where the
       // city wants visitors to know; anything else stays unknown.
-      isFree: nl ? (/\bgratis\b/i.test(nl) ? true : /\bbetalend\b/i.test(nl) ? false : null) : null,
+      isFree: nl ? priceFromNote(nl) : null,
       evChargers: 0,
       evMaxKw: null,
     });
@@ -139,11 +139,31 @@ async function loadDirectory(): Promise<DirectoryEntry[]> {
 }
 
 // The note in the visitor's language, or English, or Dutch.
+// Only the opening sentence says what parking costs. A later "Gratis
+// fietsenstalling" (free bike parking) must not make a paid car park free.
+function priceFromNote(nl: string): boolean | null {
+  const opening = nl.split(/[.!?]/, 1)[0];
+  if (/\bbetalend\b/i.test(opening)) return false;
+  if (/\bgratis\b/i.test(opening)) return true;
+  return null;
+}
+
 export function noteFor(note: LocalizedNote | null, locale: string): string | null {
+  return localizedNote(note, locale)?.text ?? null;
+}
+
+// The same remark together with the language it is actually in, which is not
+// always the one asked for: a French visitor gets the English text when the
+// city wrote no French one. For the `lang` attribute, so screen readers
+// pronounce it right.
+export function localizedNote(
+  note: LocalizedNote | null,
+  locale: string,
+): { text: string; lang: "nl" | "en" | "fr" } | null {
   if (!note) return null;
-  if (locale === "nl") return note.nl;
-  if (locale === "fr") return note.fr ?? note.en ?? note.nl;
-  return note.en ?? note.nl;
+  if (locale === "fr" && note.fr) return { text: note.fr, lang: "fr" };
+  if (locale !== "nl" && note.en) return { text: note.en, lang: "en" };
+  return { text: note.nl, lang: "nl" };
 }
 
 // --- Which directory entries are garages we already have live? -------------

@@ -339,6 +339,17 @@ describe("combineSources", () => {
     expect(combineSources([loop], [], []).parkings[0].parkAndRide).toBe(true);
   });
 
+  it("counts charge points near the directory's pin of a garage matched by name", () => {
+    // The live feed and the directory put this garage's pin 300 m apart.
+    const loop = p({ id: "pr-loop", name: "The Loop", lat: 51.024, lng: 3.695 });
+    const loopC = entry({ id: "pr-the-loop-c", name: "The Loop C", lat: 51.0267, lng: 3.695 });
+    const { parkings, extras } = combineSources([loop], [loopC], [
+      { lat: 51.0268, lng: 3.6951, kw: 22 },
+    ]);
+    expect(extras).toEqual([]);
+    expect(parkings[0]).toMatchObject({ id: "pr-loop", evChargers: 1, evMaxKw: 22 });
+  });
+
   it("lists the whole directory when the live feed is empty", () => {
     expect(combineSources([], directory, []).extras).toHaveLength(4);
   });

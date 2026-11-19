@@ -29,12 +29,30 @@ export const COMFORTABLE_SPACES = 10;
 // about the time it takes to drive in and reach it.
 export const FULL_SOON_MINUTES = 30;
 
+// A forecast older than this is no longer a reason to pass a garage over.
+const FORECAST_TRUST_MINUTES = 30;
+
+// How long from *now* until the forecast expects the garage to be full, or
+// null when it doesn't. The forecast counts from the reading it was made
+// from, which is a few minutes old by the time it is used.
+export function minutesLeftUntilFull(trend: Trend | undefined, now: number): number | null {
+  const forecast = trend?.forecast;
+  if (!forecast || forecast.minutesUntilFull === null) return null;
+  const madeAt = forecast.atTimestamp - forecast.horizonMinutes * 60_000;
+  // No usable time on the forecast: take it as fresh.
+  const elapsed = Number.isFinite(madeAt) ? Math.max(0, (now - madeAt) / 60_000) : 0;
+  if (elapsed > FORECAST_TRUST_MINUTES) return null;
+  // Past its own "full" moment while the count still shows room: the garage
+  // is about to fill, not in the clear.
+  return Math.max(1, Math.round(forecast.minutesUntilFull - elapsed));
+}
+
 function reasonToPass(p: Parking, trend: Trend | undefined, now: number): PassReason | null {
   if (!p.isOpen) return "closed";
   if (!p.hasLiveData || isStale(p, now)) return "noData";
   if (p.bucket === "full" || p.freeSpaces === 0) return "full";
   if (p.freeSpaces < COMFORTABLE_SPACES) return "almostFull";
-  const untilFull = trend?.forecast.minutesUntilFull ?? null;
+  const untilFull = minutesLeftUntilFull(trend, now);
   if (untilFull !== null && untilFull <= FULL_SOON_MINUTES) return "fillingUp";
   return null;
 }
@@ -61,7 +79,7 @@ export function suggestGarage(
       reason,
       minutesUntilFull:
         reason === "fillingUp"
-          ? (trendsById[parking.id]?.forecast.minutesUntilFull ?? null)
+          ? minutesLeftUntilFull(trendsById[parking.id], now)
           : null,
     };
   }

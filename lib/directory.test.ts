@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   directoryFacts,
   matchDirectory,
+  localizedNote,
   noteFor,
   parseDirectory,
   type DirectoryEntry,
@@ -71,6 +72,15 @@ describe("parseDirectory", () => {
     expect(free.note?.nl).toBe("P+R gratis. Naar het centrum in 15 min met Bus 11. Rolstoeltoegankelijk");
   });
 
+  it("reads the price from the opening sentence only", () => {
+    const [paid, free, unknown] = parse(
+      record({ naam: "A", infotekst: "Parking betalend. Gratis fietsenstalling." }),
+      record({ naam: "B", infotekst: "P+R gratis. Betalend na 24 uur." }),
+      record({ naam: "C", infotekst: "Onbewaakte fietsenstalling. Gratis." }),
+    );
+    expect([paid.isFree, free.isFree, unknown.isFree]).toEqual([false, true, null]);
+  });
+
   it('treats "-" and empty notes as no note', () => {
     const entries = parse(
       record({ naam: "A", infotekst: "-", enginfotekst: "-", frinfotekst: "-" }),
@@ -114,6 +124,21 @@ describe("noteFor", () => {
     expect(noteFor({ nl: "Nederlands", en: null, fr: null }, "es")).toBe("Nederlands");
     expect(noteFor({ nl: "Nederlands", en: "English", fr: null }, "fr")).toBe("English");
     expect(noteFor(null, "en")).toBeNull();
+  });
+});
+
+describe("localizedNote", () => {
+  it("says which language the text is really in", () => {
+    const note = { nl: "Nederlands", en: "English", fr: null };
+    expect(localizedNote(note, "fr")).toEqual({ text: "English", lang: "en" });
+    expect(localizedNote(note, "de")).toEqual({ text: "English", lang: "en" });
+    expect(localizedNote(note, "nl")).toEqual({ text: "Nederlands", lang: "nl" });
+    expect(localizedNote({ nl: "Nederlands", en: null, fr: null }, "es")).toEqual({
+      text: "Nederlands",
+      lang: "nl",
+    });
+    expect(localizedNote({ nl: "N", en: "E", fr: "F" }, "fr")).toEqual({ text: "F", lang: "fr" });
+    expect(localizedNote(null, "en")).toBeNull();
   });
 });
 

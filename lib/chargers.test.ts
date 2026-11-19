@@ -3,7 +3,7 @@ import { chargingByPlace, parseChargePoints, type ChargePoint } from "./chargers
 
 describe("parseChargePoints", () => {
   it("reads position and power", () => {
-    const { total, points } = parseChargePoints({
+    const { total, received, points } = parseChargePoints({
       total_count: 87,
       results: [
         { kw: 22, geo_point_2d: { lat: 51.0488, lon: 3.7237 } },
@@ -13,6 +13,8 @@ describe("parseChargePoints", () => {
       ],
     });
     expect(total).toBe(87);
+    // Unreadable records still count as received: paging goes by them.
+    expect(received).toBe(4);
     expect(points).toEqual([
       { lat: 51.0488, lng: 3.7237, kw: 22 },
       { lat: 51.05, lng: 3.72, kw: null },

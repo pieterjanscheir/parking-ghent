@@ -221,15 +221,17 @@ export default function ParkingMap({
     // With a destination, zoom in on it and the few garages closest to it:
     // that is the choice being made. Otherwise show every garage.
     if (destination) {
-      const nearest = [...located]
-        .sort(
-          (a, b) =>
-            (distanceTo(a, destination) ?? Infinity) -
-            (distanceTo(b, destination) ?? Infinity),
-        )
+      // Car parks without a count are on the map too, and may be the only
+      // match for a search.
+      const nearest = [
+        ...located.map((p) => ({ lat: p.lat!, lng: p.lng! })),
+        ...extras.map((e) => ({ lat: e.lat, lng: e.lng })),
+      ]
+        .map((point) => ({ point, km: distanceKm(destination, point) }))
+        .sort((a, b) => a.km - b.km)
         .slice(0, NEAREST_TO_SHOW);
       return [
-        ...nearest.map((p): [number, number] => [p.lat!, p.lng!]),
+        ...nearest.map(({ point }): [number, number] => [point.lat, point.lng]),
         [destination.lat, destination.lng] as [number, number],
       ];
     }

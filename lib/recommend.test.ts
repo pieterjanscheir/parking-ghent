@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import type { DirectoryEntry } from "./directory";
 import type { Trend } from "./forecast";
 import type { Parking } from "./parkings.schema";
-import { nearbyAlternatives, nearestParkAndRide, suggestGarage } from "./recommend";
+import {
+  minutesLeftUntilFull,
+  nearbyAlternatives,
+  nearestParkAndRide,
+  suggestGarage,
+} from "./recommend";
 
 const NOW = Date.UTC(2026, 10, 19, 13, 0, 0);
 const MINUTE = 60_000;
@@ -53,7 +58,49 @@ function trend(minutesUntilFull: number | null): Trend {
   return { forecast: { minutesUntilFull } } as Trend;
 }
 
+// A forecast made `ageMinutes` ago that expected "full" `minutesUntilFull`
+// after that.
+function agedTrend(minutesUntilFull: number, ageMinutes: number): Trend {
+  const horizonMinutes = 30;
+  return {
+    forecast: {
+      minutesUntilFull,
+      horizonMinutes,
+      atTimestamp: NOW - ageMinutes * MINUTE + horizonMinutes * MINUTE,
+    },
+  } as Trend;
+}
+
+describe("minutesLeftUntilFull", () => {
+  it("counts from now, not from when the forecast was made", () => {
+    expect(minutesLeftUntilFull(agedTrend(35, 10), NOW)).toBe(25);
+    expect(minutesLeftUntilFull(agedTrend(35, 0), NOW)).toBe(35);
+  });
+
+  it("stays at a minute once the expected moment has just passed", () => {
+    expect(minutesLeftUntilFull(agedTrend(5, 8), NOW)).toBe(1);
+  });
+
+  it("drops a forecast that is more than half an hour old", () => {
+    expect(minutesLeftUntilFull(agedTrend(50, 31), NOW)).toBeNull();
+  });
+
+  it("has nothing to say without a forecast of full", () => {
+    expect(minutesLeftUntilFull(undefined, NOW)).toBeNull();
+    expect(minutesLeftUntilFull(trend(null), NOW)).toBeNull();
+    // No time on the forecast: taken as fresh.
+    expect(minutesLeftUntilFull(trend(20), NOW)).toBe(20);
+  });
+});
+
 describe("suggestGarage", () => {
+  it("passes over a garage whose forecast, counted from now, is within half an hour", () => {
+    // "Full in 35 min" sounded fine ten minutes ago; 25 are left.
+    const result = suggestGarage([near, middle], GRAVENSTEEN, { near: agedTrend(35, 10) }, NOW);
+    expect(result?.best.id).toBe("middle");
+    expect(result?.passedOver).toMatchObject({ reason: "fillingUp", minutesUntilFull: 25 });
+  });
+
   it("suggests the nearest garage when nothing speaks against it", () => {
     const result = suggestGarage([far, near, middle], GRAVENSTEEN, {}, NOW);
     expect(result?.best.id).toBe("near");

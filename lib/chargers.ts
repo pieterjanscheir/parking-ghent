@@ -28,7 +28,12 @@ const ResponseSchema = z.object({
 
 export type ChargePoint = LatLng & { kw: number | null };
 
-export function parseChargePoints(json: unknown): { total: number; points: ChargePoint[] } {
+// `received` is how many records the response held, readable or not.
+export function parseChargePoints(json: unknown): {
+  total: number;
+  received: number;
+  points: ChargePoint[];
+} {
   const parsed = ResponseSchema.parse(json);
   const points: ChargePoint[] = [];
   for (const raw of parsed.results) {
@@ -40,7 +45,7 @@ export function parseChargePoints(json: unknown): { total: number; points: Charg
       kw: point.data.kw && point.data.kw > 0 ? point.data.kw : null,
     });
   }
-  return { total: parsed.total_count, points };
+  return { total: parsed.total_count, received: parsed.results.length, points };
 }
 
 export function fetchGarageChargePoints(): Promise<ChargePoint[]> {
@@ -54,12 +59,16 @@ export function fetchGarageChargePoints(): Promise<ChargePoint[]> {
 
 async function loadChargePoints(): Promise<ChargePoint[]> {
   const all: ChargePoint[] = [];
+  // Counted separately from `all`: a record we can't read still took up a
+  // place on its page, and must not make the list look complete too early.
+  let received = 0;
   for (let page = 0; page < MAX_PAGES; page++) {
     const res = await fetchUpstream(`${ENDPOINT}&offset=${page * 100}`);
     if (!res.ok) throw new Error(`Charge points failed: ${res.status} ${res.statusText}`);
-    const { total, points } = parseChargePoints(JSON.parse(res.text));
-    all.push(...points);
-    if (points.length < 100 || all.length >= total) break;
+    const parsed = parseChargePoints(JSON.parse(res.text));
+    all.push(...parsed.points);
+    received += parsed.received;
+    if (parsed.received < 100 || received >= parsed.total) break;
   }
   return all;
 }

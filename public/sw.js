@@ -101,10 +101,11 @@ async function lastSavedIn(page) {
   for (const key of await cache.keys()) {
     const url = new URL(key.url);
     if (!/^\/[a-z]{2}$/.test(url.pathname.slice(0, 3)) || url.pathname.slice(3) !== page) continue;
-    if (url.search) continue;
+    // A copy saved with a search or filter ("/nl?available=true", from the
+    // app's shortcut) counts too, and is opened as it was saved.
     const saved = await cache.match(key);
     const at = Number(saved && saved.headers.get("x-saved-at")) || 0;
-    if (!best || at > best.at) best = { path: url.pathname, at };
+    if (!best || at > best.at) best = { path: url.pathname + url.search, at };
   }
   return best ? best.path : null;
 }

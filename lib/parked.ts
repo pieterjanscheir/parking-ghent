@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useLocalStorageJson } from "./local-storage-store";
+import { readStored, useLocalStorageJson } from "./local-storage-store";
 
 // "Where did I park?" — the car park the visitor says they left their car
 // in, or the spot on the street they saved, with the time and an optional
@@ -70,6 +70,11 @@ export function walkingRouteUrl(spot: Pick<ParkedSpot, "lat" | "lng">): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${spot.lat}%2C${spot.lng}&travelmode=walking`;
 }
 
+// The same act of parking: same place, saved at the same moment.
+export function sameSpot(a: ParkedSpot | null, b: ParkedSpot | null): boolean {
+  return a !== null && b !== null && a.id === b.id && a.at === b.at;
+}
+
 type Place = { id: string; name: string; lat: number; lng: number };
 
 export function useParkedSpot(): {
@@ -97,7 +102,14 @@ export function useParkedSpot(): {
   );
   const setNote = useCallback(
     (note: string) => {
-      if (value) write({ ...value, note: note.slice(0, NOTE_MAX_LENGTH) });
+      if (!value) return;
+      // Another tab may have saved a different spot a moment ago, before this
+      // one heard of it. The note belongs to the spot on screen: if that is
+      // no longer the stored one, drop the edit rather than bring it back.
+      const stored = readStored(STORAGE_KEY);
+      const latest = stored === null ? null : parseParkedSpot(stored);
+      if (!sameSpot(latest, value)) return;
+      write({ ...value, note: note.slice(0, NOTE_MAX_LENGTH) });
     },
     [value, write],
   );

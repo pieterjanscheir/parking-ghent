@@ -3,7 +3,9 @@ import {
   FORGET_AFTER_MS,
   NOTE_MAX_LENGTH,
   isCurrent,
+  isStreetSpot,
   parseParkedSpot,
+  sameSpot,
   walkingRouteUrl,
   type ParkedSpot,
 } from "./parked";
@@ -43,6 +45,23 @@ describe("parseParkedSpot", () => {
     ["no time", JSON.stringify({ ...spot, at: null })],
   ])("rejects %s", (_label, raw) => {
     expect(parseParkedSpot(raw)).toBeNull();
+  });
+});
+
+describe("sameSpot", () => {
+  it("is the same act of parking only with the same place and moment", () => {
+    expect(sameSpot(spot, { ...spot, note: "row C" })).toBe(true);
+    expect(sameSpot(spot, { ...spot, at: spot.at + 1 })).toBe(false);
+    expect(sameSpot(spot, { ...spot, id: "parking-reep" })).toBe(false);
+    expect(sameSpot(spot, null)).toBe(false);
+    expect(sameSpot(null, null)).toBe(false);
+  });
+});
+
+describe("isStreetSpot", () => {
+  it("tells a spot on the street from a car park", () => {
+    expect(isStreetSpot({ id: "street" })).toBe(true);
+    expect(isStreetSpot(spot)).toBe(false);
   });
 });
 

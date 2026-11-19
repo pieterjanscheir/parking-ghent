@@ -201,7 +201,13 @@ export function combineSources(
   chargePoints: ChargePoint[],
 ): { parkings: Parking[]; extras: DirectoryEntry[] } {
   const { extras, byLiveId } = matchDirectory(directory, live);
-  const charging = chargingByPlace(chargePoints, [...live, ...extras]);
+  // A garage matched by name can have its directory pin well away from the
+  // live feed's pin (the far end of the same building). Charge points near
+  // either pin are that garage's.
+  const directoryPins = Object.entries(byLiveId).flatMap(([id, entries]) =>
+    entries.map((entry) => ({ id, lat: entry.lat, lng: entry.lng })),
+  );
+  const charging = chargingByPlace(chargePoints, [...live, ...extras, ...directoryPins]);
   const parkings = live.map((p) => {
     const facts = directoryFacts(byLiveId[p.id]);
     return {
