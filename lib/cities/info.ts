@@ -22,6 +22,11 @@ export type CityInfo = {
   bounds: Bounds;
   // Whose data it is, for the credit line.
   source: string;
+  // The publisher under its own name, for the pages: needs no translation.
+  publisher: string;
+  // False where the figures come from a city's website rather than from a
+  // feed it publishes for reuse: they can stop working without notice.
+  openData: boolean;
   // Whether this site has pages for the city's car parks to link to.
   hasPages: boolean;
   // What the city's data tells us. Where it is false, the answer is
@@ -56,6 +61,8 @@ export const GHENT: CityInfo = {
   // The same box lib/geo.ts uses for destinations in shared links.
   bounds: { minLat: 50.9, maxLat: 51.3, minLng: 3.5, maxLng: 3.95 },
   source: "City of Ghent open data",
+  publisher: "Stad Gent",
+  openData: true,
   hasPages: true,
   knows: {
     liveCounts: true,
@@ -79,6 +86,8 @@ export const STRASBOURG: CityInfo = {
   center: { lat: 48.5839, lng: 7.7455 },
   bounds: { minLat: 48.45, maxLat: 48.7, minLng: 7.55, maxLng: 7.95 },
   source: "Eurométropole de Strasbourg open data (Licence Ouverte)",
+  publisher: "Eurométropole de Strasbourg",
+  openData: true,
   // Through the MCP tools only, for now.
   hasPages: false,
   // The live feed lists names and counts only. Strasbourg does have Park &
@@ -100,7 +109,10 @@ export const STRASBOURG: CityInfo = {
 // A city reached through the MCP tools only, with no history kept and no
 // places known by name. `knows` says what its data does tell.
 function mcpOnly(
-  city: Pick<CityInfo, "id" | "name" | "country" | "center" | "bounds" | "source"> & {
+  city: Pick<
+    CityInfo,
+    "id" | "name" | "country" | "center" | "bounds" | "source" | "publisher" | "openData"
+  > & {
     knows: Pick<CityInfo["knows"], "liveCounts" | "parkAndRide">;
   },
 ): CityInfo {
@@ -131,6 +143,8 @@ export const HASSELT = mcpOnly({
   center: { lat: 50.9307, lng: 5.3378 },
   bounds: { minLat: 50.85, maxLat: 51.0, minLng: 5.22, maxLng: 5.45 },
   source: "City of Hasselt (hasselt.be), counts supplied by Be-Mobile",
+  publisher: "Stad Hasselt · Be-Mobile",
+  openData: false,
   // Its Park & Ride sites are named as such.
   knows: { liveCounts: true, parkAndRide: true },
 });
@@ -144,6 +158,8 @@ export const ANTWERP = mcpOnly({
   center: { lat: 51.2194, lng: 4.4025 },
   bounds: { minLat: 51.1, maxLat: 51.4, minLng: 4.2, maxLng: 4.6 },
   source: "City of Antwerp open geodata",
+  publisher: "Stad Antwerpen",
+  openData: true,
   knows: { liveCounts: false, parkAndRide: true },
 });
 
@@ -154,6 +170,8 @@ export const BRUSSELS = mcpOnly({
   center: { lat: 50.8467, lng: 4.3525 },
   bounds: { minLat: 50.75, maxLat: 50.95, minLng: 4.22, maxLng: 4.5 },
   source: "parking.brussels, the Brussels regional parking agency",
+  publisher: "parking.brussels",
+  openData: true,
   knows: { liveCounts: false, parkAndRide: true },
 });
 
@@ -164,6 +182,8 @@ export const LIEGE = mcpOnly({
   center: { lat: 50.6451, lng: 5.5734 },
   bounds: { minLat: 50.55, maxLat: 50.72, minLng: 5.45, maxLng: 5.7 },
   source: "City of Liège open data",
+  publisher: "Ville de Liège",
+  openData: true,
   knows: { liveCounts: false, parkAndRide: true },
 });
 
@@ -174,6 +194,8 @@ export const NAMUR = mcpOnly({
   center: { lat: 50.4649, lng: 4.865 },
   bounds: { minLat: 50.38, maxLat: 50.54, minLng: 4.75, maxLng: 4.98 },
   source: "City of Namur open data",
+  publisher: "Ville de Namur",
+  openData: true,
   knows: { liveCounts: false, parkAndRide: true },
 });
 

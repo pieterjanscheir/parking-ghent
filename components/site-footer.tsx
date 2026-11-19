@@ -20,6 +20,10 @@ export function SiteFooter() {
         <p className="text-xs text-muted-foreground">
           {t("dataSource")}
           {" · "}
+          <Link href="/cities" className="underline-offset-4 hover:text-foreground hover:underline">
+            {t("cities")}
+          </Link>
+          {" · "}
           <Link href="/mcp" className="underline-offset-4 hover:text-foreground hover:underline">
             {t("mcp")}
           </Link>

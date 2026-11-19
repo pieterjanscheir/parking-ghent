@@ -360,6 +360,8 @@ describe("listCities", () => {
       "liege",
       "namur",
     ]);
+    expect(cities.find((c) => c.id === "ghent")?.overview_page).toBe("https://example.org/en");
+    expect(cities.find((c) => c.id === "hasselt")?.overview_page).toBe("https://example.org/en/cities/hasselt");
     expect(cities.find((c) => c.id === "strasbourg")?.park_and_ride_marked).toBe(false);
     expect(cities.find((c) => c.id === "antwerp")?.park_and_ride_marked).toBe(true);
   });

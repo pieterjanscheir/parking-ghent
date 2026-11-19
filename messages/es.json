@@ -28,7 +28,8 @@
   "footer": {
     "builtBy": "Creado por",
     "dataSource": "Datos: portal de datos abiertos stad.gent",
-    "mcp": "Para asistentes de IA (MCP)"
+    "mcp": "Para asistentes de IA (MCP)",
+    "cities": "Ciudades"
   },
   "overview": {
     "title": "Dónde aparcar en Gante",
@@ -450,6 +451,40 @@
     "note3": "Los lugares conocidos funcionan por su nombre. Para una dirección, el asistente pasa él mismo las coordenadas.",
     "note4": "Los nombres y descripciones de las herramientas están en inglés; el asistente responde en tu idioma.",
     "example4": "¿Qué aparcamientos de Hasselt tienen sitio ahora?",
-    "note5": "Además de Gante, el asistente tiene recuentos en directo de Hasselt y Estrasburgo. De Amberes, Bruselas, Lieja y Namur sabe dónde están los aparcamientos y su tamaño, no lo llenos que están. Fuera de Gante aún no hay previsión, patrón habitual ni búsqueda por nombre de lugar, y este sitio no tiene páginas para esas ciudades."
+    "note5": "Además de Gante, el asistente tiene recuentos en directo de Hasselt y Estrasburgo. De Amberes, Bruselas, Lieja y Namur sabe dónde están los aparcamientos y su tamaño, no lo llenos que están. Fuera de Gante aún no hay previsión, patrón habitual ni búsqueda por nombre de lugar; este sitio muestra cada una de esas ciudades en una página."
+  },
+  "cities": {
+    "navLabel": "Ciudad",
+    "names": {
+      "ghent": "Gante",
+      "hasselt": "Hasselt",
+      "antwerp": "Amberes",
+      "brussels": "Bruselas",
+      "liege": "Lieja",
+      "namur": "Namur",
+      "strasbourg": "Estrasburgo"
+    },
+    "title": "Aparcar en {city}",
+    "introLive": "Plazas libres ahora mismo en los aparcamientos de {city}, primero los que tienen más sitio.",
+    "introList": "{city} publica dónde están sus aparcamientos y su tamaño, no lo llenos que están. Por eso esta página no muestra recuentos en directo: solo dónde se puede aparcar.",
+    "statCarParks": "Aparcamientos",
+    "statOpen": "Abiertos ahora",
+    "statWithSpace": "Con sitio",
+    "statFreeSpaces": "Plazas libres",
+    "mapLabel": "Mapa de los aparcamientos de {city}",
+    "liveTitle": "Aparcamientos con recuento en directo",
+    "listTitle": "{count, plural, one {# aparcamiento} other {# aparcamientos}}",
+    "listTitleBeside": "Otros aparcamientos",
+    "route": "Ruta",
+    "website": "Sitio web",
+    "source": "Datos: {publisher}.",
+    "notOpenData": "{city} no publica estos recuentos como datos abiertos: proceden de la página de aparcamiento de la propia ciudad y pueden dejar de funcionar sin previo aviso.",
+    "ghentOnly": "La previsión, el patrón habitual por hora, las rutas de acceso y una página por aparcamiento solo existen para Gante, donde este sitio guarda su propio historial.",
+    "unavailable": "No se han podido cargar los aparcamientos de {city} en este momento. Inténtalo de nuevo en un minuto.",
+    "indexTitle": "Ciudades",
+    "indexIntro": "Este sitio empezó con Gante y es la ciudad que mejor conoce. Para otras seis ciudades muestra los aparcamientos, con plazas libres en directo donde la ciudad las ofrece.",
+    "kindGhent": "Plazas libres en directo, previsión, rutas de acceso, Park & Ride y más",
+    "kindLive": "Plazas libres en directo",
+    "kindList": "Aparcamientos con tamaño y ubicación, sin recuento en directo"
   }
 }

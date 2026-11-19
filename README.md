@@ -206,17 +206,19 @@ Usage on Vercel, per month: about 4,300 scheduled calls, 4,300 file writes, 4,30
 
 ## Cities
 
-The website is about Ghent. Underneath, a city is a plug-in ([lib/cities/](lib/cities)): a few facts ([info.ts](lib/cities/info.ts)) and a loader that turns the city's feed into the same garage list Ghent uses ([index.ts](lib/cities/index.ts)). Whatever is built on that list then works for the city unchanged; so far that is the MCP server.
+The website started with Ghent and knows it best. Underneath, a city is a plug-in ([lib/cities/](lib/cities)): a few facts ([info.ts](lib/cities/info.ts)) and a loader that turns the city's feed into the same garage list Ghent uses ([index.ts](lib/cities/index.ts)). Whatever is built on that list then works for the city unchanged: the MCP server, and one page per city on the website.
 
-| City | Live free spaces | Car parks without a count | Forecast, usual pattern | Pages on this site |
+**City pages.** Every city other than Ghent has one page, `/cities/<id>` ([app/[locale]/cities/](app/%5Blocale%5D/cities), [components/city-overview.tsx](components/city-overview.tsx)): its car parks on a map and as cards, most room first, with live counts where the city has them and a clear "no live count" where it doesn't. Each card links to driving directions and to the operator's own page. A row of city names at the top of the home page and of every city page switches between them; `/cities` lists them all. Live pages refresh at the interval chosen on the Ghent overview. Forecasts, "a typical day", routes in, the destination search and a page per car park remain Ghent-only.
+
+| City | Live free spaces | Car parks without a count | Forecast, usual pattern | On this site |
 | :--- | :--- | :--- | :--- | :--- |
-| Ghent | yes, 15 garages | 18 | yes | yes |
-| Hasselt | yes, 18 car parks ([lib/cities/hasselt.ts](lib/cities/hasselt.ts)) | 1 | no | no (MCP only) |
-| Strasbourg | yes, 35 car parks ([lib/cities/strasbourg.ts](lib/cities/strasbourg.ts)) | none | no | no (MCP only) |
-| Antwerp | no | 71, of which 19 Park & Ride | no | no (MCP only) |
-| Brussels | no | 80, of which 9 Park & Ride | no | no (MCP only) |
-| Liège | no | 40, of which 5 Park & Ride | no | no (MCP only) |
-| Namur | no | 32, of which 2 Park & Ride | no | no (MCP only) |
+| Ghent | yes, 15 garages | 18 | yes | the whole site |
+| Hasselt | yes, 18 car parks ([lib/cities/hasselt.ts](lib/cities/hasselt.ts)) | 1 | no | one page |
+| Strasbourg | yes, 35 car parks ([lib/cities/strasbourg.ts](lib/cities/strasbourg.ts)) | none | no | one page |
+| Antwerp | no | 71, of which 19 Park & Ride | no | one page |
+| Brussels | no | 80, of which 9 Park & Ride | no | one page |
+| Liège | no | 40, of which 5 Park & Ride | no | one page |
+| Namur | no | 32, of which 2 Park & Ride | no | one page |
 
 The numbers are what each feed held on 19 November 2026.
 
