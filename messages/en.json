@@ -437,7 +437,8 @@
       "list_garages": "Every car park with its free spaces right now, the forecast for the next hour and facts such as Park & Ride, free of charge and charge points.",
       "find_parking": "The best garage for a destination, with the reason, other garages with space, the walking time and the nearest Park & Ride.",
       "get_garage": "One car park in detail: free spaces, forecast, what is usual at this hour, opening hours, position and the city's remark.",
-      "typical_availability": "Planning ahead: how much room each garage usually has at an hour of the week, for example Saturday at 14:00."
+      "typical_availability": "Planning ahead: how much room each garage usually has at an hour of the week, for example Saturday at 14:00.",
+      "list_cities": "The cities the server knows, and what it can tell about each. Ghent is the default; every other tool takes a city."
     },
     "examplesTitle": "Things you can ask",
     "example1": "Where should I park for Vooruit tonight?",
@@ -447,6 +448,8 @@
     "note1": "Read-only: the assistant can look things up, nothing else.",
     "note2": "Open data from the City of Ghent and this site's own measurements. No personal data.",
     "note3": "Well-known places work by name. For a street address the assistant passes coordinates itself.",
-    "note4": "The tools' own names and descriptions are in English; the assistant answers in your language."
+    "note4": "The tools' own names and descriptions are in English; the assistant answers in your language.",
+    "example4": "Which car parks in Strasbourg have space right now?",
+    "note5": "Besides Ghent, the assistant can look up Strasbourg, with open data from the city of Strasbourg. There it knows the live count only: no forecast, usual pattern, prices or places by name yet, and this site has no pages for it."
   }
 }

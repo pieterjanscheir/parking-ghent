@@ -437,7 +437,8 @@
       "list_garages": "Todos los aparcamientos con sus plazas libres ahora mismo, la previsión para la próxima hora y datos como Park & Ride, gratuito y puntos de recarga.",
       "find_parking": "El mejor aparcamiento para un destino, con el motivo, otros aparcamientos con sitio, el tiempo a pie y el Park & Ride más cercano.",
       "get_garage": "Un aparcamiento en detalle: plazas libres, previsión, lo habitual a esta hora, horario, posición y la observación de la ciudad.",
-      "typical_availability": "Para planificar: cuánto sitio suele tener cada aparcamiento a una hora de la semana, por ejemplo el sábado a las 14:00."
+      "typical_availability": "Para planificar: cuánto sitio suele tener cada aparcamiento a una hora de la semana, por ejemplo el sábado a las 14:00.",
+      "list_cities": "Las ciudades que conoce el servidor y lo que sabe de cada una. Gante es la predeterminada; las demás herramientas aceptan una ciudad."
     },
     "examplesTitle": "Preguntas que puedes hacer",
     "example1": "¿Dónde aparco esta noche para ir al Vooruit?",
@@ -447,6 +448,8 @@
     "note1": "Solo lectura: el asistente puede consultar datos, nada más.",
     "note2": "Datos abiertos de la ciudad de Gante y mediciones propias de este sitio. Sin datos personales.",
     "note3": "Los lugares conocidos funcionan por su nombre. Para una dirección, el asistente pasa él mismo las coordenadas.",
-    "note4": "Los nombres y descripciones de las herramientas están en inglés; el asistente responde en tu idioma."
+    "note4": "Los nombres y descripciones de las herramientas están en inglés; el asistente responde en tu idioma.",
+    "example4": "¿Qué aparcamientos de Estrasburgo tienen sitio ahora?",
+    "note5": "Además de Gante, el asistente puede consultar Estrasburgo, con datos abiertos de la ciudad de Estrasburgo. Allí solo conoce el recuento en directo: aún sin previsión, patrón habitual, precios ni lugares por nombre, y este sitio no tiene páginas para esa ciudad."
   }
 }
