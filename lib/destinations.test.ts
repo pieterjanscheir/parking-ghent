@@ -42,6 +42,16 @@ describe("searchKnownPlaces", () => {
     expect(names("cathedrale")).toEqual(["Sint-Baafskathedraal"]);
   });
 
+  it("finds a place by its German or Spanish name", () => {
+    expect(names("rathaus")).toEqual(["Stadhuis"]);
+    expect(names("ayuntamiento")).toEqual(["Stadhuis"]);
+    expect(names("castillo")).toEqual(["Gravensteen"]);
+    expect(names("estacion").sort()).toEqual(
+      ["Station Gent-Dampoort", "Station Gent-Sint-Pieters"].sort(),
+    );
+    expect(names("krankenhaus")).toHaveLength(3);
+  });
+
   it("matches a word in the middle of a name", () => {
     expect(names("dampoort")).toContain("Station Gent-Dampoort");
     expect(names("krook")).toEqual(["De Krook"]);

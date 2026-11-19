@@ -18,7 +18,7 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh; the spinner runs for as long as the request actually takes.
 - **Honest data age** — "City data updated 2 min ago" comes from the feed's own timestamps, not from when the page last asked. A garage whose count is more than 30 minutes old gets a warning and loses its forecast, and if no garage has updated for 15 minutes a banner says the feed has stopped ([lib/freshness.ts](lib/freshness.ts)).
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
-- **Dutch, English and French** — every page exists under `/nl`, `/en` and `/fr`. A first visit picks the browser's language (Dutch if it's none of the three), the choice is remembered, and the `NL · EN · FR` switcher in the header keeps your search, sort and filters — see [Languages](#languages).
+- **Five languages** — Dutch, English, French, German and Spanish; every page exists under `/nl`, `/en`, `/fr`, `/de` and `/es`. A first visit picks the browser's language (Dutch if it's none of the five), the choice is remembered, and the language menu in the header keeps your search, sort, filters and destination — see [Languages](#languages).
 - **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space* and *Map* ([app/manifest.ts](app/manifest.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
 
 ## Forecasting
@@ -44,14 +44,19 @@ Forecasts exist only for the city-run garages that publish history (see `HISTORY
 
 Translations use [next-intl](https://next-intl.dev).
 
-- **Where the text lives:** [messages/nl.json](messages/nl.json), [messages/en.json](messages/en.json) and [messages/fr.json](messages/fr.json). Components never contain user-facing text; they look it up with `useTranslations("namespace")`.
+- **Where the text lives:** one file per language in [messages/](messages) (`nl.json`, `en.json`, `fr.json`, `de.json`, `es.json`). Components never contain user-facing text; they look it up with `useTranslations("namespace")`.
 - **Routing:** [i18n/routing.ts](i18n/routing.ts) lists the languages and the default (Dutch). [proxy.ts](proxy.ts) redirects URLs without a language prefix, so old links such as `/parkings/parking-reep` keep working.
 - **Links:** use `Link` and `useRouter` from [i18n/navigation.ts](i18n/navigation.ts), not from `next/link`, so navigation stays in the visitor's language.
 - **Numbers, times and distances** follow the language too (`4.974` vs `4,974`, `1,3 km` vs `1.3 km`). Times are always Ghent time.
-- **Search engines** get `hreflang` links between the three versions of each page, in the page head and in the sitemap, and one share image per language.
+- **Search engines** get `hreflang` links between the language versions of each page, in the page head and in the sitemap, and one share image per language.
 - **Not translated:** garage names, addresses, opening hours and descriptions come straight from the city's feed, in Dutch. The web manifest (install name and shortcuts) has a single language and uses Dutch.
 
-**Adding a language:** add its code to `locales` in `i18n/routing.ts` (plus its name in `LOCALE_LABELS` and its Open Graph code in `OG_LOCALES` in `lib/site.ts`), then copy `messages/en.json` to `messages/<code>.json` and translate it. `pnpm test` fails if a language file is missing a key or uses different `{placeholders}` than the English one.
+**Adding a language** takes two steps, both checked by `pnpm test`:
+
+1. In [i18n/routing.ts](i18n/routing.ts), add its code to `locales` and a row to `LOCALE_INFO` (its own name for the menu, and its code for share previews).
+2. Copy `messages/en.json` to `messages/<code>.json` and translate it. The test fails if the file is missing, lacks a message, or uses different `{placeholders}` than the English one.
+
+Optionally add the language's names for well-known places as aliases in [lib/destinations.ts](lib/destinations.ts) ("Rathaus", "ayuntamiento"), so the destination search finds them.
 
 ## Destination search
 
@@ -128,14 +133,14 @@ app/                          App Router routes
   icon.svg, apple-icon.png    App icon (source artwork: icon.svg)
   sitemap.ts, robots.ts       For search engines (previews are not indexed)
 i18n/                         Language list, language-aware links, request setup
-messages/                     Translations: nl.json, en.json, fr.json
+messages/                     Translations: one JSON file per language
 proxy.ts                      Language detection and redirects
 components/                   UI building blocks
   parking-overview.tsx        Overview client shell (summary / search / sort / filter / view)
   parking-map.tsx             Leaflet map of all parkings (client-only)
   forecast-hint.tsx           One-line forecast for cards / list / map
   destination-search.tsx      "Where are you going?" box with suggestions
-  language-switcher.tsx       NL · EN · FR links in the header
+  language-switcher.tsx       Language menu in the header
   settings-menu.tsx           Gear menu in the header (map choice)
   parking-location-map.tsx    Garage-page map: OpenStreetMap or Google, per the setting
   leaflet-shared.ts           Tiles, dark filter and marker shared by both maps

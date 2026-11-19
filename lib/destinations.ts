@@ -13,8 +13,8 @@ export type Place = LatLng & {
 type KnownPlace = LatLng & {
   id: string;
   name: string;
-  // Other things people type for this place: older names and the English and
-  // French ones. Matched like the name, never shown.
+  // Other things people type for this place: older names and the English,
+  // French, German and Spanish ones. Matched like the name, never shown.
   aliases: string[];
 };
 
@@ -24,34 +24,34 @@ type KnownPlace = LatLng & {
 //
 // Coordinates © OpenStreetMap contributors (looked up November 2026).
 const KNOWN_PLACES: KnownPlace[] = [
-  { id: "gravensteen", name: "Gravensteen", lat: 51.05718, lng: 3.72077, aliases: ["castle of the counts", "château des comtes", "burcht", "kasteel", "castle"] },
+  { id: "gravensteen", name: "Gravensteen", lat: 51.05718, lng: 3.72077, aliases: ["castle of the counts", "château des comtes", "burcht", "kasteel", "castle", "grafenburg", "burg", "castillo de los condes", "castillo"] },
   { id: "korenmarkt", name: "Korenmarkt", lat: 51.05466, lng: 3.72192, aliases: [] },
   { id: "vooruit", name: "VIERNULVIER (Vooruit)", lat: 51.04758, lng: 3.72795, aliases: ["vooruit", "kunstencentrum"] },
-  { id: "gent-sint-pieters", name: "Station Gent-Sint-Pieters", lat: 51.03493, lng: 3.71028, aliases: ["sint-pietersstation", "treinstation", "train station", "gare"] },
-  { id: "sint-baafskathedraal", name: "Sint-Baafskathedraal", lat: 51.05298, lng: 3.72716, aliases: ["st bavo", "saint bavo", "saint-bavon", "kathedraal", "cathedral", "cathédrale", "lam gods", "mystic lamb", "agneau mystique"] },
-  { id: "uz-gent", name: "UZ Gent", lat: 51.02354, lng: 3.72663, aliases: ["universitair ziekenhuis", "ziekenhuis", "hospital", "hôpital"] },
-  { id: "vrijdagmarkt", name: "Vrijdagmarkt", lat: 51.05738, lng: 3.72570, aliases: ["friday market", "marché du vendredi"] },
-  { id: "belfort", name: "Belfort", lat: 51.05363, lng: 3.72468, aliases: ["belfry", "beffroi"] },
+  { id: "gent-sint-pieters", name: "Station Gent-Sint-Pieters", lat: 51.03493, lng: 3.71028, aliases: ["sint-pietersstation", "treinstation", "train station", "gare", "bahnhof", "estación"] },
+  { id: "sint-baafskathedraal", name: "Sint-Baafskathedraal", lat: 51.05298, lng: 3.72716, aliases: ["st bavo", "saint bavo", "saint-bavon", "kathedraal", "cathedral", "cathédrale", "lam gods", "mystic lamb", "agneau mystique", "kathedrale", "genter altar", "catedral", "cordero místico"] },
+  { id: "uz-gent", name: "UZ Gent", lat: 51.02354, lng: 3.72663, aliases: ["universitair ziekenhuis", "ziekenhuis", "hospital", "hôpital", "krankenhaus"] },
+  { id: "vrijdagmarkt", name: "Vrijdagmarkt", lat: 51.05738, lng: 3.72570, aliases: ["friday market", "marché du vendredi", "freitagsmarkt", "mercado del viernes"] },
+  { id: "belfort", name: "Belfort", lat: 51.05363, lng: 3.72468, aliases: ["belfry", "beffroi", "belfried", "campanario"] },
   { id: "graslei", name: "Graslei", lat: 51.05481, lng: 3.72077, aliases: ["korenlei"] },
-  { id: "stadhuis", name: "Stadhuis", lat: 51.05453, lng: 3.72527, aliases: ["city hall", "town hall", "hôtel de ville"] },
+  { id: "stadhuis", name: "Stadhuis", lat: 51.05453, lng: 3.72527, aliases: ["city hall", "town hall", "hôtel de ville", "rathaus", "ayuntamiento"] },
   { id: "stadshal", name: "Stadshal", lat: 51.05401, lng: 3.72438, aliases: ["city pavilion"] },
   { id: "veldstraat", name: "Veldstraat", lat: 51.05177, lng: 3.72155, aliases: ["winkelstraat", "shopping"] },
-  { id: "kouter", name: "Kouter", lat: 51.05024, lng: 3.72383, aliases: ["bloemenmarkt", "flower market"] },
-  { id: "de-krook", name: "De Krook", lat: 51.04909, lng: 3.72884, aliases: ["krook", "bibliotheek", "library", "bibliothèque"] },
-  { id: "opera", name: "Opera Gent", lat: 51.04953, lng: 3.72191, aliases: ["opera vlaanderen", "opéra"] },
-  { id: "ntgent", name: "NTGent Schouwburg", lat: 51.05386, lng: 3.72604, aliases: ["schouwburg", "theater", "theatre", "théâtre"] },
+  { id: "kouter", name: "Kouter", lat: 51.05024, lng: 3.72383, aliases: ["bloemenmarkt", "flower market", "blumenmarkt", "mercado de flores"] },
+  { id: "de-krook", name: "De Krook", lat: 51.04909, lng: 3.72884, aliases: ["krook", "bibliotheek", "library", "bibliothèque", "bibliothek", "biblioteca"] },
+  { id: "opera", name: "Opera Gent", lat: 51.04953, lng: 3.72191, aliases: ["opera vlaanderen", "opéra", "oper", "ópera"] },
+  { id: "ntgent", name: "NTGent Schouwburg", lat: 51.05386, lng: 3.72604, aliases: ["schouwburg", "theater", "theatre", "théâtre", "teatro"] },
   { id: "capitole", name: "Capitole Gent", lat: 51.04811, lng: 3.73214, aliases: [] },
   { id: "handelsbeurs", name: "Handelsbeurs", lat: 51.04972, lng: 3.72319, aliases: ["concertzaal"] },
-  { id: "kinepolis", name: "Kinepolis Gent", lat: 51.04081, lng: 3.73075, aliases: ["cinema", "bioscoop", "cinéma"] },
+  { id: "kinepolis", name: "Kinepolis Gent", lat: 51.04081, lng: 3.73075, aliases: ["cinema", "bioscoop", "cinéma", "kino", "cine"] },
   { id: "smak", name: "S.M.A.K.", lat: 51.03826, lng: 3.72278, aliases: ["smak", "museum voor actuele kunst", "contemporary art"] },
   { id: "msk", name: "MSK (Museum voor Schone Kunsten)", lat: 51.03798, lng: 3.72424, aliases: ["fine arts", "beaux-arts"] },
   { id: "stam", name: "STAM", lat: 51.04397, lng: 3.71737, aliases: ["stadsmuseum", "city museum"] },
   { id: "design-museum", name: "Design Museum Gent", lat: 51.05574, lng: 3.71976, aliases: [] },
   { id: "icc", name: "ICC Gent", lat: 51.03711, lng: 3.72101, aliases: ["congres", "convention", "citadelpark"] },
-  { id: "gent-dampoort", name: "Station Gent-Dampoort", lat: 51.05584, lng: 3.74047, aliases: ["dampoort", "treinstation", "train station", "gare"] },
-  { id: "az-sint-lucas", name: "AZ Sint-Lucas", lat: 51.06255, lng: 3.72076, aliases: ["ziekenhuis", "hospital", "hôpital"] },
-  { id: "az-maria-middelares", name: "AZ Maria Middelares", lat: 51.02565, lng: 3.70141, aliases: ["ziekenhuis", "hospital", "hôpital"] },
-  { id: "planet-group-arena", name: "Planet Group Arena (KAA Gent)", lat: 51.01608, lng: 3.73253, aliases: ["ghelamco arena", "stadion", "stadium", "stade", "voetbal", "buffalo"] },
+  { id: "gent-dampoort", name: "Station Gent-Dampoort", lat: 51.05584, lng: 3.74047, aliases: ["dampoort", "treinstation", "train station", "gare", "bahnhof", "estación"] },
+  { id: "az-sint-lucas", name: "AZ Sint-Lucas", lat: 51.06255, lng: 3.72076, aliases: ["ziekenhuis", "hospital", "hôpital", "krankenhaus"] },
+  { id: "az-maria-middelares", name: "AZ Maria Middelares", lat: 51.02565, lng: 3.70141, aliases: ["ziekenhuis", "hospital", "hôpital", "krankenhaus"] },
+  { id: "planet-group-arena", name: "Planet Group Arena (KAA Gent)", lat: 51.01608, lng: 3.73253, aliases: ["ghelamco arena", "stadion", "stadium", "stade", "voetbal", "buffalo", "estadio", "fußball", "fútbol"] },
   { id: "flanders-expo", name: "Flanders Expo", lat: 51.02682, lng: 3.69202, aliases: ["beurs"] },
   { id: "blaarmeersen", name: "Blaarmeersen", lat: 51.04555, lng: 3.68641, aliases: ["recreatiedomein", "strand", "zwembad"] },
   { id: "kuipke", name: "'t Kuipke", lat: 51.03875, lng: 3.72077, aliases: ["kuipke", "zesdaagse", "velodroom"] },

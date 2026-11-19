@@ -1,7 +1,8 @@
 // Site-wide facts shared by the page metadata, web manifest, sitemap and
 // share image. Translated text (tagline, descriptions) lives in messages/.
 
-import { routing } from "@/i18n/routing";
+import { hasLocale } from "next-intl";
+import { LOCALE_INFO, routing } from "@/i18n/routing";
 
 export const SITE_NAME = "Ghent Parking";
 // Colours as plain hex, because the manifest and <meta name="theme-color">
@@ -39,8 +40,9 @@ export function shareImage(locale: string, alt: string) {
   return { url: `/${locale}/opengraph-image`, width: 1200, height: 630, alt };
 }
 
-export const OG_LOCALES: Record<string, string> = {
-  nl: "nl_BE",
-  en: "en_GB",
-  fr: "fr_BE",
-};
+// "nl_BE", "en_GB", … for share previews; undefined for an unknown language.
+export function openGraphLocale(locale: string): string | undefined {
+  return hasLocale(routing.locales, locale)
+    ? LOCALE_INFO[locale].openGraph
+    : undefined;
+}
