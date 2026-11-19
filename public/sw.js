@@ -91,15 +91,17 @@ async function savedPage(url) {
   return (await cache.match(url.href)) || (await cache.match(url.origin + url.pathname));
 }
 
-// The installed app opens at "/", which only redirects to a language and so
-// is never saved itself. Offline, send it to the start page this device saved
-// most recently.
-async function lastStartPage() {
+// The installed app opens at "/" (and its shortcut at "/parked"), which only
+// redirect to a language and so are never saved themselves. Offline, send
+// them to that page in the language this device saved most recently.
+// `page` is "" for the start page, or "/parked".
+async function lastSavedIn(page) {
   const cache = await caches.open(PAGES);
   let best = null;
   for (const key of await cache.keys()) {
     const url = new URL(key.url);
-    if (!/^\/[a-z]{2}$/.test(url.pathname) || url.search) continue;
+    if (!/^\/[a-z]{2}$/.test(url.pathname.slice(0, 3)) || url.pathname.slice(3) !== page) continue;
+    if (url.search) continue;
     const saved = await cache.match(key);
     const at = Number(saved && saved.headers.get("x-saved-at")) || 0;
     if (!best || at > best.at) best = { path: url.pathname, at };
@@ -143,7 +145,8 @@ async function loadPage(event) {
   const saved = await savedPage(url);
   if (!saved) {
     return fromNetwork.catch(async () => {
-      const start = url.pathname === "/" ? await lastStartPage() : null;
+      const unprefixed = url.pathname === "/" ? "" : url.pathname === "/parked" ? "/parked" : null;
+      const start = unprefixed === null ? null : await lastSavedIn(unprefixed);
       return start ? Response.redirect(start, 302) : offlinePage(url);
     });
   }

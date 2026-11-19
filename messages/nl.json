@@ -22,7 +22,8 @@
   "header": {
     "home": "Ghent Parking — startpagina",
     "liveData": "Live data · Stad Gent",
-    "language": "Taal"
+    "language": "Taal",
+    "parked": "Waar staat mijn auto?"
   },
   "footer": {
     "builtBy": "Gemaakt door",
@@ -295,7 +296,26 @@
     "walkBackLabel": "Wandelroute naar {name}",
     "clear": "Ik ben vertrokken",
     "clearLabel": "Vergeet waar ik geparkeerd sta",
-    "privacy": "Alleen in deze browser bewaard."
+    "privacy": "Alleen in deze browser bewaard.",
+    "pageTitle": "Waar staat mijn auto?",
+    "pageIntro": "Bewaar waar je auto staat en vind de weg terug. Alleen op dit toestel opgeslagen.",
+    "none": "Nog geen parkeerplek bewaard.",
+    "saveHere": "Bewaar waar ik nu sta",
+    "saveHereHint": "Op straat geparkeerd? Ga naast je auto staan en tik op de knop. Je browser vraagt om je locatie te gebruiken.",
+    "garageHint": "In een parking? Open de pagina van die parking en tik op ‘Ik sta hier geparkeerd’.",
+    "toOverview": "Alle parkings bekijken",
+    "locating": "Je locatie zoeken…",
+    "denied": "De toegang tot je locatie is geweigerd. Sta die toe in de instellingen van je browser en probeer opnieuw.",
+    "unavailable": "Je locatie kon niet bepaald worden. Probeer opnieuw, liefst buiten.",
+    "streetSaved": "Bewaard, tot op ongeveer {metres} m nauwkeurig.",
+    "streetTitle": "Je staat op straat geparkeerd",
+    "streetCar": "je auto",
+    "streetNoteLabel": "Notitie (optioneel)",
+    "streetNotePlaceholder": "bv. tegenover nummer 12",
+    "update": "Aanpassen naar waar ik nu sta",
+    "zoneLabel": "Parkeerzone hier:",
+    "lookupNote": "De plek zelf blijft in deze browser. Om de parkeerzone en parkeerverboden te tonen, worden alleen de coördinaten opgezocht: bij deze site en bij het open data portaal van de stad.",
+    "garagePage": "Pagina van de parking"
   },
   "street": {
     "label": "Parkeren op straat bij {place}:",
@@ -334,5 +354,19 @@
     "bikesNone": "Nu geen deelfietsen binnen 400 m.",
     "bikesLoading": "Deelfietsen zoeken…",
     "bikesSource": "Live uit de open data van de stad, rechtstreeks opgehaald door je browser."
+  },
+  "bans": {
+    "title": "Tijdelijke parkeerverboden in de buurt",
+    "none": "Geen tijdelijke parkeerverboden bekend binnen {metres} m voor de komende {days} dagen.",
+    "kinds": {
+      "loading": "Laden en lossen",
+      "construction": "Werfwagen",
+      "noParking": "Stilstaan- en parkeerverbod"
+    },
+    "active": "nu van kracht",
+    "range": "{from} tot {until}",
+    "away": "ongeveer {metres} m verderop",
+    "here": "vlak bij deze plek",
+    "caveat": "Uit de vergunningen van de stad. De borden in de straat beslissen altijd: kijk ze na waar je parkeert."
   }
 }

@@ -31,7 +31,20 @@ function readAnswer(key: string, json: unknown): Answer {
 // street-parking zones the destination is in, with a link to the city's
 // rates. Shows nothing until the answer is in, and nothing if it can't be
 // fetched: it is a footnote, not worth an error message.
-export function StreetZoneNote({ place, at }: { place: string; at: LatLng }) {
+//
+// `label` replaces the "Street parking at …:" lead-in, for a spot that has
+// no name (where the visitor parked).
+export function StreetZoneNote({
+  place = "",
+  label,
+  at,
+  className,
+}: {
+  place?: string;
+  label?: string;
+  at: LatLng;
+  className?: string;
+}) {
   const t = useTranslations("street");
   const key = formatLatLng(at);
   const [answer, setAnswer] = useState<Answer | null>(null);
@@ -50,8 +63,13 @@ export function StreetZoneNote({ place, at }: { place: string; at: LatLng }) {
   // An answer for an earlier destination doesn't apply to this one.
   if (!answer || answer.key !== key) return null;
   return (
-    <p className="mt-2 border-t border-primary/15 pt-2 text-xs text-muted-foreground">
-      {t("label", { place })}{" "}
+    <p
+      className={cn(
+        "text-muted-foreground",
+        className ?? "mt-2 border-t border-primary/15 pt-2 text-xs",
+      )}
+    >
+      {label ?? t("label", { place })}{" "}
       <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
         {answer.color ? (
           <span aria-hidden className={cn("size-2 rounded-full", DOT[answer.color])} />

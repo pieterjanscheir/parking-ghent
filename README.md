@@ -13,6 +13,8 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Every public car park, not only the ones with a count** — the 13 Park & Ride lots and five more garages (Kouter, Zuid, Center parking, Leopoldskazerne, Zuiderpoort) publish no live numbers. They are listed in their own section and on the map, clearly marked "no live count", each with its own page — see [More than the live feed](#more-than-the-live-feed).
 - **Park & Ride, free parking, EV charging** — badges on cards and garage pages, and filters for each. A garage page shows how many charge points it has and the city's own remark about the garage.
 - **Where did I park?** — "I parked here" on any car park page remembers the car park, the time and an optional note (level, row). The overview then opens with a reminder and a walking route back. Stored in the browser only, dropped after a week ([lib/parked.ts](lib/parked.ts)).
+- **Parked on the street** — the car icon in the header opens "Where did I park?" (`/parked`), where "Save where I am now" pins the car from the phone's position. The page then shows it on a map, the walking route back, which street-parking zone it is in, and the temporary parking bans the city has granted around it for the coming week (removal vans, construction vehicles) — see [Straight from the browser](#straight-from-the-browser).
+- **Onward from a Park & Ride** — a Park & Ride page links to the route into the centre by public transport or by bike, and shows how many shared bikes (Donkey Republic, Dott, Bolt) stand within 400 m right now.
 - **Nearby alternatives** — a garage page lists up to three other garages with space within 2.5 km; when the garage itself has no space the section is titled "No space here? Try nearby".
 - **How to drive in** — the garage map shows the city's recommended routes between the ring road (R40) and the garage as blue lines, for the eleven garages in the centre that have them. Ghent's circulation plan closes many other streets to through traffic ([lib/approach-routes.ts](lib/approach-routes.ts)).
 - **Charge points on the map** — a "Charge points" button on the overview map shows every public charge point for electric cars in the city (about 1,160 sockets), fast chargers in a different colour.
@@ -29,7 +31,7 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
 - **Its own history** — a scheduled job saves every garage's count every 10 minutes, because the city only publishes the last few hours. Collecting only, for now — see [Our own history archive](#our-own-history-archive).
 - **Five languages** — Dutch, English, French, German and Spanish; every page exists under `/nl`, `/en`, `/fr`, `/de` and `/es`. A first visit picks the browser's language (Dutch if it's none of the five), the choice is remembered, and the language menu in the header keeps your search, sort, filters and destination — see [Languages](#languages).
-- **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space* and *Map* ([app/manifest.ts](app/manifest.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
+- **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space*, *Map* and *Where did I park?* ([app/manifest.ts](app/manifest.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
 
 ## Forecasting
 
@@ -109,6 +111,14 @@ The live feed has 15 garages. Four more of the city's datasets fill in the rest:
 - **The charge-point map layer** uses the full `laadpalen-gent` list, grouped per post, and is only fetched (`/api/chargers`) when a visitor switches the layer on.
 - All of these are optional. If one fails, the live garages are shown as before, and the failing list is retried once a minute rather than on every page view.
 
+## Straight from the browser
+
+Some questions have a different answer for every visitor and every minute, so there is nothing to cache on a server. For those the visitor's browser asks the city's open data portal itself; the portal allows that from any site. Nothing runs on our server for them.
+
+- **Shared bikes near a Park & Ride** ([lib/shared-bikes.ts](lib/shared-bikes.ts), [components/onward-travel.tsx](components/onward-travel.tsx)): three requests, one per operator, for the bikes within 400 m. Donkey Republic publishes stations with a count; Dott and Bolt publish each bike. Reserved and disabled bikes, and stations that aren't renting, are left out. An operator whose feed doesn't answer is simply not shown.
+- **Temporary parking bans around a car on the street** ([lib/parking-bans.ts](lib/parking-bans.ts), [components/parking-bans-note.tsx](components/parking-bans-note.tsx)): the city's granted bans within 75 m that are running now or start within seven days, nearest first. The data locates a ban by the middle of its stretch of street and a phone's position is easily 20 m off, so the list says "nearby", gives the distance, and always adds that the signs in the street decide. When the request fails the section stays empty rather than say "no bans".
+- **Privacy:** these requests carry the coordinates of the car park or of the saved spot, and the visitor's IP address, to the city's portal, as opening the city's own maps would. The street-parking zone of a saved spot is looked up through this site's own `/api/street-zone`. The saved spot itself (time, note) never leaves the browser.
+
 ## Offline
 
 [public/sw.js](public/sw.js) is a small hand-written service worker, registered by [components/offline-notice.tsx](components/offline-notice.tsx) (not in development).
@@ -116,7 +126,7 @@ The live feed has 15 garages. Four more of the city's datasets fill in the rest:
 - **Online, nothing changes.** Pages always come from the network first. API calls and Next.js data requests are never cached; only static files with a content hash in their name are.
 - **A saved copy is a fallback**, used when the network fails or a page load hangs for six seconds. Up to 40 pages are kept.
 - **A saved copy says so.** The worker tells the page when its copy was saved. A notice under the header reads "Offline copy: this page was saved 2 h ago", and every "updated … ago" label counts from that moment rather than from when the page was opened ([lib/use-now.ts](lib/use-now.ts)), so old counts are never presented as live.
-- **The installed app** opens at `/`, which only redirects to a language; offline it is sent to the start page that was saved most recently.
+- **The installed app** opens at `/` (and its shortcut at `/parked`), which only redirect to a language; offline they are sent to that page in the language that was saved most recently.
 - **A page that was never saved** gets a short offline page in the visitor's language.
 - "Where did I park?" lives in the browser's own storage, so the reminder works offline too.
 
@@ -221,6 +231,7 @@ app/                          App Router routes
     layout.tsx                Root layout: <html lang>, providers, metadata
     page.tsx                  Overview (server)
     parkings/[id]/            Detail page (server) + loading / error / not-found
+    parked/page.tsx           "Where did I park?"
     opengraph-image.tsx       Share preview card, one per language
     [...rest]/page.tsx        Translated "page not found" for unknown paths
   api/cron/snapshot/route.ts  Scheduled job: save the current counts to the archive
@@ -246,6 +257,10 @@ components/                   UI building blocks
   facility-badges.tsx         Park & Ride / free / EV charging badges
   parking-facilities.tsx      Price, Park & Ride, charging and the city's note on a page
   parked-here.tsx             "I parked here" and the reminder on the overview
+  parked-page.tsx             "Where did I park?": the saved spot, or save one on the street
+  parked-link.tsx             The car icon in the header
+  parking-bans-note.tsx       Temporary parking bans around a spot on the street
+  onward-travel.tsx           Routes to the centre and shared bikes near a Park & Ride
   offline-notice.tsx          Registers the service worker; "you are looking at a saved copy"
   language-switcher.tsx       Language menu in the header
   settings-menu.tsx           Gear menu in the header (map choice)
@@ -279,6 +294,8 @@ lib/
   approach-routes.ts          Recommended driving routes between the ring road and a garage
   recommend.ts                Best garage for a point, nearest Park & Ride, nearby alternatives
   parked.ts                   Where the visitor parked (localStorage)
+  parking-bans.ts             The city's temporary parking bans near a spot
+  shared-bikes.ts             Shared bikes near a spot; routes to the centre
   history-archive.ts          Our own history: snapshot format, day files, append
   archive-store.ts            Where the archive lives: Vercel Blob, a folder, or memory
   cron-auth.ts                Checks that a scheduled call really comes from Vercel

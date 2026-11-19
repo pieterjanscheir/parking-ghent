@@ -22,7 +22,8 @@
   "header": {
     "home": "Ghent Parking — inicio",
     "liveData": "Datos en directo · Stad Gent",
-    "language": "Idioma"
+    "language": "Idioma",
+    "parked": "¿Dónde he aparcado?"
   },
   "footer": {
     "builtBy": "Creado por",
@@ -295,7 +296,26 @@
     "walkBackLabel": "Ruta a pie hasta {name}",
     "clear": "Ya me he ido",
     "clearLabel": "Olvidar dónde he aparcado",
-    "privacy": "Solo se guarda en este navegador."
+    "privacy": "Solo se guarda en este navegador.",
+    "pageTitle": "¿Dónde he aparcado?",
+    "pageIntro": "Guarda dónde has dejado el coche y encuentra el camino de vuelta. Solo se guarda en este dispositivo.",
+    "none": "Aún no hay ninguna plaza guardada.",
+    "saveHere": "Guardar dónde estoy ahora",
+    "saveHereHint": "¿Has aparcado en la calle? Ponte junto al coche y pulsa el botón. El navegador pedirá usar tu ubicación.",
+    "garageHint": "¿En un aparcamiento? Abre la página de ese aparcamiento y pulsa «He aparcado aquí».",
+    "toOverview": "Ver todos los aparcamientos",
+    "locating": "Buscando tu ubicación…",
+    "denied": "Se ha denegado el acceso a tu ubicación. Permítelo en los ajustes del navegador e inténtalo de nuevo.",
+    "unavailable": "No se ha podido determinar tu ubicación. Inténtalo de nuevo, mejor al aire libre.",
+    "streetSaved": "Guardado, con una precisión de unos {metres} m.",
+    "streetTitle": "Has aparcado en la calle",
+    "streetCar": "tu coche",
+    "streetNoteLabel": "Nota (opcional)",
+    "streetNotePlaceholder": "p. ej., frente al número 12",
+    "update": "Cambiar a donde estoy ahora",
+    "zoneLabel": "Zona de aparcamiento aquí:",
+    "lookupNote": "El lugar en sí se queda en este navegador. Para mostrar la zona de aparcamiento y las prohibiciones, solo se consultan sus coordenadas: en este sitio y en el portal de datos abiertos de la ciudad.",
+    "garagePage": "Página del aparcamiento"
   },
   "street": {
     "label": "Aparcar en la calle en {place}:",
@@ -334,5 +354,19 @@
     "bikesNone": "Ahora no hay bicicletas compartidas a menos de 400 m.",
     "bikesLoading": "Buscando bicicletas compartidas…",
     "bikesSource": "En directo desde los datos abiertos de la ciudad, obtenidos directamente por tu navegador."
+  },
+  "bans": {
+    "title": "Prohibiciones temporales de aparcar cerca",
+    "none": "No se conocen prohibiciones temporales a menos de {metres} m para los próximos {days} días.",
+    "kinds": {
+      "loading": "Carga y descarga",
+      "construction": "Vehículo de obra",
+      "noParking": "Prohibido parar y aparcar"
+    },
+    "active": "en vigor ahora",
+    "range": "del {from} al {until}",
+    "away": "a unos {metres} m",
+    "here": "justo en este lugar",
+    "caveat": "Según los permisos concedidos por la ciudad. Las señales de la calle siempre mandan: compruébalas donde aparques."
   }
 }

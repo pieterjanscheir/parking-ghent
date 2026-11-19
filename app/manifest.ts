@@ -39,6 +39,7 @@ export default function manifest(): MetadataRoute.Manifest {
     shortcuts: [
       { name: messages.overview.openWithSpace, url: "/?available=true" },
       { name: messages.overview.viewMap, url: "/?view=map" },
+      { name: messages.parked.pageTitle, url: "/parked" },
     ],
   };
 }

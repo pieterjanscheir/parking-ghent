@@ -22,7 +22,8 @@
   "header": {
     "home": "Ghent Parking — accueil",
     "liveData": "Données en direct · Stad Gent",
-    "language": "Langue"
+    "language": "Langue",
+    "parked": "Où suis-je garé ?"
   },
   "footer": {
     "builtBy": "Réalisé par",
@@ -295,7 +296,26 @@
     "walkBackLabel": "Itinéraire à pied vers {name}",
     "clear": "Je suis parti",
     "clearLabel": "Oublier où je suis garé",
-    "privacy": "Enregistré uniquement dans ce navigateur."
+    "privacy": "Enregistré uniquement dans ce navigateur.",
+    "pageTitle": "Où suis-je garé ?",
+    "pageIntro": "Enregistrez l’endroit où se trouve votre voiture et retrouvez le chemin. Enregistré uniquement sur cet appareil.",
+    "none": "Aucun emplacement enregistré pour l’instant.",
+    "saveHere": "Enregistrer ma position actuelle",
+    "saveHereHint": "Garé dans la rue ? Placez-vous à côté de votre voiture et appuyez sur le bouton. Votre navigateur demandera à utiliser votre position.",
+    "garageHint": "Dans un parking ? Ouvrez la page de ce parking et appuyez sur « Je suis garé ici ».",
+    "toOverview": "Voir tous les parkings",
+    "locating": "Recherche de votre position…",
+    "denied": "L’accès à votre position a été refusé. Autorisez-le dans les paramètres de votre navigateur et réessayez.",
+    "unavailable": "Votre position n’a pas pu être déterminée. Réessayez, de préférence à l’extérieur.",
+    "streetSaved": "Enregistré, avec une précision d’environ {metres} m.",
+    "streetTitle": "Vous êtes garé dans la rue",
+    "streetCar": "votre voiture",
+    "streetNoteLabel": "Note (facultatif)",
+    "streetNotePlaceholder": "p. ex. en face du numéro 12",
+    "update": "Remplacer par ma position actuelle",
+    "zoneLabel": "Zone de stationnement ici :",
+    "lookupNote": "L’emplacement lui-même reste dans ce navigateur. Pour afficher la zone de stationnement et les interdictions, seules ses coordonnées sont recherchées : auprès de ce site et du portail de données ouvertes de la ville.",
+    "garagePage": "Page du parking"
   },
   "street": {
     "label": "Stationnement en rue à {place} :",
@@ -334,5 +354,19 @@
     "bikesNone": "Aucun vélo partagé à moins de 400 m pour le moment.",
     "bikesLoading": "Recherche de vélos partagés…",
     "bikesSource": "En direct des données ouvertes de la ville, récupérées directement par votre navigateur."
+  },
+  "bans": {
+    "title": "Interdictions temporaires de stationner à proximité",
+    "none": "Aucune interdiction temporaire connue dans un rayon de {metres} m pour les {days} prochains jours.",
+    "kinds": {
+      "loading": "Chargement et déchargement",
+      "construction": "Véhicule de chantier",
+      "noParking": "Arrêt et stationnement interdits"
+    },
+    "active": "en vigueur maintenant",
+    "range": "du {from} au {until}",
+    "away": "à environ {metres} m",
+    "here": "tout près de cet endroit",
+    "caveat": "D’après les autorisations accordées par la ville. Les panneaux dans la rue font toujours foi : vérifiez-les là où vous vous garez."
   }
 }

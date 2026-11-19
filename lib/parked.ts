@@ -4,8 +4,8 @@ import { useCallback } from "react";
 import { useLocalStorageJson } from "./local-storage-store";
 
 // "Where did I park?" — the car park the visitor says they left their car
-// in, with the time and an optional note ("level -2, row C"). It lives in
-// this browser only (localStorage) and is never sent anywhere.
+// in, or the spot on the street they saved, with the time and an optional
+// note ("level -2, row C"). It lives in this browser only (localStorage).
 export type ParkedSpot = {
   id: string;
   name: string;
@@ -17,6 +17,11 @@ export type ParkedSpot = {
 };
 
 const STORAGE_KEY = "parking.parked.v1";
+
+// A spot on the street, saved from the phone's position, has no car park
+// behind it: it goes by this id, and its `name` is not shown.
+export const STREET_SPOT_ID = "street";
+export const isStreetSpot = (spot: Pick<ParkedSpot, "id">) => spot.id === STREET_SPOT_ID;
 export const NOTE_MAX_LENGTH = 60;
 // A car isn't left in a garage for weeks on a city trip: after this long the
 // reminder is more likely forgotten than still true.
@@ -72,20 +77,21 @@ export function useParkedSpot(): {
   // False during server render and hydration, when the stored value isn't
   // known yet.
   ready: boolean;
-  park: (place: Place) => void;
+  // `note` carries an existing note over when the same car's spot is moved.
+  park: (place: Place, note?: string) => void;
   setNote: (note: string) => void;
   clear: () => void;
 } {
   const { value, mounted, write } = useLocalStorageJson(STORAGE_KEY, parseParkedSpot);
   const park = useCallback(
-    (place: Place) =>
+    (place: Place, note = "") =>
       write({
         id: place.id,
         name: place.name,
         lat: place.lat,
         lng: place.lng,
         at: Date.now(),
-        note: "",
+        note: note.slice(0, NOTE_MAX_LENGTH),
       }),
     [write],
   );

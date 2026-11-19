@@ -6,7 +6,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
-import { NOTE_MAX_LENGTH, isCurrent, useParkedSpot, walkingRouteUrl } from "@/lib/parked";
+import {
+  NOTE_MAX_LENGTH,
+  isCurrent,
+  isStreetSpot,
+  useParkedSpot,
+  walkingRouteUrl,
+} from "@/lib/parked";
 import { useDeviceNow } from "@/lib/use-now";
 import { cn } from "@/lib/utils";
 import { useFormatAge, useFormatTime } from "./use-labels";
@@ -94,15 +100,18 @@ export function ParkedBanner() {
   const { spot, ready, clear } = useParkedSpot();
 
   if (!ready || now === 0 || !spot || !isCurrent(spot, now)) return null;
+  // A spot on the street has no car park page; its details are on /parked.
+  const onStreet = isStreetSpot(spot);
+  const title = onStreet ? t("streetTitle") : t("bannerTitle", { name: spot.name });
   return (
     <section
-      aria-label={t("bannerTitle", { name: spot.name })}
+      aria-label={title}
       className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-xl border border-primary/40 bg-primary/[0.05] px-4 py-3"
     >
       <div className="min-w-0">
         <p className="inline-flex items-center gap-1.5 font-heading text-sm font-semibold">
           <CarFront className="size-4 shrink-0 text-primary" aria-hidden />
-          {t("bannerTitle", { name: spot.name })}
+          {title}
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           {t("since", { time: formatTime(spot.at), age: formatAge(now - spot.at) })}
@@ -115,14 +124,16 @@ export function ParkedBanner() {
             href={walkingRouteUrl(spot)}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={t("walkBackLabel", { name: spot.name })}
+            aria-label={t("walkBackLabel", { name: onStreet ? t("streetCar") : spot.name })}
           >
             <Footprints className="size-3.5" aria-hidden />
             {t("walkBack")}
           </a>
         </Button>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/parkings/${encodeURIComponent(spot.id)}`}>{tAdvice("details")}</Link>
+          <Link href={onStreet ? "/parked" : `/parkings/${encodeURIComponent(spot.id)}`}>
+            {tAdvice("details")}
+          </Link>
         </Button>
         <Button
           type="button"

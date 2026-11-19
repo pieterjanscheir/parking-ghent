@@ -22,7 +22,8 @@
   "header": {
     "home": "Ghent Parking — home",
     "liveData": "Live data · Stad Gent",
-    "language": "Language"
+    "language": "Language",
+    "parked": "Where did I park?"
   },
   "footer": {
     "builtBy": "Built by",
@@ -295,7 +296,26 @@
     "walkBackLabel": "Walking route to {name}",
     "clear": "I've left",
     "clearLabel": "Forget where I parked",
-    "privacy": "Only stored in this browser."
+    "privacy": "Only stored in this browser.",
+    "pageTitle": "Where did I park?",
+    "pageIntro": "Save where you left your car and find your way back. Stored on this device only.",
+    "none": "No parking spot saved yet.",
+    "saveHere": "Save where I am now",
+    "saveHereHint": "Parked on the street? Stand next to your car and tap the button. Your browser will ask to use your location.",
+    "garageHint": "In a car park? Open that car park's page and tap “I parked here”.",
+    "toOverview": "See all car parks",
+    "locating": "Finding your location…",
+    "denied": "Access to your location was refused. Allow it in your browser's settings and try again.",
+    "unavailable": "Your location couldn't be determined. Try again, preferably outdoors.",
+    "streetSaved": "Saved, accurate to about {metres} m.",
+    "streetTitle": "You parked on the street",
+    "streetCar": "your car",
+    "streetNoteLabel": "Note (optional)",
+    "streetNotePlaceholder": "e.g. opposite number 12",
+    "update": "Update to where I am now",
+    "zoneLabel": "Parking zone here:",
+    "lookupNote": "The spot itself stays in this browser. To show the parking zone and parking bans, only its coordinates are looked up: with this site and with the city's open data portal.",
+    "garagePage": "Car park page"
   },
   "street": {
     "label": "Street parking at {place}:",
@@ -334,5 +354,19 @@
     "bikesNone": "No shared bikes within 400 m right now.",
     "bikesLoading": "Looking for shared bikes…",
     "bikesSource": "Live from the city's open data, fetched directly by your browser."
+  },
+  "bans": {
+    "title": "Temporary parking bans nearby",
+    "none": "No temporary parking bans known within {metres} m for the next {days} days.",
+    "kinds": {
+      "loading": "Loading and unloading",
+      "construction": "Construction vehicle",
+      "noParking": "No stopping or parking"
+    },
+    "active": "in force now",
+    "range": "{from} to {until}",
+    "away": "about {metres} m away",
+    "here": "right by this spot",
+    "caveat": "From the permits the city has granted. The signs in the street always decide: check them where you park."
   }
 }

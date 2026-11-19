@@ -22,7 +22,8 @@
   "header": {
     "home": "Ghent Parking — Startseite",
     "liveData": "Live-Daten · Stad Gent",
-    "language": "Sprache"
+    "language": "Sprache",
+    "parked": "Wo steht mein Auto?"
   },
   "footer": {
     "builtBy": "Erstellt von",
@@ -295,7 +296,26 @@
     "walkBackLabel": "Fußweg zu {name}",
     "clear": "Ich bin weggefahren",
     "clearLabel": "Parkplatz vergessen",
-    "privacy": "Nur in diesem Browser gespeichert."
+    "privacy": "Nur in diesem Browser gespeichert.",
+    "pageTitle": "Wo steht mein Auto?",
+    "pageIntro": "Speichern Sie, wo Ihr Auto steht, und finden Sie den Weg zurück. Nur auf diesem Gerät gespeichert.",
+    "none": "Noch kein Parkplatz gespeichert.",
+    "saveHere": "Meinen aktuellen Standort speichern",
+    "saveHereHint": "Auf der Straße geparkt? Stellen Sie sich neben Ihr Auto und tippen Sie auf die Schaltfläche. Ihr Browser fragt nach Ihrem Standort.",
+    "garageHint": "In einem Parkhaus? Öffnen Sie die Seite des Parkhauses und tippen Sie auf „Ich parke hier“.",
+    "toOverview": "Alle Parkhäuser ansehen",
+    "locating": "Standort wird ermittelt…",
+    "denied": "Der Zugriff auf Ihren Standort wurde verweigert. Erlauben Sie ihn in den Browsereinstellungen und versuchen Sie es erneut.",
+    "unavailable": "Ihr Standort konnte nicht ermittelt werden. Versuchen Sie es erneut, am besten im Freien.",
+    "streetSaved": "Gespeichert, auf etwa {metres} m genau.",
+    "streetTitle": "Sie parken auf der Straße",
+    "streetCar": "Ihrem Auto",
+    "streetNoteLabel": "Notiz (optional)",
+    "streetNotePlaceholder": "z. B. gegenüber Hausnummer 12",
+    "update": "Auf meinen aktuellen Standort ändern",
+    "zoneLabel": "Parkzone hier:",
+    "lookupNote": "Der Ort selbst bleibt in diesem Browser. Um die Parkzone und Parkverbote anzuzeigen, werden nur seine Koordinaten abgefragt: bei dieser Website und beim Open-Data-Portal der Stadt.",
+    "garagePage": "Seite des Parkhauses"
   },
   "street": {
     "label": "Parken an der Straße bei {place}:",
@@ -334,5 +354,19 @@
     "bikesNone": "Derzeit keine Leihfahrräder im Umkreis von 400 m.",
     "bikesLoading": "Leihfahrräder werden gesucht…",
     "bikesSource": "Live aus den offenen Daten der Stadt, direkt von Ihrem Browser abgerufen."
+  },
+  "bans": {
+    "title": "Vorübergehende Parkverbote in der Nähe",
+    "none": "Keine vorübergehenden Parkverbote im Umkreis von {metres} m für die nächsten {days} Tage bekannt.",
+    "kinds": {
+      "loading": "Be- und Entladen",
+      "construction": "Baustellenfahrzeug",
+      "noParking": "Halte- und Parkverbot"
+    },
+    "active": "gilt jetzt",
+    "range": "{from} bis {until}",
+    "away": "etwa {metres} m entfernt",
+    "here": "direkt an dieser Stelle",
+    "caveat": "Aus den Genehmigungen der Stadt. Maßgeblich sind immer die Schilder in der Straße: Prüfen Sie sie dort, wo Sie parken."
   }
 }

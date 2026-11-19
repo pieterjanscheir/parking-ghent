@@ -3,6 +3,7 @@ import { CircleParking } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { LanguageSwitcher } from "./language-switcher";
+import { ParkedLink } from "./parked-link";
 import { SettingsMenu } from "./settings-menu";
 
 export function SiteHeader() {
@@ -32,6 +33,7 @@ export function SiteHeader() {
           <Suspense fallback={null}>
             <LanguageSwitcher />
           </Suspense>
+          <ParkedLink />
           <SettingsMenu />
         </div>
       </div>
