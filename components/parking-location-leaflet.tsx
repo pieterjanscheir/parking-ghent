@@ -60,7 +60,15 @@ export default function ParkingLocationLeaflet({
       >
         <TileLayer attribution={OSM_ATTRIBUTION} url={OSM_TILE_URL} maxZoom={19} />
         <MapSetup />
-        <Marker position={position} icon={icon} interactive={false} />
+        {/* A label, not a control: `keyboard={false}` keeps it out of the tab
+            order (by default Leaflet makes every marker a focusable button,
+            even a non-interactive one). */}
+        <Marker
+          position={position}
+          icon={icon}
+          interactive={false}
+          keyboard={false}
+        />
       </MapContainer>
     </div>
   );
