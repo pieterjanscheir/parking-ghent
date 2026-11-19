@@ -272,10 +272,7 @@ export function ParkingOverview({
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">{t("intro")}</p>
         <div className="mt-5 max-w-xl">
-          {/* Remounted when the destination changes from outside (a shared
-              link, "Near me"), so the text box follows it. */}
           <DestinationSearch
-            key={destination?.id ?? "none"}
             selected={destination}
             onSelect={chooseDestination}
             onClear={clearDestination}

@@ -98,8 +98,9 @@ export function parseDay(text: string): Snapshot[] {
 // can be run by hand; neither should produce duplicate lines.
 export function appendSnapshot(dayText: string | null, snapshot: Snapshot): string | null {
   const existing = dayText ?? "";
-  const lines = existing.split("\n").filter((line) => line.trim());
-  const last = lines.length > 0 ? parseLine(lines[lines.length - 1]) : null;
+  // The last *readable* snapshot decides: a damaged final line must not make
+  // a repeated run look like a new slot.
+  const last = parseDay(existing).at(-1);
   if (last && slotOf(last) >= slotOf(snapshot)) return null;
   const separator = existing === "" || existing.endsWith("\n") ? "" : "\n";
   return `${existing}${separator}${JSON.stringify(snapshot)}\n`;

@@ -69,6 +69,39 @@ describe("fileStore", () => {
     await store.write("a.jsonl", "one\n", null);
     expect(await readdir(directory)).toEqual(["a.jsonl"]);
   });
+
+  it("lets only one of several simultaneous writers win", async () => {
+    // All eight read the same version, then write at the same moment.
+    const store = fileStore(directory);
+    await store.write("a.jsonl", "start\n", null);
+    const read = await store.read("a.jsonl");
+    const results = await Promise.allSettled(
+      Array.from({ length: 8 }, (_, i) =>
+        store.write("a.jsonl", `start\nwriter ${i}\n`, read!.version),
+      ),
+    );
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect((await store.read("a.jsonl"))?.text).toMatch(/^start\nwriter \d\n$/);
+    expect(await readdir(directory)).toEqual(["a.jsonl"]);
+  });
+
+  it("lets only one of several simultaneous creators win", async () => {
+    const store = fileStore(directory);
+    const results = await Promise.allSettled(
+      Array.from({ length: 8 }, (_, i) => store.write("new.jsonl", `writer ${i}\n`, null)),
+    );
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect(await readdir(directory)).toEqual(["new.jsonl"]);
+  });
+
+  it("keeps working after a refused write", async () => {
+    const store = fileStore(directory);
+    await store.write("a.jsonl", "one\n", null);
+    await expect(store.write("a.jsonl", "other\n", null)).rejects.toThrow();
+    const read = await store.read("a.jsonl");
+    await store.write("a.jsonl", "one\ntwo\n", read!.version);
+    expect((await store.read("a.jsonl"))?.text).toBe("one\ntwo\n");
+  });
 });
 
 describe("getArchiveStore", () => {

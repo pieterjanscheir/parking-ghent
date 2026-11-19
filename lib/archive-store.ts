@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { get, put } from "@vercel/blob";
 
@@ -55,6 +55,25 @@ export function blobStore(): ArchiveStore {
 
 const versionOf = (text: string) => createHash("sha256").update(text).digest("hex");
 
+// Writers waiting per file. Checking the version and replacing the file are
+// two steps; without a queue, two requests could both pass the check and the
+// second would overwrite the first one's snapshot.
+const writeQueues = new Map<string, Promise<unknown>>();
+
+function oneAtATime<T>(key: string, task: () => Promise<T>): Promise<T> {
+  const previous = writeQueues.get(key) ?? Promise.resolve();
+  const run = previous.then(task, task);
+  const settled = run.catch(() => undefined);
+  writeQueues.set(key, settled);
+  void settled.then(() => {
+    if (writeQueues.get(key) === settled) writeQueues.delete(key);
+  });
+  return run;
+}
+
+// For one server process (local development, a single self-hosted instance):
+// the queue above lives in memory, so several processes sharing a folder are
+// not protected from each other. Vercel Blob is, by its own version check.
 export function fileStore(directory: string): ArchiveStore {
   const locate = (file: string) => {
     const target = path.resolve(directory, file);
@@ -78,16 +97,24 @@ export function fileStore(directory: string): ArchiveStore {
     },
     async write(file, text, expected) {
       const target = locate(file);
-      const current = await readText(target);
-      const currentVersion = current === null ? null : versionOf(current);
-      if (currentVersion !== expected) {
-        throw new Error(`${file} changed since it was read`);
-      }
-      await mkdir(path.dirname(target), { recursive: true });
-      // Write beside the file, then swap: a crash can't leave half a file.
-      const temporary = `${target}.${process.pid}.tmp`;
-      await writeFile(temporary, text, "utf8");
-      await rename(temporary, target);
+      return oneAtATime(target, async () => {
+        const current = await readText(target);
+        const currentVersion = current === null ? null : versionOf(current);
+        if (currentVersion !== expected) {
+          throw new Error(`${file} changed since it was read`);
+        }
+        await mkdir(path.dirname(target), { recursive: true });
+        // Write a file of our own beside the target, then swap it in: readers
+        // never see half a file, and no other write can touch ours.
+        const temporary = `${target}.${randomUUID()}.tmp`;
+        try {
+          await writeFile(temporary, text, { encoding: "utf8", flag: "wx" });
+          await rename(temporary, target);
+        } catch (err) {
+          await rm(temporary, { force: true });
+          throw err;
+        }
+      });
     },
   };
 }

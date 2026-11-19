@@ -44,6 +44,19 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [remote, setRemote] = useState<Remote>({ status: "idle" });
 
+  // Follow a destination that changes from outside (a shared link, the back
+  // button, "Near me"). Done here rather than by remounting the component,
+  // which would throw away the text box — and with it the keyboard focus that
+  // "clear" has just put there.
+  const selectedId = selected?.id ?? null;
+  const [shownId, setShownId] = useState(selectedId);
+  if (shownId !== selectedId) {
+    setShownId(selectedId);
+    setText(selected?.name ?? "");
+    setActiveIndex(0);
+    setRemote({ status: "idle" });
+  }
+
   const query = text.trim();
   // Results from OpenStreetMap only apply to the exact text they were for.
   const remoteForQuery = remote.status !== "idle" && remote.query === query ? remote : null;
@@ -96,8 +109,9 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
       // Replaced by a newer search, or cancelled: this outcome no longer counts.
       if (requestRef.current !== controller) return;
       setRemote({ status: "done", query, places });
-      // Put the highlight on the first new result.
-      setActiveIndex(known.length);
+      // Put the highlight on the first new result — unless the visitor has
+      // typed on in the meantime: the highlight belongs to the current text.
+      if (inputRef.current?.value.trim() === query) setActiveIndex(known.length);
     } catch {
       // Same check. A timeout leaves the ref alone, so it does show an error.
       if (requestRef.current !== controller) return;

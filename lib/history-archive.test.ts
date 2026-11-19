@@ -107,6 +107,11 @@ describe("day files", () => {
     expect(parseDay(text)).toHaveLength(2);
   });
 
+  it("refuses the same slot again even when the last line is damaged", () => {
+    const text = `${JSON.stringify(snapshotAt(NOON))}\n{"t":17635`;
+    expect(appendSnapshot(text, snapshotAt(NOON + 3 * MINUTE))).toBeNull();
+  });
+
   it("still appends after a damaged last line", () => {
     const text = `${JSON.stringify(snapshotAt(NOON))}\n{"t":17635`;
     const next = appendSnapshot(text, snapshotAt(NOON + 10 * MINUTE))!;
