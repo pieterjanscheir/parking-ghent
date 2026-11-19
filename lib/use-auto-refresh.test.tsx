@@ -80,15 +80,14 @@ describe("useAutoRefresh", () => {
     expect(onTick).toHaveBeenCalledTimes(1);
   });
 
-  it("refreshNow fires immediately and flags isRefreshing briefly", () => {
+  it("refreshNow fires immediately and is not refreshing once it's done", () => {
     const onTick = vi.fn();
     const { result } = renderHook(() => useAutoRefresh(onTick));
 
     act(() => result.current.refreshNow());
     expect(onTick).toHaveBeenCalledTimes(1);
-    expect(result.current.isRefreshing).toBe(true);
-
-    act(() => vi.advanceTimersByTime(400));
+    // The refresh runs as a transition: a synchronous onTick finishes inside
+    // act(), so the flag is already cleared.
     expect(result.current.isRefreshing).toBe(false);
   });
 

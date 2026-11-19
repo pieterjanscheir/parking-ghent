@@ -1,0 +1,235 @@
+{
+  "meta": {
+    "tagline": "Freie Plätze in den Genter Parkhäusern in Echtzeit",
+    "description": "Parkplatzverfügbarkeit in Gent in Echtzeit — sehen Sie vor der Abfahrt, wo Sie parken können.",
+    "garageTitle": "Parkhaus {name}",
+    "garageFallbackTitle": "Parkhaus",
+    "garageDescription": "Freie Plätze in Echtzeit und eine Kurzzeitprognose für das Parkhaus {name} in Gent."
+  },
+  "common": {
+    "open": "Geöffnet",
+    "closed": "Geschlossen",
+    "insideLez": "In der LEZ",
+    "outsideLez": "Außerhalb der LEZ",
+    "types": {
+      "carPark": "Parkhaus",
+      "offStreetParkingGround": "Parkplatz"
+    },
+    "backToOverview": "Zurück zur Übersicht",
+    "tryAgain": "Erneut versuchen"
+  },
+  "header": {
+    "home": "Ghent Parking — Startseite",
+    "liveData": "Live-Daten · Stad Gent",
+    "language": "Sprache"
+  },
+  "footer": {
+    "builtBy": "Erstellt von",
+    "dataSource": "Daten: Open-Data-Portal stad.gent"
+  },
+  "overview": {
+    "title": "Parken in Gent",
+    "intro": "Freie Plätze in den Parkhäusern der Stadt in Echtzeit, mit einer Kurzzeitprognose, damit Sie wissen, was Sie bei der Ankunft erwartet.",
+    "stats": {
+      "openNow": "Jetzt geöffnet",
+      "withSpace": "Mit freien Plätzen",
+      "freeSpaces": "Freie Plätze",
+      "mostSpace": "Meiste Plätze",
+      "mostSpaceDetail": "{count} frei"
+    },
+    "feedStopped": "Die Parkdaten der Stadt wurden zuletzt {age} aktualisiert.",
+    "feedStoppedDetail": "Die Zahlen unten stammen von diesem Zeitpunkt und stimmen möglicherweise nicht mehr.",
+    "favorites": "Favorisierte Parkhäuser",
+    "searchPlaceholder": "Nach Name oder Straße suchen…",
+    "searchLabel": "Parkhäuser nach Name oder Straße suchen",
+    "openWithSpace": "Geöffnet mit freien Plätzen",
+    "nearMe": "In meiner Nähe",
+    "locating": "Standort wird ermittelt…",
+    "sortBy": "Sortieren nach",
+    "viewMode": "Ansicht",
+    "viewCards": "Kartenansicht",
+    "viewList": "Listenansicht",
+    "viewMap": "Stadtplan",
+    "noDataTitle": "Live-Daten sind vorübergehend nicht verfügbar",
+    "noDataBody": "Die Parkdaten der Stadt enthielten keine Parkhäuser. Das ist meist innerhalb einer Minute behoben.",
+    "noMatchesTitle": "Keine Treffer",
+    "noMatchesBody": "Setzen Sie die Suche oder die Filter zurück.",
+    "clearSearchAndFilters": "Suche und Filter zurücksetzen",
+    "forecastNote": "Prognosen gibt es für die städtischen Parkhäuser, die einen aktuellen Verlauf veröffentlichen. Sie schreiben die letzten 20 Minuten fort und werden für jedes Parkhaus an den vergangenen Stunden überprüft; verstehen Sie sie als Hinweis, nicht als Garantie.",
+    "locationDenied": "Standortzugriff verweigert — sortiert wird nach den meisten freien Plätzen.",
+    "locationUnavailable": "Ihr Standort konnte nicht ermittelt werden."
+  },
+  "destination": {
+    "label": "Wohin möchten Sie?",
+    "placeholder": "z. B. Gravensteen, Vooruit, eine Straße…",
+    "popular": "Beliebte Ziele",
+    "searchAll": "In ganz Gent nach „{query}“ suchen",
+    "searching": "Suche läuft…",
+    "noResults": "In Gent wurde nichts zu „{query}“ gefunden.",
+    "error": "Die Suche ist gerade nicht verfügbar. Wählen Sie einen Ort aus der Liste.",
+    "clear": "Ziel löschen",
+    "attribution": "Suche über OpenStreetMap",
+    "sortedNote": "Parkhäuser sortiert nach Fußweg bis {place}.",
+    "walk": "~{minutes} Min. zu Fuß",
+    "nearestToDestination": "Am nächsten zum Ziel",
+    "marker": "Ihr Ziel"
+  },
+  "sort": {
+    "spaces-desc": "Meiste freie Plätze",
+    "distance": "Am nächsten zu mir",
+    "percent-desc": "Am leersten (% frei)",
+    "name-asc": "Name (A → Z)",
+    "name-desc": "Name (Z → A)",
+    "spaces-asc": "Wenigste freie Plätze",
+    "percent-asc": "Am vollsten (% frei)"
+  },
+  "filters": {
+    "title": "Filter",
+    "clearAll": "Alle löschen",
+    "status": "Status",
+    "lez": "Umweltzone (LEZ)",
+    "type": "Art",
+    "availability": "Verfügbarkeit",
+    "available": "Verfügbar",
+    "almostFull": "Fast voll",
+    "full": "Voll"
+  },
+  "garage": {
+    "favorite": "Favorit",
+    "viewDetails": "Details ansehen",
+    "ofFree": "von {total} frei",
+    "freeOf": "frei von {total}"
+  },
+  "freshness": {
+    "ageNow": "gerade eben",
+    "ageMinutes": "vor {count} Min.",
+    "ageHours": "vor {count} Std.",
+    "ageDays": "{count, plural, one {vor # Tag} other {vor # Tagen}}",
+    "cityDataUpdated": "Stadtdaten aktualisiert {age} ({time})",
+    "updated": "Aktualisiert {age}",
+    "noLiveData": "Keine Live-Daten",
+    "noLiveDataDetail": "Die Live-Verfügbarkeit ist gerade nicht verfügbar.",
+    "staleDetail": "Diese Zahl wurde zuletzt {age} aktualisiert — sie stimmt möglicherweise nicht mehr.",
+    "countLastUpdated": "Zahl zuletzt aktualisiert {age}"
+  },
+  "refresh": {
+    "auto": "Automatisch aktualisieren",
+    "every30s": "Alle 30 Sek.",
+    "every1min": "Jede Minute",
+    "every5min": "Alle 5 Min.",
+    "off": "Aus",
+    "refresh": "Aktualisieren",
+    "refreshNow": "Jetzt aktualisieren"
+  },
+  "forecast": {
+    "fullIn": "Voraussichtlich voll in ~{minutes} Min.",
+    "hardToPredict": "Derzeit schwer vorherzusagen",
+    "stable": "Stabil in den nächsten {minutes} Min.",
+    "freeIn": "~{count} frei in {minutes} Min.",
+    "rising": "Füllt sich",
+    "falling": "Leert sich",
+    "steady": "Bleibt stabil",
+    "tipUnpredictable": "Derzeit zu unberechenbar, um eine Änderung vorherzusagen",
+    "tipFullIn": "Voraussichtlich voll in etwa {minutes} Min.",
+    "tipNoChange": "Keine klare Änderung in den nächsten {minutes} Min.",
+    "tipFewer": "Etwa {count, plural, one {# Platz} other {# Plätze}} weniger in den nächsten {minutes} Min.",
+    "tipMore": "Etwa {count, plural, one {# Platz} other {# Plätze}} mehr in den nächsten {minutes} Min.",
+    "confidenceHigh": "Hohe Zuverlässigkeit",
+    "confidenceMedium": "Mittlere Zuverlässigkeit",
+    "confidenceLow": "Geringe Zuverlässigkeit",
+    "badgeErratic": "Zu unregelmäßig für eine Prognose · voraussichtlich {lo}–{hi} frei in {minutes} Min.",
+    "badgeSteady": "In {minutes} Min.: keine klare Änderung · voraussichtlich {lo}–{hi} frei",
+    "badgeFewer": "In {minutes} Min.: ~{count} frei · {delta} weniger als jetzt",
+    "badgeMore": "In {minutes} Min.: ~{count} frei · {delta} mehr als jetzt",
+    "accuracyTrend": "Lag in den letzten Stunden bei {minutes} Min. im Schnitt um ~{spaces} Plätze daneben ({percent} % besser als die Annahme, dass sich nichts ändert)",
+    "accuracyPersistence": "Dem Trend zu folgen war hier zuletzt schlechter als die Annahme, dass sich nichts ändert",
+    "accuracyNone": "Noch zu wenig Verlauf, um die Genauigkeit zu messen"
+  },
+  "history": {
+    "title": "Belegung zuletzt",
+    "summary": "{samples} Messungen · letzte {minutes} Min. · {from} → {to}",
+    "forecastSuffix": "Prognose für die nächsten 60 Min.",
+    "now": "jetzt",
+    "inMinutes": "In {minutes} Min.",
+    "minFree": "Min. frei",
+    "maxFree": "Max. frei",
+    "capacity": "Kapazität",
+    "empty": "Noch kein Verlauf verfügbar.",
+    "none": "Für dieses Parkhaus ist kein aktueller Verlauf verfügbar.",
+    "tooltipForecast": "{time} · Prognose",
+    "tooltipForecastValue": "≈ {count} frei (voraussichtlich {lo}–{hi}) von {total}",
+    "tooltipValue": "{free} / {total} frei · {percent} % belegt",
+    "noForecast": "Derzeit keine Prognose: Die Zahl dieses Parkhauses wurde seit einer Weile nicht aktualisiert, eine Vorhersage würde also auf alten Zahlen beruhen."
+  },
+  "detail": {
+    "spacesFree": "von {total} Plätzen frei",
+    "occupied": "{percent} % derzeit belegt",
+    "unavailable": "Die Live-Belegung ist gerade nicht verfügbar.",
+    "openingHours": "Öffnungszeiten",
+    "operator": "Betreiber",
+    "type": "Art",
+    "lez": "Umweltzone (LEZ)",
+    "website": "Website besuchen",
+    "mapTitle": "Karte von {name}"
+  },
+  "list": {
+    "favorite": "Favorit",
+    "name": "Name",
+    "status": "Status",
+    "free": "Frei",
+    "trend": "Trend",
+    "percentFree": "% frei",
+    "lez": "LEZ",
+    "type": "Art",
+    "address": "Adresse"
+  },
+  "map": {
+    "freeOf": "{free} von {total} frei",
+    "unavailable": "Live-Zahl nicht verfügbar",
+    "away": "{distance} entfernt",
+    "youAreHere": "Sie sind hier",
+    "viewDetails": "Details ansehen →"
+  },
+  "actions": {
+    "navigateWith": "Mit {app} navigieren",
+    "call": "Anrufen",
+    "callNumber": "{phone} anrufen",
+    "share": "Teilen",
+    "shareThis": "Dieses Parkhaus teilen",
+    "shareText": "{free} von {total} Plätzen frei",
+    "shareTextUnavailable": "Live-Verfügbarkeit nicht verfügbar ({total} Plätze insgesamt)",
+    "copied": "Link in die Zwischenablage kopiert",
+    "shareFailed": "Der Link konnte weder geteilt noch kopiert werden"
+  },
+  "favorites": {
+    "add": "Zu Favoriten hinzufügen",
+    "remove": "Aus Favoriten entfernen",
+    "full": "Die Favoritenliste ist voll (max. {max})",
+    "limit": "Höchstens {max} Favoriten — entfernen Sie zuerst einen"
+  },
+  "settings": {
+    "open": "Einstellungen",
+    "title": "Einstellungen",
+    "mapTitle": "Karte auf den Parkhausseiten",
+    "osm": "OpenStreetMap",
+    "osmNote": "Standard. Lädt nichts von Google.",
+    "google": "Google Maps",
+    "googleNote": "Lädt die Karte von Google, das dann sehen kann, dass Sie die Seite aufgerufen haben.",
+    "switchToGoogle": "Lieber Google Maps verwenden",
+    "switchToOsm": "Lieber OpenStreetMap verwenden",
+    "changeHint": "Sie können die Karte jederzeit in den Einstellungen ändern."
+  },
+  "errors": {
+    "title": "Etwas ist schiefgelaufen",
+    "body": "Die Parkdaten konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+    "garageTitle": "Dieses Parkhaus konnte nicht geladen werden",
+    "garageBody": "Bitte versuchen Sie es erneut — die Open-Data-Schnittstelle ist möglicherweise vorübergehend nicht verfügbar.",
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundBody": "Diese Seite konnten wir nicht finden.",
+    "garageNotFoundTitle": "Parkhaus nicht gefunden",
+    "garageNotFoundBody": "Wir konnten kein Parkhaus mit dieser ID finden."
+  },
+  "share": {
+    "features": "Live-Verfügbarkeit|30-Minuten-Prognose|Stadtplan|In meiner Nähe"
+  }
+}

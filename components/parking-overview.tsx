@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   parseAsArrayOf,
   parseAsBoolean,
@@ -12,6 +13,7 @@ import {
 } from "nuqs";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   CircleCheck,
   LayoutGrid,
   List,
@@ -32,11 +34,14 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useFavorites } from "@/lib/favorites";
 import { useAutoRefresh } from "@/lib/use-auto-refresh";
+import { useNow } from "@/lib/use-now";
+import { FEED_STALE_AFTER_MS, isStale, newestUpdate } from "@/lib/freshness";
 import { useGeolocation } from "@/lib/use-geolocation";
+import { formatLatLng, parseLatLng } from "@/lib/geo";
+import type { Place } from "@/lib/destinations";
 import {
   DEFAULT_SORT,
   SORT_KEYS,
-  SORT_LABELS,
   distanceTo,
   filterParkings,
   isUsable,
@@ -55,6 +60,8 @@ import {
   type ParkingFiltersValue,
 } from "./parking-filters";
 import { AutoRefreshControl } from "./auto-refresh-control";
+import { DestinationSearch } from "./destination-search";
+import { useFormatAge, useParkingLabels } from "./use-labels";
 
 // Leaflet touches `window` at import time, so the map is client-only.
 const ParkingMap = dynamic(() => import("./parking-map"), {
@@ -65,6 +72,8 @@ const ParkingMap = dynamic(() => import("./parking-map"), {
 type Props = {
   parkings: Parking[];
   trendsById: Record<string, Trend>;
+  // The server's clock when this data was rendered.
+  serverNow: number;
 };
 
 const VIEW_VALUES = ["cards", "list", "map"] as const;
@@ -79,10 +88,20 @@ const ARRAY_PARSER = parseAsArrayOf(parseAsString).withDefault([]);
 const BOOL_PARSER = parseAsBoolean.withDefault(false);
 const Q_OPTIONS = { defaultValue: "", clearOnDefault: true } as const;
 
-const NUMBER_FMT = new Intl.NumberFormat("en-GB");
-
-export function ParkingOverview({ parkings, trendsById }: Props) {
+export function ParkingOverview({
+  parkings,
+  trendsById: allTrendsById,
+  serverNow,
+}: Props) {
   const router = useRouter();
+  const t = useTranslations("overview");
+  const tSort = useTranslations("sort");
+  const tCommon = useTranslations("common");
+  const tDestination = useTranslations("destination");
+  const format = useFormatter();
+  const formatAge = useFormatAge();
+  const labels = useParkingLabels();
+  const now = useNow(serverNow);
   const { ids: favoriteIds, ready: favReady } = useFavorites();
   const geo = useGeolocation();
 
@@ -94,6 +113,19 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
   const [lezFilter, setLezFilter] = useQueryState("lez", ARRAY_PARSER);
   const [typeFilter, setTypeFilter] = useQueryState("type", ARRAY_PARSER);
   const [bucketFilter, setBucketFilter] = useQueryState("bucket", ARRAY_PARSER);
+  // Where the visitor is heading. Kept in the URL (name + coordinates) so
+  // "parking near Vooruit" can be shared or bookmarked.
+  const [destName, setDestName] = useQueryState("dest", Q_OPTIONS);
+  const [destAt, setDestAt] = useQueryState("at", Q_OPTIONS);
+  const destination: Place | null = useMemo(() => {
+    const point = parseLatLng(destAt);
+    return point && destName
+      ? { id: `dest-${destAt}`, name: destName, detail: "", ...point }
+      : null;
+  }, [destName, destAt]);
+  // Distances are measured from the destination when there is one, otherwise
+  // from the visitor's own location ("Near me").
+  const origin = destination ?? geo.location;
 
   const handleTick = useCallback(() => router.refresh(), [router]);
   const refresh = useAutoRefresh(handleTick);
@@ -101,16 +133,19 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
   // "Nearest to me" needs a location; ask for it as soon as that sort is
   // picked (including when it arrives via a shared URL).
   const { status: geoStatus, request: requestLocation } = geo;
+  const hasDestination = destination !== null;
   useEffect(() => {
-    if (sort === "distance" && geoStatus === "idle") requestLocation();
-  }, [sort, geoStatus, requestLocation]);
+    if (sort === "distance" && geoStatus === "idle" && !hasDestination) {
+      requestLocation();
+    }
+  }, [sort, geoStatus, requestLocation, hasDestination]);
   useEffect(() => {
     if (geoStatus === "denied") {
-      toast.error("Location access was denied — showing most free spaces instead.");
+      toast.error(t("locationDenied"));
     } else if (geoStatus === "unavailable") {
-      toast.error("Couldn't determine your location.");
+      toast.error(t("locationUnavailable"));
     }
-  }, [geoStatus]);
+  }, [geoStatus, t]);
 
   const filterValue: ParkingFiltersValue = useMemo(
     () => ({
@@ -122,7 +157,27 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
     [statusFilter, lezFilter, typeFilter, bucketFilter],
   );
 
-  const typeOptions = useMemo(() => uniqueTypes(parkings), [parkings]);
+  const typeOptions = uniqueTypes(parkings).map((option) => ({
+    value: option.value,
+    label: labels.type({ type: option.value, typeLabel: option.label }),
+  }));
+
+  // When the city's feed last moved at all. If that was a while ago the whole
+  // page is showing old counts, however recently we asked.
+  const dataUpdatedAt = useMemo(() => newestUpdate(parkings), [parkings]);
+  const feedAgeMs = dataUpdatedAt === null ? null : Math.max(0, now - dataUpdatedAt);
+  const feedIsStale = feedAgeMs !== null && feedAgeMs > FEED_STALE_AFTER_MS;
+
+  // A forecast "in 30 min" anchored on an out-of-date count would mislead, so
+  // garages with stale counts get no trend or forecast.
+  const trendsById = useMemo(() => {
+    const out: Record<string, Trend> = {};
+    for (const p of parkings) {
+      const trend = allTrendsById[p.id];
+      if (trend && !isStale(p, now)) out[p.id] = trend;
+    }
+    return out;
+  }, [parkings, allTrendsById, now]);
 
   const summary = useMemo(() => {
     const open = parkings.filter((p) => p.isOpen);
@@ -149,8 +204,8 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
   );
 
   const filteredRest = useMemo(
-    () => sortParkings(filterParkings(rest, filters), sort, geo.location),
-    [rest, filters, sort, geo.location],
+    () => sortParkings(filterParkings(rest, filters), sort, origin),
+    [rest, filters, sort, origin],
   );
 
   // The map shows everything that matches, favorites included.
@@ -161,9 +216,9 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
 
   const distances = useMemo(() => {
     const out: Record<string, number | null> = {};
-    for (const p of parkings) out[p.id] = distanceTo(p, geo.location);
+    for (const p of parkings) out[p.id] = distanceTo(p, origin);
     return out;
-  }, [parkings, geo.location]);
+  }, [parkings, origin]);
 
   const updateFilters = (next: Partial<ParkingFiltersValue>) => {
     if (next.status !== undefined) setStatusFilter(next.status.length ? next.status : null);
@@ -185,7 +240,24 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
     clearFilters();
   };
 
+  const chooseDestination = (place: Place) => {
+    setDestName(place.name);
+    setDestAt(formatLatLng(place));
+    setSort("distance");
+  };
+
+  const clearDestination = () => {
+    setDestName(null);
+    setDestAt(null);
+    // "Nearest" without a destination means "nearest to me"; don't spring a
+    // location prompt on someone who only cleared a search.
+    if (sort === "distance" && !geo.location) setSort(null);
+  };
+
   const nearMe = () => {
+    // "Near me" and a destination are two answers to the same question.
+    setDestName(null);
+    setDestAt(null);
     setSort("distance");
     if (geo.status !== "locating") geo.request();
   };
@@ -196,26 +268,54 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
       <header className="mb-6">
         <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-          Where to park in Ghent
+          {t("title")}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Live free spaces in the city&apos;s parking garages, with a short-term
-          forecast so you know what to expect when you arrive.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("intro")}</p>
+        <div className="mt-5 max-w-xl">
+          <DestinationSearch
+            selected={destination}
+            onSelect={chooseDestination}
+            onClear={clearDestination}
+          />
+          {destination && sort === "distance" ? (
+            <p role="status" className="mt-2 text-xs text-muted-foreground">
+              {tDestination("sortedNote", { place: destination.name })}
+            </p>
+          ) : null}
+        </div>
         <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <SummaryStat label="Open now" value={`${summary.open} / ${parkings.length}`} />
-          <SummaryStat label="With space" value={String(summary.usable)} />
-          <SummaryStat label="Free spaces" value={NUMBER_FMT.format(summary.free)} />
+          <SummaryStat label={t("stats.openNow")} value={`${summary.open} / ${parkings.length}`} />
+          <SummaryStat label={t("stats.withSpace")} value={String(summary.usable)} />
+          <SummaryStat label={t("stats.freeSpaces")} value={format.number(summary.free)} />
           <SummaryStat
-            label="Most space"
+            label={t("stats.mostSpace")}
             value={summary.best ? summary.best.name : "—"}
-            detail={summary.best ? `${summary.best.freeSpaces} free` : undefined}
+            detail={
+              summary.best
+                ? t("stats.mostSpaceDetail", { count: summary.best.freeSpaces })
+                : undefined
+            }
           />
         </dl>
       </header>
 
+      {feedIsStale ? (
+        <div
+          role="status"
+          className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden />
+          <p>
+            <span className="font-semibold">
+              {t("feedStopped", { age: formatAge(feedAgeMs) })}
+            </span>{" "}
+            {t("feedStoppedDetail")}
+          </p>
+        </div>
+      ) : null}
+
       {favReady && favorites.length > 0 ? (
-        <section className="mb-8" aria-label="Favorite parkings">
+        <section className="mb-8" aria-label={t("favorites")}>
           <div
             className={
               favorites.length === 1
@@ -230,7 +330,9 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
                 key={p.id}
                 parking={p}
                 trend={trendsById[p.id] ?? null}
+                now={now}
                 distanceKm={distances[p.id]}
+                walking={hasDestination}
               />
             ))}
           </div>
@@ -246,11 +348,11 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
             />
             <Input
               type="search"
-              placeholder="Search by name or street…"
+              placeholder={t("searchPlaceholder")}
               value={q}
               onChange={(e) => setQ(e.target.value || null)}
               className="pl-9"
-              aria-label="Search parkings by name or street"
+              aria-label={t("searchLabel")}
             />
           </div>
           <Button
@@ -262,18 +364,22 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
             className="gap-1.5"
           >
             <CircleCheck className="size-3.5" />
-            Open with space
+            {t("openWithSpace")}
           </Button>
           <Button
             type="button"
-            variant={sort === "distance" && geo.location ? "default" : "outline"}
+            variant={
+              sort === "distance" && geo.location && !destination
+                ? "default"
+                : "outline"
+            }
             size="sm"
             onClick={nearMe}
             disabled={geo.status === "locating"}
             className="gap-1.5"
           >
             <LocateFixed className={cn("size-3.5", geo.status === "locating" && "motion-safe:animate-pulse")} />
-            {geo.status === "locating" ? "Locating…" : "Near me"}
+            {geo.status === "locating" ? t("locating") : t("nearMe")}
           </Button>
           <Select
             value={sort}
@@ -282,13 +388,15 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
               setSort(next === DEFAULT_SORT ? null : next);
             }}
           >
-            <SelectTrigger size="sm" className="w-[190px]" aria-label="Sort by">
-              <SelectValue placeholder="Sort by" />
+            <SelectTrigger size="sm" className="w-[210px]" aria-label={t("sortBy")}>
+              <SelectValue placeholder={t("sortBy")} />
             </SelectTrigger>
             <SelectContent>
               {SORT_KEYS.map((key) => (
                 <SelectItem key={key} value={key}>
-                  {SORT_LABELS[key]}
+                  {key === "distance" && destination
+                    ? tDestination("nearestToDestination")
+                    : tSort(key)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -307,15 +415,15 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
                 setView(v === "cards" ? null : v);
               }
             }}
-            aria-label="View mode"
+            aria-label={t("viewMode")}
           >
-            <ToggleGroupItem value="cards" aria-label="Card view">
+            <ToggleGroupItem value="cards" aria-label={t("viewCards")}>
               <LayoutGrid className="size-3.5" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="list" aria-label="List view">
+            <ToggleGroupItem value="list" aria-label={t("viewList")}>
               <List className="size-3.5" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="map" aria-label="Map view">
+            <ToggleGroupItem value="map" aria-label={t("viewMap")}>
               <MapIcon className="size-3.5" />
             </ToggleGroupItem>
           </ToggleGroup>
@@ -324,37 +432,35 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
           intervalMs={refresh.intervalMs}
           setInterval={refresh.setInterval}
           refreshNow={refresh.refreshNow}
-          lastRefreshed={refresh.lastRefreshed}
           isRefreshing={refresh.isRefreshing}
+          dataUpdatedAt={dataUpdatedAt}
+          now={now}
         />
       </section>
 
       {parkings.length === 0 ? (
         <div className="surface-card flex flex-col items-center gap-3 rounded-xl border border-border/70 px-6 py-16 text-center">
           <p className="font-heading text-lg font-semibold">
-            Live data is temporarily unavailable
+            {t("noDataTitle")}
           </p>
-          <p className="text-sm text-muted-foreground">
-            The city&apos;s parking feed returned no garages. This usually
-            resolves within a minute.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("noDataBody")}</p>
           <Button type="button" variant="outline" size="sm" onClick={refresh.refreshNow}>
-            Try again
+            {tCommon("tryAgain")}
           </Button>
         </div>
       ) : isEmpty ? (
         <div className="surface-card flex flex-col items-center gap-3 rounded-xl border border-border/70 px-6 py-16 text-center">
-          <p className="font-heading text-lg font-semibold">No matches</p>
-          <p className="text-sm text-muted-foreground">
-            Try clearing your search or filters.
+          <p className="font-heading text-lg font-semibold">
+            {t("noMatchesTitle")}
           </p>
+          <p className="text-sm text-muted-foreground">{t("noMatchesBody")}</p>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={clearSearchAndFilters}
           >
-            Clear search and filters
+            {t("clearSearchAndFilters")}
           </Button>
         </div>
       ) : view === "map" ? (
@@ -362,12 +468,16 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
           parkings={filteredAll}
           trendsById={trendsById}
           userLocation={geo.location}
+          destination={destination}
+          now={now}
         />
       ) : view === "list" ? (
         <ParkingListView
           parkings={filteredRest}
           trendsById={trendsById}
           distances={distances}
+          walking={hasDestination}
+          now={now}
           sort={sort}
           onSortChange={(s) => setSort(s === DEFAULT_SORT ? null : s)}
         />
@@ -378,18 +488,15 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
               key={p.id}
               parking={p}
               trend={trendsById[p.id] ?? null}
+              now={now}
               distanceKm={distances[p.id]}
+              walking={hasDestination}
             />
           ))}
         </div>
       )}
 
-      <p className="mt-8 text-xs text-muted-foreground">
-        Forecasts are available for the city-run garages that publish recent
-        history. They extrapolate the last 20 minutes and are checked against
-        the past few hours for each garage; treat them as a hint, not a
-        guarantee.
-      </p>
+      <p className="mt-8 text-xs text-muted-foreground">{t("forecastNote")}</p>
     </div>
   );
 }

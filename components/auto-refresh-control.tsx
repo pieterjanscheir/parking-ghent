@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,39 +12,33 @@ import {
 } from "@/components/ui/select";
 import { REFRESH_OPTIONS } from "@/lib/use-auto-refresh";
 import { cn } from "@/lib/utils";
+import { useFormatAge, useFormatTime } from "./use-labels";
 
 type Props = {
   intervalMs: number;
   setInterval: (ms: number) => void;
   refreshNow: () => void;
-  lastRefreshed: number;
   isRefreshing: boolean;
+  // When the city's feed last changed (newest garage update), and the current
+  // time to measure it against. This is the age of the data itself — not of
+  // our last request, which says nothing if the feed has stopped updating.
+  dataUpdatedAt: number | null;
+  now: number;
 };
 
-function formatAgo(now: number, ts: number): string {
-  const secs = Math.max(0, Math.round((now - ts) / 1000));
-  if (secs < 5) return "just now";
-  if (secs < 60) return `${secs}s ago`;
-  const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  return `${hours}h ago`;
-}
 
 export function AutoRefreshControl({
   intervalMs,
   setInterval,
   refreshNow,
-  lastRefreshed,
   isRefreshing,
+  dataUpdatedAt,
+  now,
 }: Props) {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-
+  const t = useTranslations("refresh");
+  const tFresh = useTranslations("freshness");
+  const formatTime = useFormatTime();
+  const formatAge = useFormatAge();
   const isOn = intervalMs > 0;
 
   return (
@@ -57,19 +51,19 @@ export function AutoRefreshControl({
             isOn ? "bg-primary" : "bg-muted-foreground/50",
           )}
         />
-        <span className="text-xs text-muted-foreground">Auto refresh</span>
+        <span className="text-xs text-muted-foreground">{t("auto")}</span>
       </div>
       <Select
         value={String(intervalMs)}
         onValueChange={(v) => setInterval(Number.parseInt(v, 10))}
       >
-        <SelectTrigger size="sm" className="h-7 w-[120px] text-xs">
+        <SelectTrigger size="sm" className="h-7 w-[140px] text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {REFRESH_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={String(opt.value)}>
-              {opt.label}
+              {t(opt.labelKey)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -79,17 +73,24 @@ export function AutoRefreshControl({
         size="sm"
         variant="outline"
         onClick={refreshNow}
-        aria-label="Refresh now"
+        aria-label={t("refreshNow")}
         className="gap-1.5"
       >
         <RefreshCw
-          className={cn("size-3.5", isRefreshing && "animate-spin")}
+          className={cn("size-3.5", isRefreshing && "motion-safe:animate-spin")}
         />
-        <span>Refresh</span>
+        <span>{t("refresh")}</span>
       </Button>
-      <span className="text-xs text-muted-foreground tabular-nums">
-        {formatAgo(now, lastRefreshed)}
-      </span>
+      {dataUpdatedAt !== null ? (
+        <span className="text-xs text-muted-foreground tabular-nums">
+          <time dateTime={new Date(dataUpdatedAt).toISOString()}>
+            {tFresh("cityDataUpdated", {
+              age: formatAge(Math.max(0, now - dataUpdatedAt)),
+              time: formatTime(dataUpdatedAt),
+            })}
+          </time>
+        </span>
+      ) : null}
     </div>
   );
 }

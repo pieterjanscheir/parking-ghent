@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchParkingHistory, fetchParkingHistoryWithRaw } from "./parking-history";
+import {
+  fetchAllTrends,
+  fetchParkingHistory,
+  fetchParkingHistoryWithRaw,
+  HISTORY_TTL_MS,
+  parkingsWithHistory,
+} from "./parking-history";
+import { clearCache } from "./ttl-cache";
 
 type Page = {
   total_count: number;
@@ -26,9 +33,11 @@ function mockFetch() {
 
 beforeEach(() => {
   handler = () => ({ status: 599, body: { error: "no handler set" } });
+  clearCache();
   mockFetch();
 });
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -161,5 +170,41 @@ describe("fetchParkingHistoryWithRaw — raw call records", () => {
     expect(result!.calls[1].subtitle).toContain("offset 100");
     expect(result!.calls[2].subtitle).toContain("offset 200");
     expect(result!.calls.every((c) => c.ok)).toBe(true);
+  });
+});
+
+describe("fetchParkingHistory — caching", () => {
+  it("reuses a garage's history within the TTL and refetches after it", async () => {
+    vi.useFakeTimers();
+    pages([point(20, 50), point(10, 60), point(0, 70)]);
+
+    await fetchParkingHistory("parking-tolhuis");
+    vi.advanceTimersByTime(HISTORY_TTL_MS - 1);
+    await fetchParkingHistory("parking-tolhuis");
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(1);
+    await fetchParkingHistory("parking-tolhuis");
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("caches each garage separately", async () => {
+    pages([point(10, 50), point(0, 60)]);
+    await fetchParkingHistory("parking-tolhuis");
+    await fetchParkingHistory("parking-reep");
+    await fetchParkingHistory("parking-tolhuis");
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("lets the detail page reuse what the overview already fetched", async () => {
+    pages([point(20, 50), point(10, 60), point(0, 70)]);
+
+    await fetchAllTrends();
+    const afterOverview = vi.mocked(fetch).mock.calls.length;
+    expect(afterOverview).toBe(parkingsWithHistory().length);
+
+    await fetchParkingHistory("parking-tolhuis");
+    await fetchAllTrends();
+    expect(fetch).toHaveBeenCalledTimes(afterOverview);
   });
 });

@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it } from "vitest";
+import messages from "@/messages/en.json";
 import type { Forecast, Trend, TrendDirection } from "@/lib/forecast";
 import { TrendIndicator } from "./trend-indicator";
 
@@ -32,7 +34,11 @@ function makeTrend(
 }
 
 function renderTrend(trend: Trend, currentFree = 100) {
-  render(<TrendIndicator trend={trend} currentFree={currentFree} />);
+  render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      <TrendIndicator trend={trend} currentFree={currentFree} />
+    </NextIntlClientProvider>,
+  );
 }
 
 describe("TrendIndicator", () => {

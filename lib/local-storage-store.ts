@@ -15,6 +15,37 @@ const getMountedServer = () => false;
  * unauthenticated render.
  */
 
+// Browsers can refuse localStorage outright (blocked site data, some private
+// modes) or refuse a write (storage full). A choice the visitor makes must
+// still take effect, so a value that couldn't be stored is kept here for the
+// rest of the visit instead — it just won't survive closing the tab.
+const unsaved = new Map<string, string | null>();
+
+export function readStored(key: string): string | null {
+  if (unsaved.has(key)) return unsaved.get(key) ?? null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+// `raw` is the JSON text to store, or null to remove the key.
+export function writeStored(key: string, raw: string | null): void {
+  try {
+    if (raw === null) window.localStorage.removeItem(key);
+    else window.localStorage.setItem(key, raw);
+    unsaved.delete(key);
+  } catch {
+    unsaved.set(key, raw);
+  }
+}
+
+// Test hook: module state would otherwise leak between test cases.
+export function clearUnsaved(): void {
+  unsaved.clear();
+}
+
 const EVENT_PREFIX = "parking-ls:";
 const listeners = new Map<string, Set<() => void>>();
 
@@ -57,7 +88,7 @@ export function useLocalStorageJson<T>(
   );
   const getSnapshot = useCallback(() => {
     if (typeof window === "undefined") return null;
-    return window.localStorage.getItem(key);
+    return readStored(key);
   }, [key]);
 
   const snapshot = useSyncExternalStore(
@@ -85,11 +116,8 @@ export function useLocalStorageJson<T>(
   const write = useCallback(
     (next: T | null) => {
       if (typeof window === "undefined") return;
-      if (next === null) {
-        window.localStorage.removeItem(key);
-      } else {
-        window.localStorage.setItem(key, JSON.stringify(next));
-      }
+      writeStored(key, next === null ? null : JSON.stringify(next));
+      // Always notify, also when the value could only be kept in memory.
       emit(key);
     },
     [key],

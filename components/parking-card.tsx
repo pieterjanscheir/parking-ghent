@@ -1,25 +1,37 @@
-import Link from "next/link";
 import { MapPin } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { AvailabilityGauge } from "./availability-gauge";
 import { FavoriteButton } from "./favorite-button";
-import { LiveDataWarning } from "./live-data-warning";
+import { DataWarning } from "./live-data-warning";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
 import { ForecastHint } from "./forecast-hint";
-import { formatDistance } from "@/lib/geo";
+import { useFormatDistance, useParkingLabels } from "./use-labels";
 
 export function ParkingCard({
   parking,
   trend,
+  now,
   distanceKm = null,
+  walking = false,
 }: {
   parking: Parking;
   trend: Trend | null;
+  // Current time, for judging how old this garage's count is.
+  now: number;
   distanceKm?: number | null;
+  // The distance is to the visitor's destination: show walking time too.
+  walking?: boolean;
 }) {
+  const t = useTranslations("garage");
+  const labels = useParkingLabels();
+  const formatDistance = useFormatDistance();
+  // Shown even for a garage the feed gives no address for.
+  const hasDistance = distanceKm !== null && distanceKm !== undefined;
   return (
     <Link
       href={`/parkings/${encodeURIComponent(parking.id)}`}
@@ -34,12 +46,17 @@ export function ParkingCard({
           <h3 className="font-heading text-base font-semibold leading-tight tracking-tight">
             {parking.name}
           </h3>
-          {parking.address ? (
+          {parking.address || hasDistance ? (
             <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
               <MapPin className="size-3" />
-              <span className="truncate">{parking.address}</span>
-              {distanceKm !== null && distanceKm !== undefined ? (
-                <span className="shrink-0 text-foreground/80">· {formatDistance(distanceKm)}</span>
+              {parking.address ? (
+                <span className="truncate">{parking.address}</span>
+              ) : null}
+              {hasDistance ? (
+                <span className="shrink-0 text-foreground/80">
+                  {parking.address ? "· " : null}
+                  {formatDistance(distanceKm, walking)}
+                </span>
               ) : null}
             </p>
           ) : null}
@@ -54,7 +71,7 @@ export function ParkingCard({
           size="md"
         />
         <div className="flex flex-col">
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span
               className={cn(
                 "font-heading text-3xl font-bold leading-none tracking-tight tabular-nums",
@@ -70,10 +87,10 @@ export function ParkingCard({
                 size="sm"
               />
             ) : null}
-            {!parking.hasLiveData ? <LiveDataWarning /> : null}
+            <DataWarning parking={parking} now={now} />
           </div>
           <span className="text-xs text-muted-foreground">
-            of {parking.totalSpaces} free
+            {t("ofFree", { total: parking.totalSpaces })}
           </span>
           <ForecastHint parking={parking} trend={trend} className="mt-1" />
         </div>
@@ -82,9 +99,9 @@ export function ParkingCard({
       <div className="flex flex-wrap items-center gap-1.5">
         <ParkingStatusBadge parking={parking} />
         {parking.category ? (
-          <MetaBadge>{parking.categoryLabel}</MetaBadge>
+          <MetaBadge>{labels.lez(parking)}</MetaBadge>
         ) : null}
-        {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
+        {parking.type ? <MetaBadge>{labels.type(parking)}</MetaBadge> : null}
       </div>
     </Link>
   );

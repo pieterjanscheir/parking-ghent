@@ -1,7 +1,9 @@
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { Parking } from "@/lib/parkings.schema";
 
 export function ParkingStatusBadge({ parking }: { parking: Parking }) {
+  const t = useTranslations("common");
   const isOpen = parking.isOpen;
   return (
     <span
@@ -19,7 +21,7 @@ export function ParkingStatusBadge({ parking }: { parking: Parking }) {
           isOpen ? "bg-primary" : "bg-destructive",
         )}
       />
-      {isOpen ? "Open" : "Closed"}
+      {isOpen ? t("open") : t("closed")}
     </span>
   );
 }

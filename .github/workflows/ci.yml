@@ -1,17 +1,20 @@
 name: CI
 
+# Lint, type-check, test and build: on every pull request, and on master so a
+# merge that only breaks in combination with another one still shows up.
 on:
+  pull_request:
   push:
     branches: [master]
-  pull_request:
   workflow_dispatch:
 
-# Cancel superseded runs on the same branch/PR so the (single-job) Mac mini
-# runner doesn't queue up stale work.
+# A newer push to the same branch makes the older run pointless (and keeps the
+# single-job Mac mini runner from queueing stale work).
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
+# The checks only read the code.
 permissions:
   contents: read
 
@@ -19,8 +22,8 @@ env:
   NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:
-  ci:
-    name: Lint, typecheck, test, build
+  check:
+    name: Lint, types, tests, build
     # Set the repo variable CI_RUNNER=mac-mini to run on the self-hosted
     # Mac mini; delete it to fall back to GitHub-hosted runners.
     # Pull requests from forks always use GitHub-hosted runners so untrusted
@@ -29,24 +32,31 @@ jobs:
     # Settings → Actions → General as the real gate.)
     runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.CI_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 15
-
+    # Actions are pinned to the exact commit of a release, so a moved tag
+    # can't change what runs here. To update: look up the commit of the new
+    # release tag and replace both the hash and the version comment.
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 22
+          # No step pushes or fetches again, so don't leave the token on disk.
+          persist-credentials: false
+
+      # pnpm version comes from "packageManager" in package.json, so CI and
+      # local installs use the same one.
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      # Same Node.js major as the Vercel project builds with.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
           cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint
 
-      - name: Typecheck
+      - name: Type-check
         run: pnpm typecheck
 
       - name: Unit tests (with coverage)
@@ -54,7 +64,7 @@ jobs:
 
       - name: Upload coverage report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage
           path: coverage/
@@ -62,12 +72,14 @@ jobs:
           if-no-files-found: ignore
 
       - name: Cache Next.js build
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .next/cache
-          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('app/**', 'components/**', 'lib/**') }}
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('app/**', 'components/**', 'lib/**', 'i18n/**', 'messages/**') }}
           restore-keys: |
             nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
 
+      # Needs no secrets and doesn't call the city feeds: every page that
+      # shows live data is rendered on request, not at build time.
       - name: Build
         run: pnpm build

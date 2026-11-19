@@ -141,6 +141,33 @@
   white-space: nowrap;
   box-shadow: 0 0 0 3px oklch(0 0 0 / 0.25), 0 0 12px var(--marker-color);
 }
+/* Destination pin (components/leaflet-shared.ts): a teardrop whose tip sits
+   on the coordinate. The square is rotated so its one sharp corner points
+   down; 28px wide, so its tip is 28 × 0.707 ≈ 20px below its centre. */
+.destination-marker {
+  background: none;
+  border: 0;
+}
+.destination-marker > span {
+  position: absolute;
+  left: -14px;
+  top: -34px;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border: 3px solid white;
+  border-radius: 50% 50% 50% 0;
+  background: oklch(0.75 0.16 70);
+  transform: rotate(-45deg);
+  box-shadow: 0 3px 10px oklch(0 0 0 / 0.55);
+}
+.destination-marker > span::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: white;
+}
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   background: var(--popover);
@@ -149,7 +176,19 @@
 .leaflet-popup-content a {
   color: var(--primary);
 }
-.leaflet-container {
+/* Doubled class: Leaflet's own stylesheet loads later (with the map) and
+   would otherwise win with its light grey, flashing before the tiles load. */
+.leaflet-container.leaflet-container {
   background: var(--card);
   font-family: var(--font-sans);
+}
+
+/* Leaflet gives its panes and controls z-index 400–1000. Without a stacking
+   context of their own those compete with the whole page and paint over the
+   sticky header (z-30) and popovers like the settings menu (z-50). Keep them
+   inside the map. */
+.leaflet-container.leaflet-container {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
 }

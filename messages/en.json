@@ -1,0 +1,235 @@
+{
+  "meta": {
+    "tagline": "Live free spaces in Ghent's parking garages",
+    "description": "Live parking availability for Ghent — see where to park before you drive.",
+    "garageTitle": "Parking {name}",
+    "garageFallbackTitle": "Parking",
+    "garageDescription": "Live free spaces and a short-term forecast for parking {name} in Ghent."
+  },
+  "common": {
+    "open": "Open",
+    "closed": "Closed",
+    "insideLez": "Inside LEZ",
+    "outsideLez": "Outside LEZ",
+    "types": {
+      "carPark": "Indoor garage",
+      "offStreetParkingGround": "Surface lot"
+    },
+    "backToOverview": "Back to overview",
+    "tryAgain": "Try again"
+  },
+  "header": {
+    "home": "Ghent Parking — home",
+    "liveData": "Live data · Stad Gent",
+    "language": "Language"
+  },
+  "footer": {
+    "builtBy": "Built by",
+    "dataSource": "Data: stad.gent open data portal"
+  },
+  "overview": {
+    "title": "Where to park in Ghent",
+    "intro": "Live free spaces in the city's parking garages, with a short-term forecast so you know what to expect when you arrive.",
+    "stats": {
+      "openNow": "Open now",
+      "withSpace": "With space",
+      "freeSpaces": "Free spaces",
+      "mostSpace": "Most space",
+      "mostSpaceDetail": "{count} free"
+    },
+    "feedStopped": "The city's parking feed stopped updating {age}.",
+    "feedStoppedDetail": "The counts below are from then and may no longer be right.",
+    "favorites": "Favorite parkings",
+    "searchPlaceholder": "Search by name or street…",
+    "searchLabel": "Search parkings by name or street",
+    "openWithSpace": "Open with space",
+    "nearMe": "Near me",
+    "locating": "Locating…",
+    "sortBy": "Sort by",
+    "viewMode": "View mode",
+    "viewCards": "Card view",
+    "viewList": "List view",
+    "viewMap": "Map view",
+    "noDataTitle": "Live data is temporarily unavailable",
+    "noDataBody": "The city's parking feed returned no garages. This usually resolves within a minute.",
+    "noMatchesTitle": "No matches",
+    "noMatchesBody": "Try clearing your search or filters.",
+    "clearSearchAndFilters": "Clear search and filters",
+    "forecastNote": "Forecasts are available for the city-run garages that publish recent history. They extrapolate the last 20 minutes and are checked against the past few hours for each garage; treat them as a hint, not a guarantee.",
+    "locationDenied": "Location access was denied — showing most free spaces instead.",
+    "locationUnavailable": "Couldn't determine your location."
+  },
+  "destination": {
+    "label": "Where are you going?",
+    "placeholder": "e.g. Gravensteen, Vooruit, a street…",
+    "popular": "Popular destinations",
+    "searchAll": "Search all of Ghent for “{query}”",
+    "searching": "Searching…",
+    "noResults": "Nothing found in Ghent for “{query}”.",
+    "error": "Search isn’t available right now. Try a place from the list.",
+    "clear": "Clear destination",
+    "attribution": "Search by OpenStreetMap",
+    "sortedNote": "Garages sorted by walking distance to {place}.",
+    "walk": "~{minutes} min walk",
+    "nearestToDestination": "Nearest to destination",
+    "marker": "Your destination"
+  },
+  "sort": {
+    "spaces-desc": "Most free spaces",
+    "distance": "Nearest to me",
+    "percent-desc": "Emptiest (% free)",
+    "name-asc": "Name (A → Z)",
+    "name-desc": "Name (Z → A)",
+    "spaces-asc": "Fewest free spaces",
+    "percent-asc": "Fullest (% free)"
+  },
+  "filters": {
+    "title": "Filters",
+    "clearAll": "Clear all",
+    "status": "Status",
+    "lez": "Low emission zone",
+    "type": "Type",
+    "availability": "Availability",
+    "available": "Available",
+    "almostFull": "Almost full",
+    "full": "Full"
+  },
+  "garage": {
+    "favorite": "Favorite",
+    "viewDetails": "View details",
+    "ofFree": "of {total} free",
+    "freeOf": "free of {total}"
+  },
+  "freshness": {
+    "ageNow": "just now",
+    "ageMinutes": "{count} min ago",
+    "ageHours": "{count} h ago",
+    "ageDays": "{count, plural, one {# day ago} other {# days ago}}",
+    "cityDataUpdated": "City data updated {age} ({time})",
+    "updated": "Updated {age}",
+    "noLiveData": "No live data",
+    "noLiveDataDetail": "Live availability is unavailable right now.",
+    "staleDetail": "This count was last updated {age} — it may no longer be right.",
+    "countLastUpdated": "Count last updated {age}"
+  },
+  "refresh": {
+    "auto": "Auto refresh",
+    "every30s": "Every 30 s",
+    "every1min": "Every 1 min",
+    "every5min": "Every 5 min",
+    "off": "Off",
+    "refresh": "Refresh",
+    "refreshNow": "Refresh now"
+  },
+  "forecast": {
+    "fullIn": "Likely full in ~{minutes} min",
+    "hardToPredict": "Hard to predict right now",
+    "stable": "Stable for the next {minutes} min",
+    "freeIn": "~{count} free in {minutes} min",
+    "rising": "Filling up",
+    "falling": "Emptying out",
+    "steady": "Holding steady",
+    "tipUnpredictable": "Too unpredictable right now to forecast a change",
+    "tipFullIn": "Likely full in about {minutes} min",
+    "tipNoChange": "No clear change in the next {minutes} min",
+    "tipFewer": "About {count, plural, one {# fewer space} other {# fewer spaces}} in the next {minutes} min",
+    "tipMore": "About {count, plural, one {# more space} other {# more spaces}} in the next {minutes} min",
+    "confidenceHigh": "High confidence",
+    "confidenceMedium": "Medium confidence",
+    "confidenceLow": "Low confidence",
+    "badgeErratic": "Too erratic to forecast · likely {lo}–{hi} free in {minutes} min",
+    "badgeSteady": "In {minutes} min: no clear change · likely {lo}–{hi} free",
+    "badgeFewer": "In {minutes} min: ~{count} free · {delta} fewer than now",
+    "badgeMore": "In {minutes} min: ~{count} free · {delta} more than now",
+    "accuracyTrend": "Off by ~{spaces} spaces on average at {minutes} min over the last few hours ({percent}% better than assuming no change)",
+    "accuracyPersistence": "Following the trend did worse than assuming no change here recently",
+    "accuracyNone": "Not enough history yet to measure accuracy"
+  },
+  "history": {
+    "title": "Recent occupancy",
+    "summary": "{samples} samples · last {minutes} min · {from} → {to}",
+    "forecastSuffix": "forecast next 60 min",
+    "now": "now",
+    "inMinutes": "In {minutes} min",
+    "minFree": "Min free",
+    "maxFree": "Max free",
+    "capacity": "Capacity",
+    "empty": "No history data available yet.",
+    "none": "No recent history available for this parking.",
+    "tooltipForecast": "{time} · forecast",
+    "tooltipForecastValue": "≈ {count} free (likely {lo}–{hi}) of {total}",
+    "tooltipValue": "{free} / {total} free · {percent}% full",
+    "noForecast": "No forecast right now: this garage's count hasn't been updated for a while, so a prediction would be based on old numbers."
+  },
+  "detail": {
+    "spacesFree": "of {total} spaces free",
+    "occupied": "{percent}% currently occupied",
+    "unavailable": "Live occupancy is unavailable right now.",
+    "openingHours": "Opening hours",
+    "operator": "Operator",
+    "type": "Type",
+    "lez": "Low emission zone",
+    "website": "Visit website",
+    "mapTitle": "Map of {name}"
+  },
+  "list": {
+    "favorite": "Favorite",
+    "name": "Name",
+    "status": "Status",
+    "free": "Free",
+    "trend": "Trend",
+    "percentFree": "% free",
+    "lez": "LEZ",
+    "type": "Type",
+    "address": "Address"
+  },
+  "map": {
+    "freeOf": "{free} of {total} free",
+    "unavailable": "Live count unavailable",
+    "away": "{distance} away",
+    "youAreHere": "You are here",
+    "viewDetails": "View details →"
+  },
+  "actions": {
+    "navigateWith": "Navigate with {app}",
+    "call": "Call",
+    "callNumber": "Call {phone}",
+    "share": "Share",
+    "shareThis": "Share this parking",
+    "shareText": "{free} of {total} spaces free",
+    "shareTextUnavailable": "Live availability unavailable ({total} total spaces)",
+    "copied": "Link copied to clipboard",
+    "shareFailed": "Couldn't share or copy link"
+  },
+  "favorites": {
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "full": "Favorite list is full (max {max})",
+    "limit": "Up to {max} favorites — remove one first"
+  },
+  "settings": {
+    "open": "Settings",
+    "title": "Settings",
+    "mapTitle": "Map on garage pages",
+    "osm": "OpenStreetMap",
+    "osmNote": "Default. Loads nothing from Google.",
+    "google": "Google Maps",
+    "googleNote": "Loads the map from Google, which can then see that you viewed the page.",
+    "switchToGoogle": "Use Google Maps instead",
+    "switchToOsm": "Use OpenStreetMap instead",
+    "changeHint": "You can change the map any time in settings."
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "body": "We couldn't load the parking data. Please try again.",
+    "garageTitle": "Couldn't load this parking",
+    "garageBody": "Please try again — the open data API may be temporarily unavailable.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "We couldn't find that page.",
+    "garageNotFoundTitle": "Parking not found",
+    "garageNotFoundBody": "We couldn't find a parking with that ID."
+  },
+  "share": {
+    "features": "Live availability|30-minute forecast|Map|Near me"
+  }
+}

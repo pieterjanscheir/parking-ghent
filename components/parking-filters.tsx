@@ -1,6 +1,7 @@
 "use client";
 
 import { SlidersHorizontal, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -25,22 +26,6 @@ type Props = {
   typeOptions: Option[];
   onClear: () => void;
 };
-
-const STATUS_OPTIONS: Option[] = [
-  { value: "open", label: "Open" },
-  { value: "closed", label: "Closed" },
-];
-
-const LEZ_OPTIONS: Option[] = [
-  { value: "inside", label: "Inside LEZ" },
-  { value: "outside", label: "Outside LEZ" },
-];
-
-const BUCKET_OPTIONS: Option[] = [
-  { value: "available", label: "Available" },
-  { value: "almost-full", label: "Almost full" },
-  { value: "full", label: "Full" },
-];
 
 function FacetGroup({
   title,
@@ -89,6 +74,22 @@ export function ParkingFilters({
   typeOptions,
   onClear,
 }: Props) {
+  const t = useTranslations("filters");
+  const tCommon = useTranslations("common");
+  const statusOptions: Option[] = [
+    { value: "open", label: tCommon("open") },
+    { value: "closed", label: tCommon("closed") },
+  ];
+  const lezOptions: Option[] = [
+    { value: "inside", label: tCommon("insideLez") },
+    { value: "outside", label: tCommon("outsideLez") },
+  ];
+  const bucketOptions: Option[] = [
+    { value: "available", label: t("available") },
+    { value: "almost-full", label: t("almostFull") },
+    { value: "full", label: t("full") },
+  ];
+
   const activeCount =
     value.status.length +
     value.lez.length +
@@ -110,7 +111,7 @@ export function ParkingFilters({
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <SlidersHorizontal className="size-3.5" />
-          <span>Filters</span>
+          <span>{t("title")}</span>
           {activeCount > 0 ? (
             <span className="inline-flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
               {activeCount}
@@ -120,7 +121,7 @@ export function ParkingFilters({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-4">
         <div className="flex items-center justify-between">
-          <p className="font-heading text-sm font-semibold">Filters</p>
+          <p className="font-heading text-sm font-semibold">{t("title")}</p>
           {activeCount > 0 ? (
             <button
               type="button"
@@ -128,32 +129,32 @@ export function ParkingFilters({
               className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
             >
               <X className="size-3" />
-              Clear all
+              {t("clearAll")}
             </button>
           ) : null}
         </div>
         <div className="mt-3 flex flex-col gap-4">
           <FacetGroup
-            title="Status"
-            options={STATUS_OPTIONS}
+            title={t("status")}
+            options={statusOptions}
             selected={value.status}
             onToggle={(v) => onChange({ status: toggleIn("status", v) })}
           />
           <FacetGroup
-            title="Low emission zone"
-            options={LEZ_OPTIONS}
+            title={t("lez")}
+            options={lezOptions}
             selected={value.lez}
             onToggle={(v) => onChange({ lez: toggleIn("lez", v) })}
           />
           <FacetGroup
-            title="Type"
+            title={t("type")}
             options={typeOptions}
             selected={value.type}
             onToggle={(v) => onChange({ type: toggleIn("type", v) })}
           />
           <FacetGroup
-            title="Availability"
-            options={BUCKET_OPTIONS}
+            title={t("availability")}
+            options={bucketOptions}
             selected={value.bucket}
             onToggle={(v) => onChange({ bucket: toggleIn("bucket", v) })}
           />

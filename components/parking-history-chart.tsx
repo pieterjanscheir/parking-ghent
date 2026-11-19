@@ -1,6 +1,7 @@
 "use client";
 
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Area,
   CartesianGrid,
@@ -18,6 +19,7 @@ import type {
   TrendConfidence,
 } from "@/lib/parking-history";
 import { cn } from "@/lib/utils";
+import { useFormatTime } from "./use-labels";
 
 type Props = {
   points: HistoryPoint[];
@@ -25,21 +27,7 @@ type Props = {
   totalSpaces: number;
 };
 
-const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
-
-function formatTime(ts: number): string {
-  return TIME_FMT.format(new Date(ts));
-}
-
-const CONFIDENCE_LABEL: Record<TrendConfidence, string> = {
-  high: "High confidence",
-  medium: "Medium confidence",
-  low: "Low confidence",
-};
+type Translate = ReturnType<typeof useTranslations>;
 
 type BadgeContent = {
   label: string;
@@ -51,43 +39,56 @@ type BadgeContent = {
   tone: "rising" | "falling" | "steady";
 };
 
-function trendLabel(trend: Trend, currentFree: number): BadgeContent {
+const TREND_ICON = { rising: TrendingUp, falling: TrendingDown, steady: Minus };
+
+// `t` is scoped to the "forecast" messages.
+function trendLabel(trend: Trend, currentFree: number, t: Translate): BadgeContent {
   const f = trend.forecast;
   const delta = f.predictedFreeSpaces - currentFree;
-  const horizon = f.horizonMinutes;
+  const minutes = f.horizonMinutes;
   const [lo, hi] = f.freeSpacesBand;
 
   let primary: string;
   if (f.method === "persistence") {
-    primary = `Too erratic to forecast · likely ${lo}–${hi} free in ${horizon} min`;
+    primary = t("badgeErratic", { lo, hi, minutes });
   } else if (f.minutesUntilFull !== null) {
-    primary = `Likely full in ~${f.minutesUntilFull} min`;
+    primary = t("fullIn", { minutes: f.minutesUntilFull });
   } else if (trend.direction === "steady") {
-    primary = `In ${horizon} min: no clear change · likely ${lo}–${hi} free`;
+    primary = t("badgeSteady", { lo, hi, minutes });
   } else {
-    const deltaPhrase =
-      delta < 0
-        ? `${Math.abs(delta)} fewer than now`
-        : `${delta} more than now`;
-    primary = `In ${horizon} min: ~${f.predictedFreeSpaces} free · ${deltaPhrase}`;
+    primary = t(delta < 0 ? "badgeFewer" : "badgeMore", {
+      minutes,
+      count: f.predictedFreeSpaces,
+      delta: Math.abs(delta),
+    });
   }
 
   const acc = f.accuracy;
   const secondary =
     acc.backtestCount > 0 && Number.isFinite(acc.maeSpaces)
       ? f.method === "trend"
-        ? `Off by ~${Math.round(acc.maeSpaces)} spaces on average at ${horizon} min over the last few hours (${Math.round(acc.skill * 100)}% better than assuming no change)`
-        : `Following the trend did worse than assuming no change here recently`
-      : "Not enough history yet to measure accuracy";
+        ? t("accuracyTrend", {
+            spaces: Math.round(acc.maeSpaces),
+            minutes,
+            percent: Math.round(acc.skill * 100),
+          })
+        : t("accuracyPersistence")
+      : t("accuracyNone");
 
-  if (trend.direction === "rising") {
-    return { label: "Filling up", primary, secondary, Icon: TrendingUp, tone: "rising" };
-  }
-  if (trend.direction === "falling") {
-    return { label: "Emptying out", primary, secondary, Icon: TrendingDown, tone: "falling" };
-  }
-  return { label: "Holding steady", primary, secondary, Icon: Minus, tone: "steady" };
+  return {
+    label: t(trend.direction),
+    primary,
+    secondary,
+    Icon: TREND_ICON[trend.direction],
+    tone: trend.direction,
+  };
 }
+
+const CONFIDENCE_KEY: Record<TrendConfidence, string> = {
+  high: "confidenceHigh",
+  medium: "confidenceMedium",
+  low: "confidenceLow",
+};
 
 const TONE_CLASS: Record<"rising" | "falling" | "steady", string> = {
   rising:
@@ -147,12 +148,11 @@ function buildRows(points: HistoryPoint[], trend: Trend | null): Row[] {
 }
 
 export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
+  const t = useTranslations("history");
+  const formatTime = useFormatTime();
+
   if (points.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No history data available yet.
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground">{t("empty")}</p>;
   }
 
   const data = buildRows(points, trend);
@@ -168,12 +168,16 @@ export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-heading text-lg font-semibold tracking-tight">
-            Recent occupancy
+            {t("title")}
           </h2>
           <p className="text-xs text-muted-foreground">
-            {points.length} samples · last {minutesSpan} min ·{" "}
-            {formatTime(firstTs)} → {formatTime(lastTs)}
-            {trend ? " · forecast next 60 min" : ""}
+            {t("summary", {
+              samples: points.length,
+              minutes: minutesSpan,
+              from: formatTime(firstTs),
+              to: formatTime(lastTs),
+            })}
+            {trend ? ` · ${t("forecastSuffix")}` : ""}
           </p>
         </div>
         {trend ? (
@@ -242,7 +246,9 @@ export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
               width={36}
             />
             <Tooltip
-              content={<HistoryTooltip totalSpaces={totalSpaces} />}
+              content={
+                <HistoryTooltip totalSpaces={totalSpaces} formatTime={formatTime} />
+              }
               cursor={{ stroke: "var(--color-border)" }}
             />
             <ReferenceLine
@@ -299,7 +305,7 @@ export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
                 strokeOpacity={0.5}
                 strokeDasharray="2 3"
                 label={{
-                  value: "now",
+                  value: t("now"),
                   position: "insideTopRight",
                   fill: "var(--color-muted-foreground)",
                   fontSize: 10,
@@ -315,7 +321,7 @@ export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
           {trend.forecast.horizons.map((h) => (
             <Stat
               key={h.minutes}
-              label={`In ${h.minutes} min`}
+              label={t("inMinutes", { minutes: h.minutes })}
               value={`~${h.freeSpaces}`}
               detail={h.freeLo === h.freeHi ? undefined : `${h.freeLo}–${h.freeHi}`}
             />
@@ -323,9 +329,9 @@ export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
         </div>
       ) : null}
       <div className="grid grid-cols-3 gap-3 text-center sm:text-left">
-        <Stat label="Min free" value={minFree} />
-        <Stat label="Max free" value={maxFree} />
-        <Stat label="Capacity" value={totalSpaces} />
+        <Stat label={t("minFree")} value={minFree} />
+        <Stat label={t("maxFree")} value={maxFree} />
+        <Stat label={t("capacity")} value={totalSpaces} />
       </div>
     </div>
   );
@@ -338,7 +344,8 @@ function TrendBadge({
   trend: Trend;
   currentFree: number;
 }) {
-  const { label, primary, secondary, Icon, tone } = trendLabel(trend, currentFree);
+  const t = useTranslations("forecast");
+  const { label, primary, secondary, Icon, tone } = trendLabel(trend, currentFree, t);
   return (
     <div
       className={cn(
@@ -351,7 +358,7 @@ function TrendBadge({
         <div className="flex items-baseline gap-1.5">
           <span className="font-medium text-foreground">{label}</span>
           <span className="text-[10px] uppercase tracking-wide opacity-70">
-            {CONFIDENCE_LABEL[trend.confidence]}
+            {t(CONFIDENCE_KEY[trend.confidence])}
           </span>
         </div>
         <div className="mt-0.5 text-[11px] font-medium text-foreground">
@@ -395,11 +402,14 @@ function HistoryTooltip({
   active,
   payload,
   totalSpaces,
+  formatTime,
 }: {
   active?: boolean;
   payload?: TooltipPayload[];
   totalSpaces: number;
+  formatTime: (ts: number) => string;
 }) {
+  const t = useTranslations("history");
   if (!active || !payload || payload.length === 0) return null;
   const p = payload[0].payload;
   const isForecast = p.free === null && p.forecastFree !== null;
@@ -409,10 +419,15 @@ function HistoryTooltip({
     return (
       <div className="rounded-md border border-border/70 bg-popover px-3 py-2 text-xs shadow-md">
         <div className="font-medium text-foreground">
-          {formatTime(p.t)} · forecast
+          {t("tooltipForecast", { time: formatTime(p.t) })}
         </div>
         <div className="mt-0.5 text-muted-foreground tabular-nums">
-          ≈ {p.forecastFree} free (likely {lo}–{hi}) of {totalSpaces}
+          {t("tooltipForecastValue", {
+            count: p.forecastFree,
+            lo,
+            hi,
+            total: totalSpaces,
+          })}
         </div>
       </div>
     );
@@ -422,8 +437,11 @@ function HistoryTooltip({
       <div className="rounded-md border border-border/70 bg-popover px-3 py-2 text-xs shadow-md">
         <div className="font-medium text-foreground">{formatTime(p.t)}</div>
         <div className="mt-0.5 text-muted-foreground tabular-nums">
-          {p.free} / {totalSpaces} free ·{" "}
-          {Math.round(p.occupiedPercent ?? 0)}% full
+          {t("tooltipValue", {
+            free: p.free,
+            total: totalSpaces,
+            percent: Math.round(p.occupiedPercent ?? 0),
+          })}
         </div>
       </div>
     );

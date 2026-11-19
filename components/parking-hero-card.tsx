@@ -1,26 +1,38 @@
-import Link from "next/link";
 import { MapPin, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { cn } from "@/lib/utils";
 import { AvailabilityGauge } from "./availability-gauge";
 import { FavoriteButton } from "./favorite-button";
-import { LiveDataWarning } from "./live-data-warning";
+import { DataWarning } from "./live-data-warning";
 import { ParkingActions } from "./parking-actions";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
 import { ForecastHint } from "./forecast-hint";
-import { formatDistance } from "@/lib/geo";
+import { useFormatDistance, useParkingLabels } from "./use-labels";
 
 export function ParkingHeroCard({
   parking,
   trend,
+  now,
   distanceKm = null,
+  walking = false,
 }: {
   parking: Parking;
   trend: Trend | null;
+  // Current time, for judging how old this garage's count is.
+  now: number;
   distanceKm?: number | null;
+  // The distance is to the visitor's destination: show walking time too.
+  walking?: boolean;
 }) {
+  const t = useTranslations("garage");
+  const labels = useParkingLabels();
+  const formatDistance = useFormatDistance();
+  // Shown even for a garage the feed gives no address for.
+  const hasDistance = distanceKm !== null && distanceKm !== undefined;
   return (
     <Link
       href={`/parkings/${encodeURIComponent(parking.id)}`}
@@ -33,17 +45,22 @@ export function ParkingHeroCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="mb-1 inline-flex items-center gap-1.5 rounded-4xl border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
-            Favorite
+            {t("favorite")}
           </p>
           <h3 className="font-heading text-2xl font-bold leading-tight tracking-tight">
             {parking.name}
           </h3>
-          {parking.address ? (
+          {parking.address || hasDistance ? (
             <p className="mt-1.5 inline-flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="size-3.5" />
-              <span className="truncate">{parking.address}</span>
-              {distanceKm !== null && distanceKm !== undefined ? (
-                <span className="shrink-0 text-foreground/80">· {formatDistance(distanceKm)}</span>
+              {parking.address ? (
+                <span className="truncate">{parking.address}</span>
+              ) : null}
+              {hasDistance ? (
+                <span className="shrink-0 text-foreground/80">
+                  {parking.address ? "· " : null}
+                  {formatDistance(distanceKm, walking)}
+                </span>
               ) : null}
             </p>
           ) : null}
@@ -58,7 +75,7 @@ export function ParkingHeroCard({
           size="lg"
         />
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className={cn(
                 "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums",
@@ -74,10 +91,10 @@ export function ParkingHeroCard({
                 size="md"
               />
             ) : null}
-            {!parking.hasLiveData ? <LiveDataWarning size="md" /> : null}
+            <DataWarning parking={parking} now={now} size="md" />
           </div>
           <span className="mt-1 text-sm text-muted-foreground">
-            free of {parking.totalSpaces}
+            {t("freeOf", { total: parking.totalSpaces })}
           </span>
           <ForecastHint parking={parking} trend={trend} className="mt-1.5" />
         </div>
@@ -86,15 +103,15 @@ export function ParkingHeroCard({
       <div className="flex flex-wrap items-center gap-1.5">
         <ParkingStatusBadge parking={parking} />
         {parking.category ? (
-          <MetaBadge>{parking.categoryLabel}</MetaBadge>
+          <MetaBadge>{labels.lez(parking)}</MetaBadge>
         ) : null}
-        {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
+        {parking.type ? <MetaBadge>{labels.type(parking)}</MetaBadge> : null}
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-3">
         <ParkingActions parking={parking} variant="compact" />
         <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
-          View details
+          {t("viewDetails")}
           <ChevronRight className="size-4 transition-transform group-hover/card:translate-x-0.5" />
         </span>
       </div>
