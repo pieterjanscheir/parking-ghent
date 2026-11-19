@@ -15,6 +15,7 @@ const ENDPOINT =
 
 // Car parks don't move, and their notes change rarely.
 const DIRECTORY_TTL_MS = 24 * 60 * 60_000;
+const RETRY_AFTER_MS = 60_000;
 
 const RecordSchema = z.object({
   naam: z.string(),
@@ -122,12 +123,19 @@ export function parseDirectory(json: unknown): DirectoryEntry[] {
 }
 
 export function fetchDirectory(): Promise<DirectoryEntry[]> {
-  // If a refresh fails, yesterday's list is still right.
-  return cached("directory", { ttlMs: DIRECTORY_TTL_MS, staleIfError: true }, async () => {
-    const res = await fetchUpstream(ENDPOINT);
-    if (!res.ok) throw new Error(`Parking directory failed: ${res.status} ${res.statusText}`);
-    return parseDirectory(JSON.parse(res.text));
-  });
+  // If a refresh fails, yesterday's list is still right — and a failing list
+  // isn't worth another wait on every page view.
+  return cached(
+    "directory",
+    { ttlMs: DIRECTORY_TTL_MS, errorTtlMs: RETRY_AFTER_MS, staleIfError: true },
+    loadDirectory,
+  );
+}
+
+async function loadDirectory(): Promise<DirectoryEntry[]> {
+  const res = await fetchUpstream(ENDPOINT);
+  if (!res.ok) throw new Error(`Parking directory failed: ${res.status} ${res.statusText}`);
+  return parseDirectory(JSON.parse(res.text));
 }
 
 // The note in the visitor's language, or English, or Dutch.

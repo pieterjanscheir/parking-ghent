@@ -13,8 +13,11 @@ import {
   fetchExtraParkingById,
   fetchParkingById,
   fetchParkingDetailById,
+  fetchParkings,
   serverClock,
 } from "@/lib/parkings";
+import { formatDistance, walkingMinutes } from "@/lib/geo";
+import { COMFORTABLE_SPACES, nearbyAlternatives } from "@/lib/recommend";
 import {
   computeTrend,
   fetchParkingHistory,
@@ -116,6 +119,16 @@ export default async function ParkingDetailPage({ params }: Props) {
     return <ExtraParkingDetail entry={entry} />;
   }
   const { parking } = detail;
+  // Same cached feed as above, so this costs no extra upstream call.
+  const alternatives = nearbyAlternatives(parking, await fetchParkings(), serverClock());
+  const tAlt = await getTranslations("alternatives");
+  const tAdvice = await getTranslations("advice");
+  const tDestination = await getTranslations("destination");
+  const noSpaceHere =
+    !parking.isOpen ||
+    !parking.hasLiveData ||
+    parking.bucket === "full" ||
+    parking.freeSpaces < COMFORTABLE_SPACES;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -280,6 +293,35 @@ export default async function ParkingDetailPage({ params }: Props) {
             />
           </Suspense>
         </div>
+      ) : null}
+
+      {alternatives.length > 0 ? (
+        <section
+          aria-labelledby="alternatives-heading"
+          className="mt-6 surface-card rounded-xl border border-border/70 p-6 sm:p-8"
+        >
+          <h2 id="alternatives-heading" className="font-heading text-lg font-semibold tracking-tight">
+            {noSpaceHere ? tAlt("titleNoSpace") : tAlt("title")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{tAlt("intro")}</p>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+            {alternatives.map(({ parking: other, km }) => (
+              <li key={other.id}>
+                <Link
+                  href={`/parkings/${encodeURIComponent(other.id)}`}
+                  className="flex h-full flex-col gap-1 rounded-lg border border-border/70 px-4 py-3 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <span className="font-heading text-sm font-semibold">{other.name}</span>
+                  <span className="text-sm">{tAdvice("free", { count: other.freeSpaces })}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistance(km, locale)} ·{" "}
+                    {tDestination("walk", { minutes: walkingMinutes(km) })}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
 
       <ParkingLocationMap parking={parking} />

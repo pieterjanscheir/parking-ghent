@@ -12,6 +12,7 @@ const ENDPOINT =
   "&select=kw,geo_point_2d&limit=100";
 
 const CHARGERS_TTL_MS = 24 * 60 * 60_000;
+const RETRY_AFTER_MS = 60_000;
 // The API returns at most 100 per request; there are about 90 today.
 const MAX_PAGES = 5;
 
@@ -43,17 +44,24 @@ export function parseChargePoints(json: unknown): { total: number; points: Charg
 }
 
 export function fetchGarageChargePoints(): Promise<ChargePoint[]> {
-  return cached("chargers", { ttlMs: CHARGERS_TTL_MS, staleIfError: true }, async () => {
-    const all: ChargePoint[] = [];
-    for (let page = 0; page < MAX_PAGES; page++) {
-      const res = await fetchUpstream(`${ENDPOINT}&offset=${page * 100}`);
-      if (!res.ok) throw new Error(`Charge points failed: ${res.status} ${res.statusText}`);
-      const { total, points } = parseChargePoints(JSON.parse(res.text));
-      all.push(...points);
-      if (points.length < 100 || all.length >= total) break;
-    }
-    return all;
-  });
+  return cached(
+    "chargers",
+    // A failing list isn't worth another wait on every page view.
+    { ttlMs: CHARGERS_TTL_MS, errorTtlMs: RETRY_AFTER_MS, staleIfError: true },
+    loadChargePoints,
+  );
+}
+
+async function loadChargePoints(): Promise<ChargePoint[]> {
+  const all: ChargePoint[] = [];
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const res = await fetchUpstream(`${ENDPOINT}&offset=${page * 100}`);
+    if (!res.ok) throw new Error(`Charge points failed: ${res.status} ${res.statusText}`);
+    const { total, points } = parseChargePoints(JSON.parse(res.text));
+    all.push(...points);
+    if (points.length < 100 || all.length >= total) break;
+  }
+  return all;
 }
 
 export type Charging = { count: number; maxKw: number | null };

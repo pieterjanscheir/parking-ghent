@@ -259,5 +259,26 @@
     "detailLead": "Dieser Parkplatz veröffentlicht keine Live-Zählung. Wir können zeigen, wo er liegt und wie groß er ist, aber nicht, wie voll er gerade ist.",
     "moreInfo": "Weitere Informationen",
     "shareText": "Parkplatz in Gent, keine Live-Zählung"
+  },
+  "advice": {
+    "titleFor": "Beste Wahl für {place}",
+    "titleNearYou": "Beste Wahl in Ihrer Nähe",
+    "free": "{count, plural, one {# Platz frei} other {# Plätze frei}}",
+    "nearestToo": "Es ist auch das nächstgelegene Parkhaus.",
+    "passed": {
+      "closed": "{name} liegt näher, ist aber geschlossen.",
+      "noData": "{name} liegt näher, hat aber derzeit keine verlässliche Zählung.",
+      "full": "{name} liegt näher, ist aber voll.",
+      "almostFull": "{name} liegt näher, hat aber nur noch {count, plural, one {# freien Platz} other {# freie Plätze}}.",
+      "fillingUp": "{name} liegt näher, ist aber voraussichtlich in etwa {minutes} Min. voll."
+    },
+    "none": "Derzeit hat kein Parkhaus mit Live-Zählung ausreichend freie Plätze. Sehen Sie in der Liste unten nach oder wählen Sie einen Park & Ride.",
+    "parkAndRide": "Lieber nicht ins Zentrum fahren? Nächster Park & Ride:",
+    "details": "Details"
+  },
+  "alternatives": {
+    "title": "Parkhäuser in der Nähe",
+    "titleNoSpace": "Hier kein Platz? Versuchen Sie es in der Nähe",
+    "intro": "Weitere Parkhäuser mit freien Plätzen, das nächste zuerst. Entfernungen in Luftlinie von diesem Parkhaus."
   }
 }

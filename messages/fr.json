@@ -259,5 +259,26 @@
     "detailLead": "Ce parking ne publie pas de comptage en direct. Nous pouvons indiquer où il se trouve et sa taille, pas son occupation actuelle.",
     "moreInfo": "Plus d’informations",
     "shareText": "Parking à Gand, sans comptage en direct"
+  },
+  "advice": {
+    "titleFor": "Meilleur choix pour {place}",
+    "titleNearYou": "Meilleur choix près de vous",
+    "free": "{count, plural, one {# place libre} other {# places libres}}",
+    "nearestToo": "C’est aussi le parking le plus proche.",
+    "passed": {
+      "closed": "{name} est plus proche, mais il est fermé.",
+      "noData": "{name} est plus proche, mais n’a pas de comptage fiable pour le moment.",
+      "full": "{name} est plus proche, mais il est complet.",
+      "almostFull": "{name} est plus proche, mais il ne reste que {count, plural, one {# place} other {# places}}.",
+      "fillingUp": "{name} est plus proche, mais sera probablement complet dans environ {minutes} min."
+    },
+    "none": "Aucun parking avec comptage en direct n’a assez de places pour le moment. Consultez la liste ci-dessous ou choisissez un Park & Ride.",
+    "parkAndRide": "Vous préférez ne pas entrer en voiture dans le centre ? Park & Ride le plus proche :",
+    "details": "Détails"
+  },
+  "alternatives": {
+    "title": "Parkings à proximité",
+    "titleNoSpace": "Pas de place ici ? Essayez à proximité",
+    "intro": "Autres parkings avec des places libres, du plus proche au plus éloigné. Distances à vol d’oiseau depuis ce parking."
   }
 }

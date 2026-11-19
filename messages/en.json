@@ -259,5 +259,26 @@
     "detailLead": "This car park doesn't publish live counts. We can show where it is and how big it is, not how full it is right now.",
     "moreInfo": "More information",
     "shareText": "Car park in Ghent, no live count"
+  },
+  "advice": {
+    "titleFor": "Best choice for {place}",
+    "titleNearYou": "Best choice near you",
+    "free": "{count, plural, one {# space free} other {# spaces free}}",
+    "nearestToo": "It is also the nearest garage.",
+    "passed": {
+      "closed": "{name} is closer, but it is closed.",
+      "noData": "{name} is closer, but has no reliable count right now.",
+      "full": "{name} is closer, but it is full.",
+      "almostFull": "{name} is closer, but has only {count, plural, one {# space} other {# spaces}} left.",
+      "fillingUp": "{name} is closer, but is likely full in about {minutes} min."
+    },
+    "none": "No garage with a live count has comfortable space right now. Check the list below or pick a Park & Ride.",
+    "parkAndRide": "Rather not drive into the centre? Nearest Park & Ride:",
+    "details": "Details"
+  },
+  "alternatives": {
+    "title": "Nearby garages",
+    "titleNoSpace": "No space here? Try nearby",
+    "intro": "Other garages with free spaces, nearest first. Distances are in a straight line from this garage."
   }
 }

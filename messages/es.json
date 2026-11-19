@@ -259,5 +259,26 @@
     "detailLead": "Este aparcamiento no publica recuentos en directo. Podemos mostrarte dónde está y su tamaño, pero no cuánto se ha llenado ahora.",
     "moreInfo": "Más información",
     "shareText": "Aparcamiento en Gante, sin recuento en directo"
+  },
+  "advice": {
+    "titleFor": "Mejor opción para {place}",
+    "titleNearYou": "Mejor opción cerca de ti",
+    "free": "{count, plural, one {# plaza libre} other {# plazas libres}}",
+    "nearestToo": "También es el aparcamiento más cercano.",
+    "passed": {
+      "closed": "{name} está más cerca, pero está cerrado.",
+      "noData": "{name} está más cerca, pero ahora no tiene un recuento fiable.",
+      "full": "{name} está más cerca, pero está completo.",
+      "almostFull": "{name} está más cerca, pero solo le {count, plural, one {queda # plaza} other {quedan # plazas}}.",
+      "fillingUp": "{name} está más cerca, pero probablemente se llene en unos {minutes} min."
+    },
+    "none": "Ahora mismo ningún aparcamiento con recuento en directo tiene plazas suficientes. Consulta la lista de abajo o elige un Park & Ride.",
+    "parkAndRide": "¿Prefieres no entrar al centro en coche? Park & Ride más cercano:",
+    "details": "Detalles"
+  },
+  "alternatives": {
+    "title": "Aparcamientos cercanos",
+    "titleNoSpace": "¿Sin sitio aquí? Prueba cerca",
+    "intro": "Otros aparcamientos con plazas libres, del más cercano al más lejano. Distancias en línea recta desde este aparcamiento."
   }
 }

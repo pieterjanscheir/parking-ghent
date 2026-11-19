@@ -259,5 +259,26 @@
     "detailLead": "Deze parking publiceert geen live tellingen. We kunnen tonen waar ze ligt en hoe groot ze is, niet hoe vol ze nu is.",
     "moreInfo": "Meer informatie",
     "shareText": "Parking in Gent, geen live telling"
+  },
+  "advice": {
+    "titleFor": "Beste keuze voor {place}",
+    "titleNearYou": "Beste keuze in je buurt",
+    "free": "{count, plural, one {# plaats vrij} other {# plaatsen vrij}}",
+    "nearestToo": "Dit is ook de dichtste garage.",
+    "passed": {
+      "closed": "{name} ligt dichter, maar is gesloten.",
+      "noData": "{name} ligt dichter, maar heeft nu geen betrouwbare telling.",
+      "full": "{name} ligt dichter, maar is volzet.",
+      "almostFull": "{name} ligt dichter, maar heeft nog maar {count, plural, one {# plaats} other {# plaatsen}} vrij.",
+      "fillingUp": "{name} ligt dichter, maar is wellicht volzet binnen ongeveer {minutes} min."
+    },
+    "none": "Geen enkele garage met een live telling heeft nu comfortabel plaats. Bekijk de lijst hieronder of kies een Park & Ride.",
+    "parkAndRide": "Liever niet tot in het centrum rijden? Dichtste Park & Ride:",
+    "details": "Details"
+  },
+  "alternatives": {
+    "title": "Garages in de buurt",
+    "titleNoSpace": "Geen plaats hier? Probeer in de buurt",
+    "intro": "Andere garages met vrije plaatsen, de dichtste eerst. Afstand in vogelvlucht vanaf deze garage."
   }
 }

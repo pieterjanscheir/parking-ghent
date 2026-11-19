@@ -52,6 +52,7 @@ import {
   type SortKey,
 } from "@/lib/parkings";
 import type { DirectoryEntry } from "@/lib/directory";
+import { nearestParkAndRide, suggestGarage } from "@/lib/recommend";
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { cn } from "@/lib/utils";
@@ -63,6 +64,7 @@ import {
   type ParkingFiltersValue,
 } from "./parking-filters";
 import { AutoRefreshControl } from "./auto-refresh-control";
+import { DestinationAdvice } from "./destination-advice";
 import { DestinationSearch } from "./destination-search";
 import { ExtraParkingCard } from "./extra-parking-card";
 import { useFormatAge, useParkingLabels } from "./use-labels";
@@ -231,6 +233,20 @@ export function ParkingOverview({
     return out;
   }, [parkings, extras, origin]);
 
+  // The short answer for wherever distances are measured from: a destination
+  // or the visitor's own location. It looks at every live garage, whatever
+  // the search and filters below are set to.
+  const advice = useMemo(() => {
+    if (!origin) return null;
+    const suggestion = suggestGarage(parkings, origin, trendsById, now);
+    const ride = nearestParkAndRide(parkings, extras, origin, now);
+    return {
+      suggestion,
+      // Not worth a second line when the suggestion is that Park & Ride.
+      parkAndRide: ride && ride.id !== suggestion?.best.id ? ride : null,
+    };
+  }, [parkings, extras, origin, trendsById, now]);
+
   const filteredExtras = useMemo(
     () => sortExtras(filterExtras(extras, filters), origin),
     [extras, filters, origin],
@@ -302,6 +318,13 @@ export function ParkingOverview({
             <p role="status" className="mt-2 text-xs text-muted-foreground">
               {tDestination("sortedNote", { place: destination.name })}
             </p>
+          ) : null}
+          {advice ? (
+            <DestinationAdvice
+              place={destination?.name ?? null}
+              suggestion={advice.suggestion}
+              parkAndRide={advice.parkAndRide}
+            />
           ) : null}
         </div>
         <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
