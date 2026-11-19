@@ -166,8 +166,11 @@ Open [http://localhost:3000](http://localhost:3000).
 | `pnpm build`       | Production build                      |
 | `pnpm start`       | Serve the production build            |
 | `pnpm lint`        | Run ESLint                            |
+| `pnpm typecheck`   | Check the TypeScript types            |
 | `pnpm test`        | Run the Vitest suite once             |
 | `pnpm test:watch`  | Run Vitest in watch mode              |
+
+Every pull request, and every push to `master`, runs lint, the type check, the tests and a production build on GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 
 ## Project layout
 
@@ -187,6 +190,7 @@ i18n/                         Language list, language-aware links, request setup
 messages/                     Translations: one JSON file per language
 proxy.ts                      Language detection and redirects
 vercel.json                   Schedule for the history snapshot (every 10 minutes)
+.github/workflows/ci.yml      Checks run on every pull request
 components/                   UI building blocks
   parking-overview.tsx        Overview client shell (summary / search / sort / filter / view)
   parking-map.tsx             Leaflet map of all parkings (client-only)

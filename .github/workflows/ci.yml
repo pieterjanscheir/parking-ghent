@@ -1,0 +1,51 @@
+name: CI
+
+# Lint, type-check, test and build: on every pull request, and on master so a
+# merge that only breaks in combination with another one still shows up.
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+# A newer push to the same branch makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# The checks only read the code.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      # Same Node.js major as the Vercel project builds with.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type-check
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      # Needs no secrets and doesn't call the city feeds: every page that
+      # shows live data is rendered on request, not at build time.
+      - name: Build
+        run: pnpm build
