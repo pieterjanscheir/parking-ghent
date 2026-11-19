@@ -312,5 +312,10 @@
   "lez": {
     "inside": "This garage is inside Ghent's low-emission zone. Check before you drive in whether your vehicle is allowed. A vehicle with a foreign number plate usually has to be registered first.",
     "link": "Rules and vehicle check (City of Ghent)"
+  },
+  "offline": {
+    "savedCopy": "Offline copy: this page was saved {age}. The counts may have changed since.",
+    "noConnection": "You're offline. The counts on this page may be out of date.",
+    "reload": "Reload"
   }
 }

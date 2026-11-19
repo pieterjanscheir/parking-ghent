@@ -312,5 +312,10 @@
   "lez": {
     "inside": "Dieses Parkhaus liegt in der Umweltzone (LEZ) von Gent. Prüfen Sie vor der Einfahrt, ob Ihr Fahrzeug zugelassen ist. Ein Fahrzeug mit ausländischem Kennzeichen muss in der Regel vorher registriert werden.",
     "link": "Regeln und Fahrzeugprüfung (Stadt Gent)"
+  },
+  "offline": {
+    "savedCopy": "Offline-Kopie: Diese Seite wurde {age} gespeichert. Die Zahlen können sich seitdem geändert haben.",
+    "noConnection": "Sie sind offline. Die Zahlen auf dieser Seite sind möglicherweise veraltet.",
+    "reload": "Neu laden"
   }
 }

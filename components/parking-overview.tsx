@@ -34,7 +34,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useFavorites } from "@/lib/favorites";
 import { useAutoRefresh } from "@/lib/use-auto-refresh";
-import { useNow } from "@/lib/use-now";
+import { useNow, useSavedCopyAt } from "@/lib/use-now";
 import { FEED_STALE_AFTER_MS, isStale, newestUpdate } from "@/lib/freshness";
 import { useGeolocation } from "@/lib/use-geolocation";
 import { distanceKm, formatLatLng, parseLatLng } from "@/lib/geo";
@@ -180,7 +180,11 @@ export function ParkingOverview({
   // page is showing old counts, however recently we asked.
   const dataUpdatedAt = useMemo(() => newestUpdate(parkings), [parkings]);
   const feedAgeMs = dataUpdatedAt === null ? null : Math.max(0, now - dataUpdatedAt);
-  const feedIsStale = feedAgeMs !== null && feedAgeMs > FEED_STALE_AFTER_MS;
+  // On a copy saved for offline use the counts are old because the page is,
+  // not because the city's feed stopped: the offline notice says so already.
+  const isSavedCopy = useSavedCopyAt() !== null;
+  const feedIsStale =
+    !isSavedCopy && feedAgeMs !== null && feedAgeMs > FEED_STALE_AFTER_MS;
 
   // A forecast "in 30 min" anchored on an out-of-date count would mislead, so
   // garages with stale counts get no trend or forecast.

@@ -7,6 +7,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "@/components/ui/sonner";
 import { FavoritesProvider } from "@/lib/favorites";
 import { SiteHeader } from "@/components/site-header";
+import { OfflineNotice } from "@/components/offline-notice";
 import { SiteFooter } from "@/components/site-footer";
 import { routing } from "@/i18n/routing";
 import {
@@ -92,6 +93,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <NuqsAdapter>
             <FavoritesProvider>
               <SiteHeader />
+              <OfflineNotice />
               <main className="flex-1">{children}</main>
               <SiteFooter />
             </FavoritesProvider>

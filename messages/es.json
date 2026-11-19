@@ -312,5 +312,10 @@
   "lez": {
     "inside": "Este aparcamiento está dentro de la zona de bajas emisiones de Gante. Comprueba antes de entrar si tu vehículo está permitido. Un vehículo con matrícula extranjera normalmente debe registrarse antes.",
     "link": "Normas y comprobación del vehículo (Ayuntamiento de Gante)"
+  },
+  "offline": {
+    "savedCopy": "Copia sin conexión: esta página se guardó {age}. Los recuentos pueden haber cambiado desde entonces.",
+    "noConnection": "Estás sin conexión. Los recuentos de esta página pueden estar desactualizados.",
+    "reload": "Recargar"
   }
 }

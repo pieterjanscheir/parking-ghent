@@ -312,5 +312,10 @@
   "lez": {
     "inside": "Deze garage ligt in de lage-emissiezone van Gent. Controleer vóór je binnenrijdt of je voertuig toegelaten is. Een voertuig met een buitenlandse nummerplaat moet meestal eerst geregistreerd worden.",
     "link": "Regels en voertuigcheck (Stad Gent)"
+  },
+  "offline": {
+    "savedCopy": "Offline kopie: deze pagina is {age} opgeslagen. De tellingen kunnen intussen veranderd zijn.",
+    "noConnection": "Je bent offline. De tellingen op deze pagina kunnen verouderd zijn.",
+    "reload": "Opnieuw laden"
   }
 }

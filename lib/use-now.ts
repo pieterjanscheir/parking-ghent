@@ -49,6 +49,30 @@ export function useDeviceNow(): number {
 const receivedAt = new Map<number, number>();
 const MAX_REMEMBERED = 100;
 
+// This page came from a copy the service worker saved earlier (no
+// connection): the data on it arrived when that copy was saved, not when
+// the page opened. Without this, an hour-old copy would read "updated just
+// now".
+export function pageWasSavedAt(deviceTime: number): void {
+  for (const [serverNow, seenAt] of receivedAt) {
+    if (deviceTime < seenAt) receivedAt.set(serverNow, deviceTime);
+  }
+  savedCopyAt = deviceTime;
+  tick();
+}
+
+// Set once per page load, before or after the components first render.
+let savedCopyAt: number | null = null;
+
+const getSavedCopyAt = () => savedCopyAt;
+const getNoSavedCopy = () => null;
+
+// When this page's saved copy was made (device clock), or null for a page
+// that came from the network.
+export function useSavedCopyAt(): number | null {
+  return useSyncExternalStore(subscribe, getSavedCopyAt, getNoSavedCopy);
+}
+
 // The server's clock, carried forward by the time that has passed on this
 // device since the data arrived. Only the *difference* between two readings
 // of the device clock is used, so a phone whose clock is an hour off still
@@ -70,7 +94,9 @@ export function useNow(serverNow: number): number {
 
   useEffect(() => {
     if (receivedAt.has(serverNow)) return;
-    receivedAt.set(serverNow, Date.now());
+    // The first data on a page loaded from a saved copy is as old as the
+    // copy; anything that arrives later (a refresh) is new.
+    receivedAt.set(serverNow, receivedAt.size === 0 && savedCopyAt !== null ? savedCopyAt : Date.now());
     if (receivedAt.size > MAX_REMEMBERED) {
       const oldest = receivedAt.keys().next().value;
       if (oldest !== undefined) receivedAt.delete(oldest);

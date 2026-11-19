@@ -312,5 +312,10 @@
   "lez": {
     "inside": "Ce parking se trouve dans la zone de basses émissions de Gand. Vérifiez avant d’y entrer si votre véhicule est autorisé. Un véhicule immatriculé à l’étranger doit généralement être enregistré au préalable.",
     "link": "Règles et vérification du véhicule (Ville de Gand)"
+  },
+  "offline": {
+    "savedCopy": "Copie hors ligne : cette page a été enregistrée {age}. Les comptages ont pu changer depuis.",
+    "noConnection": "Vous êtes hors ligne. Les comptages de cette page ne sont peut-être plus à jour.",
+    "reload": "Recharger"
   }
 }
