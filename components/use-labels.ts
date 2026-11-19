@@ -1,4 +1,4 @@
-import { useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { ageParts } from "@/lib/freshness";
 import { formatDistance } from "@/lib/geo";
 import type { Parking } from "@/lib/parkings.schema";
@@ -22,6 +22,18 @@ export function useFormatAge(): (ms: number) => string {
         return t("ageDays", { count: age.count });
     }
   };
+}
+
+// "14:05" in every language: Belgium uses the 24-hour clock, also when the
+// site is read in English. Ghent time (the time zone is set globally).
+export function useFormatTime(): (timestamp: number) => string {
+  const format = useFormatter();
+  return (timestamp) =>
+    format.dateTime(timestamp, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    });
 }
 
 export function useFormatDistance(): (km: number) => string {

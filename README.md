@@ -12,7 +12,8 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Open with space** quick filter, plus search by name or street and status / LEZ / type / availability filters, all synced to the URL so any view is shareable.
 - **Short-term forecast** on cards ("~120 free in 30 min", "Likely full in ~20 min") and a 60-minute forecast with ranges on detail pages — see [Forecasting](#forecasting).
 - **Favorites** — pin up to 3 garages to the top (stored only in the browser).
-- **Detail pages** — opening hours, operator, LEZ, embedded map, navigation via Google Maps / Waze / Apple Maps, call, share.
+- **Detail pages** — opening hours, operator, LEZ, a map of the garage, navigation via Google Maps / Waze / Apple Maps, call, share.
+- **Your choice of map** — garage pages show an OpenStreetMap map by default, so nothing is loaded from Google. Visitors who prefer Google Maps can switch in the settings menu (the gear in the header) or with the link under the map; the choice is remembered in their browser ([lib/map-provider.ts](lib/map-provider.ts)).
 - **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh; the spinner runs for as long as the request actually takes.
 - **Honest data age** — "City data updated 2 min ago" comes from the feed's own timestamps, not from when the page last asked. A garage whose count is more than 30 minutes old gets a warning and loses its forecast, and if no garage has updated for 15 minutes a banner says the feed has stopped ([lib/freshness.ts](lib/freshness.ts)).
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
@@ -126,6 +127,9 @@ components/                   UI building blocks
   parking-map.tsx             Leaflet map of all parkings (client-only)
   forecast-hint.tsx           One-line forecast for cards / list / map
   language-switcher.tsx       NL · EN · FR links in the header
+  settings-menu.tsx           Gear menu in the header (map choice)
+  parking-location-map.tsx    Garage-page map: OpenStreetMap or Google, per the setting
+  leaflet-shared.ts           Tiles, dark filter and marker shared by both maps
   use-labels.ts               Shared translation helpers (ages, distances, labels)
   parking-actions.tsx         Maps / Waze / Apple Maps / Call / Share row
   parking-hero-card.tsx       Favorite card
@@ -155,6 +159,7 @@ lib/
   forecast.ts                 Forecast model + per-parking backtest
   geo.ts                      Distance helpers
   use-geolocation.ts          Opt-in browser location
+  map-provider.ts             The visitor's map choice (localStorage)
   favorites.tsx               FavoritesProvider (localStorage, max 3)
   local-storage-store.ts      SSR-safe localStorage helper
   use-auto-refresh.ts         Visibility-aware refresh hook

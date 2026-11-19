@@ -192,6 +192,18 @@
     "full": "Favorietenlijst is vol (max. {max})",
     "limit": "Maximaal {max} favorieten — verwijder er eerst een"
   },
+  "settings": {
+    "open": "Instellingen",
+    "title": "Instellingen",
+    "mapTitle": "Kaart op parkingpagina's",
+    "osm": "OpenStreetMap",
+    "osmNote": "Standaard. Laadt niets van Google.",
+    "google": "Google Maps",
+    "googleNote": "Laadt de kaart bij Google, dat dan kan zien dat je de pagina bekeek.",
+    "switchToGoogle": "Liever Google Maps gebruiken",
+    "switchToOsm": "Liever OpenStreetMap gebruiken",
+    "changeHint": "Je kunt de kaart altijd aanpassen bij de instellingen."
+  },
   "errors": {
     "title": "Er ging iets mis",
     "body": "We konden de parkeerdata niet laden. Probeer het opnieuw.",
