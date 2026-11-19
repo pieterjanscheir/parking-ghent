@@ -402,5 +402,16 @@
     "away": "about {metres} m away",
     "here": "right by this spot",
     "caveat": "From the permits the city has granted. The signs in the street always decide: check them where you park."
+  },
+  "typical": {
+    "title": "A typical {weekday}",
+    "pickDay": "Day of the week",
+    "noDay": "No measurements for this day yet.",
+    "aroundNow": "Around {time} there are usually about {free} spaces free",
+    "basedOn": "{days, plural, one {measured on # day so far} other {measured on # days}}",
+    "quietest": "Most room: around {time} (about {free} free).",
+    "busiest": "Busiest: around {time} (about {free} free).",
+    "bar": "{time}: about {free} free",
+    "source": "From this site's own measurements, every 10 minutes since {since}. A pattern, not a promise."
   }
 }

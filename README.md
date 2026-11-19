@@ -33,7 +33,9 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh; the spinner runs for as long as the request actually takes.
 - **Honest data age** — "City data updated 2 min ago" comes from the feed's own timestamps, not from when the page last asked. A garage whose count is more than 30 minutes old gets a warning and loses its forecast, and if no garage has updated for 15 minutes a banner says the feed has stopped ([lib/freshness.ts](lib/freshness.ts)).
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
-- **Its own history** — a scheduled job saves every garage's count every 10 minutes, because the city only publishes the last few hours. Collecting only, for now — see [Our own history archive](#our-own-history-archive).
+- **Its own history** — a scheduled job saves every garage's count every 10 minutes, because the city only publishes the last few hours — see [Our own history archive](#our-own-history-archive).
+- **A typical day** — a garage page shows how much room there usually is, hour by hour, for today's day of the week or any other ("A typical Saturday"), with the hours that usually have the most and the least room. Worked out from the site's own history, so it fills in as the weeks go by — see [The weekly pattern](#the-weekly-pattern).
+- **For AI assistants** — an MCP server at `/api/mcp` lets an assistant such as Claude ask where to park: live counts, the best garage for a destination, one garage in detail, and what is usual at a given hour of the week — see [MCP server](#mcp-server).
 - **Five languages** — Dutch, English, French, German and Spanish; every page exists under `/nl`, `/en`, `/fr`, `/de` and `/es`. A first visit picks the browser's language (Dutch if it's none of the five), the choice is remembered, and the language menu in the header keeps your search, sort, filters and destination — see [Languages](#languages).
 - **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space*, *Map* and *Where did I park?* ([app/manifest.ts](app/manifest.ts)). The settings menu offers "Install on this device" where the browser supports it, and explains the Share-menu route on iPhone and iPad ([lib/use-install-prompt.ts](lib/use-install-prompt.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
 
@@ -164,6 +166,21 @@ One line of a day's file:
 
 The archive only collects for now. Showing "usually busy at this hour" and a better forecast come once there are a few weeks of data.
 
+### The weekly pattern
+
+"How full is this garage usually on a Saturday afternoon?" is answered from the archive ([lib/history-profile.ts](lib/history-profile.ts)):
+
+- **One value per garage per hour of the week** (168 hours, Ghent time). Each day counts once per hour (the average of that hour's readings); the usual value is the median over the days of the last four weeks, so one concert night doesn't shift "a typical Thursday".
+- **Only real measurements count.** Readings without a count, from a closed garage, or from a count the feed stopped updating are left out.
+- **It says how much it is based on.** Every value carries the number of days behind it ("measured on 1 day so far"), and the page says since when the site has been measuring.
+- **Built once a night, not on page views.** The scheduled job that saves the snapshots also reads the last 28 day files on its first run of the UTC day (and once more at 03:00) and saves the result as one small file, `history/v1/profile.json` (about 15 KB) ([lib/history-profile-store.ts](lib/history-profile-store.ts)). That is about 60 extra storage operations a day, next to the 288 the snapshots already use.
+- **Pages only read that one file.** `/api/typical` serves it and the CDN keeps it for six hours; a server instance reads it from storage at most once every three hours.
+- **To build it right away** (after the first deploy, or after changing the calculation), call the job with `?profile=1`:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" "https://<your-domain>/api/cron/snapshot?profile=1"
+```
+
 ### Switching it on
 
 The archive is off until storage is configured; the rest of the app is unaffected.
@@ -186,6 +203,23 @@ curl -H "Authorization: Bearer dev" http://localhost:3000/api/cron/snapshot
 
 Usage on Vercel, per month: about 4,300 scheduled calls, 4,300 file writes, 4,300 file reads and roughly 300 MB read back from storage. That is small next to what a Pro plan includes for Blob, but check Vercel's current Blob pricing before relying on that.
 
+## MCP server
+
+`/api/mcp` is an [MCP](https://modelcontextprotocol.io) server ("Streamable HTTP"), so an AI assistant can use this site's data and rules directly ([app/api/mcp/route.ts](app/api/mcp/route.ts), [lib/mcp-tools.ts](lib/mcp-tools.ts)). No key: everything it returns is public data.
+
+| Tool | What it answers |
+| :--- | :--- |
+| `list_garages` | Every car park with its live free spaces, forecast and facts (Park & Ride, free, EV charging). `only_with_space` narrows it to garages known to have room. |
+| `find_parking` | The best garage for a destination: a well-known place by name, or coordinates. Says why the nearest was passed over, lists other garages with space and the nearest Park & Ride. |
+| `get_garage` | One car park in detail: live count, forecast, what is usual at this hour, opening hours, position, the city's remark. |
+| `typical_availability` | Planning ahead: how many spaces are usually free in each garage at an hour of the week (`weekday`, `hour`). |
+
+- **To connect:** add `https://<your-domain>/api/mcp` as a custom connector in the assistant (in Claude: Settings → Connectors → Add custom connector).
+- **Same rules as the website.** A count that is missing or more than 30 minutes old is marked as such and gets no forecast; "best choice" uses the same rules as the panel on the overview.
+- **Stateless.** Each request is answered on its own with plain JSON: no sessions, no open connections. One call is one function run and reads the same cached feeds as the pages.
+- **Street addresses** are not looked up here: the assistant passes coordinates for anything that isn't one of the well-known places.
+- **Limits:** request bodies over 64 KB are refused. There is no rate limit; the endpoint is public, like the pages.
+
 ## Stack
 
 - **Next.js 16.2** (App Router) on **React 19**
@@ -197,6 +231,7 @@ Usage on Vercel, per month: about 4,300 scheduled calls, 4,300 file writes, 4,30
 - **recharts** for the occupancy-history chart
 - **Leaflet** + **react-leaflet** for the overview map (OpenStreetMap tiles)
 - **sonner** for toasts
+- **@modelcontextprotocol/sdk** for the MCP endpoint
 - **lucide-react** for icons
 - **Vercel Blob** + a Vercel cron job for the history archive
 - **Vitest** for unit tests
@@ -243,6 +278,8 @@ app/                          App Router routes
   api/cron/snapshot/route.ts  Scheduled job: save the current counts to the archive
   api/street-zone/route.ts    Which street-parking zone a spot is in
   api/chargers/route.ts       Every public charge point, for the map layer
+  api/typical/route.ts        The weekly pattern, for the browser
+  api/mcp/route.ts            MCP server for AI assistants
   manifest.ts                 Web app manifest (name, icons, shortcuts)
   icon.svg, apple-icon.png    App icon (source artwork: icon.svg)
   sitemap.ts, robots.ts       For search engines (previews are not indexed)
@@ -302,6 +339,9 @@ lib/
   parked.ts                   Where the visitor parked (localStorage)
   recent-destinations.ts      The last destinations picked (localStorage)
   use-install-prompt.ts       "Install this app" where the browser offers it
+  history-profile.ts          The weekly pattern: usual free spaces per hour of the week
+  history-profile-store.ts    Building and reading that pattern (server)
+  mcp-tools.ts                What the MCP endpoint answers with
   parking-bans.ts             The city's temporary parking bans near a spot
   pay-machines.ts             The nearest on-street pay machine
   transit-stops.ts            Bus and tram stops near a spot

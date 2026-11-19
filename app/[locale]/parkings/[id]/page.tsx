@@ -45,6 +45,7 @@ import { ParkedHere } from "@/components/parked-here";
 import { ParkingActions } from "@/components/parking-actions";
 import { ParkingFacilities } from "@/components/parking-facilities";
 import { ParkingHistorySection } from "@/components/parking-history-section";
+import { TypicalDay } from "@/components/typical-day";
 import { ParkingLocationMap } from "@/components/parking-location-map";
 import {
   ParkingStatusBadge,
@@ -338,6 +339,8 @@ export default async function ParkingDetailPage({ params }: Props) {
           </Suspense>
         </div>
       ) : null}
+
+      <TypicalDay garageId={parking.id} totalSpaces={parking.totalSpaces} />
 
       {alternatives.length > 0 ? (
         <section

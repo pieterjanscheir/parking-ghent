@@ -402,5 +402,16 @@
     "away": "a unos {metres} m",
     "here": "justo en este lugar",
     "caveat": "Según los permisos concedidos por la ciudad. Las señales de la calle siempre mandan: compruébalas donde aparques."
+  },
+  "typical": {
+    "title": "Un {weekday} normal",
+    "pickDay": "Día de la semana",
+    "noDay": "Aún no hay mediciones para este día.",
+    "aroundNow": "Hacia las {time} suele haber unas {free} plazas libres",
+    "basedOn": "{days, plural, one {medido # día hasta ahora} other {medido # días}}",
+    "quietest": "Más sitio: hacia las {time} (unas {free} libres).",
+    "busiest": "Más lleno: hacia las {time} (unas {free} libres).",
+    "bar": "{time}: unas {free} libres",
+    "source": "Según las mediciones propias de este sitio, cada 10 minutos desde el {since}. Un patrón, no una promesa."
   }
 }

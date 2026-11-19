@@ -402,5 +402,16 @@
     "away": "ongeveer {metres} m verderop",
     "here": "vlak bij deze plek",
     "caveat": "Uit de vergunningen van de stad. De borden in de straat beslissen altijd: kijk ze na waar je parkeert."
+  },
+  "typical": {
+    "title": "Een gewone {weekday}",
+    "pickDay": "Dag van de week",
+    "noDay": "Voor deze dag zijn er nog geen metingen.",
+    "aroundNow": "Rond {time} zijn er meestal ongeveer {free} plaatsen vrij",
+    "basedOn": "{days, plural, one {tot nu toe op # dag gemeten} other {gemeten op # dagen}}",
+    "quietest": "Meeste plaats: rond {time} (ongeveer {free} vrij).",
+    "busiest": "Drukst: rond {time} (ongeveer {free} vrij).",
+    "bar": "{time}: ongeveer {free} vrij",
+    "source": "Uit de eigen metingen van deze site, om de 10 minuten sinds {since}. Een patroon, geen belofte."
   }
 }

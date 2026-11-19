@@ -402,5 +402,16 @@
     "away": "etwa {metres} m entfernt",
     "here": "direkt an dieser Stelle",
     "caveat": "Aus den Genehmigungen der Stadt. Maßgeblich sind immer die Schilder in der Straße: Prüfen Sie sie dort, wo Sie parken."
+  },
+  "typical": {
+    "title": "Ein typischer {weekday}",
+    "pickDay": "Wochentag",
+    "noDay": "Für diesen Tag gibt es noch keine Messungen.",
+    "aroundNow": "Gegen {time} sind meist etwa {free} Plätze frei",
+    "basedOn": "{days, plural, one {bisher an # Tag gemessen} other {an # Tagen gemessen}}",
+    "quietest": "Am meisten Platz: gegen {time} (etwa {free} frei).",
+    "busiest": "Am vollsten: gegen {time} (etwa {free} frei).",
+    "bar": "{time}: etwa {free} frei",
+    "source": "Aus den eigenen Messungen dieser Website, alle 10 Minuten seit dem {since}. Ein Muster, kein Versprechen."
   }
 }

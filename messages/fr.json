@@ -402,5 +402,16 @@
     "away": "à environ {metres} m",
     "here": "tout près de cet endroit",
     "caveat": "D’après les autorisations accordées par la ville. Les panneaux dans la rue font toujours foi : vérifiez-les là où vous vous garez."
+  },
+  "typical": {
+    "title": "Un {weekday} type",
+    "pickDay": "Jour de la semaine",
+    "noDay": "Pas encore de mesures pour ce jour.",
+    "aroundNow": "Vers {time}, il y a généralement environ {free} places libres",
+    "basedOn": "{days, plural, one {mesuré sur # jour jusqu’ici} other {mesuré sur # jours}}",
+    "quietest": "Le plus de place : vers {time} (environ {free} libres).",
+    "busiest": "Le plus chargé : vers {time} (environ {free} libres).",
+    "bar": "{time} : environ {free} libres",
+    "source": "D’après les mesures de ce site, toutes les 10 minutes depuis le {since}. Une tendance, pas une promesse."
   }
 }
