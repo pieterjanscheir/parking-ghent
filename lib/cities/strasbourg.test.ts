@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseLocations, parseOccupancy, toParkings } from "./strasbourg";
+import { parseLocations, parseOccupancy, toParkings, usableLocations } from "./strasbourg";
 
 // Records as the Eurométropole publishes them (November 2026), trimmed.
 const OCCUPANCY = {
@@ -28,6 +28,13 @@ describe("Strasbourg", () => {
     expect(parseOccupancy(OCCUPANCY)).toHaveLength(4);
     expect(parseLocations(LOCATIONS)).toHaveLength(2);
     expect(() => parseOccupancy({ error_code: "ODSQLError" })).toThrow();
+  });
+
+  it("refuses a list of places with nothing usable in it, so it is never cached", () => {
+    expect(usableLocations(LOCATIONS)).toHaveLength(2);
+    expect(() => usableLocations({ results: [] })).toThrow(/empty/);
+    // Every row unreadable is the same thing as no rows.
+    expect(() => usableLocations({ results: [{ name: "No id" }, 42] })).toThrow(/empty/);
   });
 
   it("turns an open car park into the same shape Ghent's garages have", () => {

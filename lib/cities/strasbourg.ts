@@ -123,13 +123,22 @@ async function fetchJson(url: string, what: string): Promise<unknown> {
   return JSON.parse(res.text);
 }
 
+// A list without a single usable row is a broken answer, not a city without
+// car parks. Refusing it keeps it out of the cache, where it would wipe every
+// position for a day.
+export function usableLocations(json: unknown): Location[] {
+  const locations = parseLocations(json);
+  if (locations.length === 0) throw new Error("The Strasbourg car park list is empty");
+  return locations;
+}
+
 // Addresses and positions change rarely; a failing list is retried once a
 // minute and the last good one is used meanwhile.
 const fetchLocations = () =>
   cached(
     "strasbourg-locations",
     { ttlMs: LOCATIONS_TTL_MS, errorTtlMs: 60_000, staleIfError: true },
-    async () => parseLocations(await fetchJson(LOCATIONS_URL, "Strasbourg car park list")),
+    async () => usableLocations(await fetchJson(LOCATIONS_URL, "Strasbourg car park list")),
   );
 
 export function fetchStrasbourgParkings(): Promise<Parking[]> {
