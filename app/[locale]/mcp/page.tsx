@@ -6,7 +6,13 @@ import { SITE_URL, languageAlternates } from "@/lib/site";
 type Props = { params: Promise<{ locale: string }> };
 
 // The tools the server offers, as registered in app/api/mcp/route.ts.
-const TOOLS = ["list_garages", "find_parking", "get_garage", "typical_availability"] as const;
+const TOOLS = [
+  "list_garages",
+  "find_parking",
+  "get_garage",
+  "typical_availability",
+  "list_cities",
+] as const;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
@@ -65,7 +71,7 @@ export default async function McpPage({ params }: Props) {
 
       <h2 className={heading}>{t("examplesTitle")}</h2>
       <ul className="mt-3 space-y-1.5 text-sm">
-        {(["example1", "example2", "example3"] as const).map((key) => (
+        {(["example1", "example2", "example3", "example4"] as const).map((key) => (
           <li key={key} className="rounded-lg bg-muted/50 px-3 py-2 italic">
             {t(key)}
           </li>
@@ -74,7 +80,7 @@ export default async function McpPage({ params }: Props) {
 
       <h2 className={heading}>{t("notesTitle")}</h2>
       <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
-        {(["note1", "note2", "note3", "note4"] as const).map((key) => (
+        {(["note1", "note2", "note3", "note4", "note5"] as const).map((key) => (
           <li key={key}>{t(key)}</li>
         ))}
       </ul>

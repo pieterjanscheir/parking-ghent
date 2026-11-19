@@ -437,7 +437,8 @@
       "list_garages": "Alle Parkhäuser mit ihren derzeit freien Plätzen, der Prognose für die nächste Stunde und Merkmalen wie Park & Ride, kostenlos und Ladepunkten.",
       "find_parking": "Das beste Parkhaus für ein Ziel, mit Begründung, weiteren Parkhäusern mit Platz, der Gehzeit und dem nächsten Park & Ride.",
       "get_garage": "Ein Parkhaus im Detail: freie Plätze, Prognose, was zu dieser Stunde üblich ist, Öffnungszeiten, Lage und der Hinweis der Stadt.",
-      "typical_availability": "Vorausplanen: wie viel Platz jedes Parkhaus zu einer Stunde der Woche üblicherweise hat, zum Beispiel samstags um 14 Uhr."
+      "typical_availability": "Vorausplanen: wie viel Platz jedes Parkhaus zu einer Stunde der Woche üblicherweise hat, zum Beispiel samstags um 14 Uhr.",
+      "list_cities": "Die Städte, die der Server kennt, und was er über jede weiß. Gent ist der Standard; jedes andere Tool nimmt eine Stadt entgegen."
     },
     "examplesTitle": "Fragen, die Sie stellen können",
     "example1": "Wo parke ich heute Abend am besten für das Vooruit?",
@@ -447,6 +448,8 @@
     "note1": "Nur lesend: Der Assistent kann Daten abfragen, sonst nichts.",
     "note2": "Offene Daten der Stadt Gent und eigene Messungen dieser Website. Keine personenbezogenen Daten.",
     "note3": "Bekannte Orte funktionieren mit ihrem Namen. Für eine Straßenadresse übergibt der Assistent selbst Koordinaten.",
-    "note4": "Die Namen und Beschreibungen der Tools selbst sind auf Englisch; der Assistent antwortet in Ihrer Sprache."
+    "note4": "Die Namen und Beschreibungen der Tools selbst sind auf Englisch; der Assistent antwortet in Ihrer Sprache.",
+    "example4": "Welche Parkhäuser in Straßburg haben gerade Platz?",
+    "note5": "Neben Gent kann der Assistent auch Straßburg abfragen, mit offenen Daten der Stadt Straßburg. Dort kennt er nur die Live-Zählung: noch keine Prognose, kein übliches Muster, keine Preise und keine Orte mit Namen, und diese Website hat keine Seiten dafür."
   }
 }

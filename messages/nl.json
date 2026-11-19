@@ -437,7 +437,8 @@
       "list_garages": "Alle parkings met hun vrije plaatsen van dit moment, de verwachting voor het komende uur en kenmerken zoals Park & Ride, gratis en laadpunten.",
       "find_parking": "De beste parking voor een bestemming, met de reden, alternatieven met plaats, de wandeltijd en de dichtstbijzijnde Park & Ride.",
       "get_garage": "Eén parking in detail: vrije plaatsen, verwachting, wat gewoon is op dit uur, openingsuren, ligging en de opmerking van de stad.",
-      "typical_availability": "Vooruit plannen: hoeveel plaats elke parking meestal heeft op een uur van de week, bijvoorbeeld zaterdag om 14 uur."
+      "typical_availability": "Vooruit plannen: hoeveel plaats elke parking meestal heeft op een uur van de week, bijvoorbeeld zaterdag om 14 uur.",
+      "list_cities": "De steden die de server kent, en wat hij over elke stad weet. Gent is de standaard; elke andere tool aanvaardt een stad."
     },
     "examplesTitle": "Vragen die je kunt stellen",
     "example1": "Waar parkeer ik vanavond het best voor Vooruit?",
@@ -447,6 +448,8 @@
     "note1": "Alleen lezen: de assistent kan gegevens opvragen, verder niets.",
     "note2": "Open data van de stad Gent en de eigen metingen van deze site. Geen persoonsgegevens.",
     "note3": "Bekende plaatsen werken op naam. Voor een straatadres geeft de assistent zelf coördinaten door.",
-    "note4": "De namen en beschrijvingen van de tools zelf zijn in het Engels; de assistent antwoordt in jouw taal."
+    "note4": "De namen en beschrijvingen van de tools zelf zijn in het Engels; de assistent antwoordt in jouw taal.",
+    "example4": "Welke parkings in Straatsburg hebben nu plaats?",
+    "note5": "Naast Gent kan de assistent ook Straatsburg opzoeken, met open data van de stad Straatsburg. Daar kent hij alleen de live telling: nog geen verwachting, gebruikelijk patroon, prijzen of plaatsen op naam, en deze site heeft er geen pagina’s voor."
   }
 }

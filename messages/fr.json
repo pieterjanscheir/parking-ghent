@@ -437,7 +437,8 @@
       "list_garages": "Tous les parkings avec leurs places libres en ce moment, la prévision pour l’heure à venir et des caractéristiques comme Park & Ride, gratuité et bornes de recharge.",
       "find_parking": "Le meilleur parking pour une destination, avec la raison, d’autres parkings avec de la place, le temps de marche et le Park & Ride le plus proche.",
       "get_garage": "Un parking en détail : places libres, prévision, ce qui est habituel à cette heure, heures d’ouverture, position et remarque de la ville.",
-      "typical_availability": "Pour prévoir : la place dont dispose habituellement chaque parking à une heure de la semaine, par exemple le samedi à 14 h."
+      "typical_availability": "Pour prévoir : la place dont dispose habituellement chaque parking à une heure de la semaine, par exemple le samedi à 14 h.",
+      "list_cities": "Les villes que le serveur connaît, et ce qu’il sait de chacune. Gand est la ville par défaut ; chaque autre outil accepte une ville."
     },
     "examplesTitle": "Questions que vous pouvez poser",
     "example1": "Où me garer ce soir pour le Vooruit ?",
@@ -447,6 +448,8 @@
     "note1": "Lecture seule : l’assistant peut consulter des données, rien d’autre.",
     "note2": "Données ouvertes de la Ville de Gand et mesures propres à ce site. Aucune donnée personnelle.",
     "note3": "Les lieux connus fonctionnent par leur nom. Pour une adresse, l’assistant transmet lui-même des coordonnées.",
-    "note4": "Les noms et descriptions des outils sont en anglais ; l’assistant répond dans votre langue."
+    "note4": "Les noms et descriptions des outils sont en anglais ; l’assistant répond dans votre langue.",
+    "example4": "Quels parkings à Strasbourg ont de la place en ce moment ?",
+    "note5": "Outre Gand, l’assistant peut consulter Strasbourg, avec les données ouvertes de la ville de Strasbourg. Il n’y connaît que le comptage en direct : pas encore de prévision, de profil habituel, de tarifs ni de lieux par leur nom, et ce site n’a pas de pages pour cette ville."
   }
 }
