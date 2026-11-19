@@ -252,14 +252,15 @@ Every tool takes an optional `city` (`ghent` by default, or `strasbourg`).
 - **@modelcontextprotocol/sdk** for the MCP endpoint
 - **lucide-react** for icons
 - **Vercel Blob** + a Vercel cron job for the history archive
-- **Vitest** for unit tests
+- **Vitest** + Testing Library (jsdom) for unit, hook and component tests
+- **GitHub Actions** CI: lint, typecheck, tests with coverage, production build
 - Fonts: **Geist** (headings + mono), **Raleway** (body) via `next/font/google`
 
 > ⚠️ This is Next.js 16, which has breaking changes from older releases (see [AGENTS.md](AGENTS.md)). Consult `node_modules/next/dist/docs/` before reaching for App Router APIs from memory.
 
 ## Getting started
 
-Requires Node 20+ and [pnpm](https://pnpm.io).
+Requires Node `^22.22.2 || ^24.15.0 || >=26.0.0` (the range jsdom, used by the tests, supports) and [pnpm](https://pnpm.io).
 
 ```bash
 pnpm install
@@ -275,12 +276,16 @@ Open [http://localhost:3000](http://localhost:3000).
 | `pnpm dev`         | Start the dev server                  |
 | `pnpm build`       | Production build                      |
 | `pnpm start`       | Serve the production build            |
-| `pnpm lint`        | Run ESLint                            |
-| `pnpm typecheck`   | Check the TypeScript types            |
+| `pnpm lint`        | Run ESLint (fails on warnings)        |
+| `pnpm typecheck`   | Run `tsc --noEmit`                    |
 | `pnpm test`        | Run the Vitest suite once             |
 | `pnpm test:watch`  | Run Vitest in watch mode              |
+| `pnpm test:coverage` | Run Vitest with a coverage report   |
+| `pnpm verify`      | Everything CI runs, in order          |
 
-Every pull request, and every push to `master`, runs lint, the type check, the tests and a production build on GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+### CI
+
+Every pull request, and every push to `master`, runs `lint → typecheck → test:coverage → build` on GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)). The coverage report is kept as a run artifact for 7 days. The runner is picked by the repo variable `CI_RUNNER`: set it to `mac-mini` to use the self-hosted Mac mini, or leave it unset for `ubuntu-latest`. Pull requests from forks always run on `ubuntu-latest`.
 
 ## Project layout
 
@@ -387,7 +392,7 @@ lib/
   favorites.tsx               FavoritesProvider (localStorage, max 3)
   local-storage-store.ts      SSR-safe localStorage helper
   use-auto-refresh.ts         Visibility-aware refresh hook
-  *.test.ts                   Vitest unit tests
+  *.test.ts(x)                Vitest unit / hook tests
 ```
 
 ### App icons
