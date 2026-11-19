@@ -20,7 +20,7 @@ describe("fetchUpstream", () => {
   it("returns the response on the first try when the portal answers", async () => {
     const mock = stubFetch(new Response("ok"));
     const res = await fetchUpstream("https://example.test/a");
-    expect(await res.text()).toBe("ok");
+    expect(res).toEqual({ ok: true, status: 200, statusText: "", text: "ok" });
     expect(mock).toHaveBeenCalledTimes(1);
   });
 
@@ -35,7 +35,21 @@ describe("fetchUpstream", () => {
   it("retries once after a network failure", async () => {
     const mock = stubFetch(new Error("ECONNRESET"), new Response("ok"));
     const res = await fetchUpstream("https://example.test/a");
-    expect(await res.text()).toBe("ok");
+    expect(res.text).toBe("ok");
+    expect(mock).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries when the headers arrive but the body fails halfway", async () => {
+    const broken = new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.error(new Error("body stalled"));
+        },
+      }),
+    );
+    const mock = stubFetch(broken, new Response("ok"));
+    const res = await fetchUpstream("https://example.test/a");
+    expect(res.text).toBe("ok");
     expect(mock).toHaveBeenCalledTimes(2);
   });
 
@@ -48,7 +62,9 @@ describe("fetchUpstream", () => {
   it("does not retry an HTTP error status", async () => {
     const mock = stubFetch(new Response("nope", { status: 503 }));
     const res = await fetchUpstream("https://example.test/a");
+    expect(res.ok).toBe(false);
     expect(res.status).toBe(503);
+    expect(res.text).toBe("nope");
     expect(mock).toHaveBeenCalledTimes(1);
   });
 });

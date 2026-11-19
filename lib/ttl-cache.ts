@@ -12,6 +12,9 @@
 
 type Entry = {
   startedAt: number;
+  // When a failed load gave up. A load can take seconds to fail (timeouts),
+  // so the "don't retry yet" window has to start here, not at `startedAt`.
+  failedAt: number;
   state: "pending" | "ok" | "failed";
   promise: Promise<unknown>;
   lastGood: { value: unknown } | null;
@@ -39,14 +42,17 @@ export function cached<T>(
   const now = Date.now();
   const hit = entries.get(key);
   if (hit) {
-    const maxAge = hit.state === "failed" ? errorTtlMs : ttlMs;
-    if (hit.state === "pending" || now - hit.startedAt < maxAge) {
-      return hit.promise as Promise<T>;
-    }
+    const fresh =
+      hit.state === "pending" ||
+      (hit.state === "failed"
+        ? now - hit.failedAt < errorTtlMs
+        : now - hit.startedAt < ttlMs);
+    if (fresh) return hit.promise as Promise<T>;
   }
 
   const entry: Entry = {
     startedAt: now,
+    failedAt: 0,
     state: "pending",
     promise: Promise.resolve(),
     lastGood: hit?.lastGood ?? null,
@@ -59,6 +65,7 @@ export function cached<T>(
     },
     (err) => {
       entry.state = "failed";
+      entry.failedAt = Date.now();
       if (staleIfError && entry.lastGood) return entry.lastGood.value;
       throw err;
     },

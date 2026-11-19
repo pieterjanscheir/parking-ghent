@@ -45,7 +45,7 @@ async function fetchAndRecord(
 ): Promise<{ json: unknown; record: RawApiCall }> {
   try {
     const res = await fetchUpstream(call.url);
-    const text = await res.text();
+    const text = res.text;
     let parsed: unknown;
     try {
       parsed = text ? JSON.parse(text) : null;
@@ -81,15 +81,22 @@ async function fetchAndRecord(
   }
 }
 
-function fetchPrimaryFeed(): Promise<{ json: unknown; record: RawApiCall }> {
-  return cached("live-feed", { ttlMs: LIVE_TTL_MS }, () =>
-    fetchAndRecord({
+// The response is validated inside the cached loader, so a 200 with a body we
+// can't use counts as a failure (retried after 5 s) instead of being reused
+// as a "success" for the full 30 s.
+function fetchPrimaryFeed(): Promise<{
+  parsed: RawListResponse;
+  record: RawApiCall;
+}> {
+  return cached("live-feed", { ttlMs: LIVE_TTL_MS }, async () => {
+    const { json, record } = await fetchAndRecord({
       id: "bezetting-parkeergarages-real-time",
       title: "bezetting-parkeergarages-real-time",
       subtitle: "gent.opendatasoft.com — primary live feed",
       url: ENDPOINT,
-    }),
-  );
+    });
+    return { parsed: RawResponseSchema.parse(json), record };
+  });
 }
 
 const LocationsFieldsSchema = z
@@ -194,9 +201,8 @@ async function fetchParkingsResponse(): Promise<{
   if (primaryResult.status === "rejected") {
     throw primaryResult.reason;
   }
-  const { json, record } = primaryResult.value;
+  const { parsed, record } = primaryResult.value;
   calls.push(record);
-  const parsed = RawResponseSchema.parse(json);
   let parkings = parsed.records.map(normalizeParking);
 
   if (locationsResult.status === "fulfilled") {

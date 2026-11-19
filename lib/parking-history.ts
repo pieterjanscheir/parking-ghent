@@ -105,7 +105,7 @@ async function loadParkingHistory(
   for (let page = 0; page < MAX_PAGES && offset < total; page++) {
     const url = endpoint(dataset, offset);
     const res = await fetchUpstream(url);
-    const text = await res.text();
+    const text = res.text;
     let raw: unknown;
     try {
       raw = text ? JSON.parse(text) : null;

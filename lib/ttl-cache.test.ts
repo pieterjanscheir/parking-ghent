@@ -71,6 +71,31 @@ describe("cached", () => {
     expect(await cached("k", opts, load)).toBe("back");
   });
 
+  it("starts the failure window when the load fails, not when it started", async () => {
+    // A load that takes 8 s to fail (two timed-out attempts).
+    let reject!: (e: Error) => void;
+    const load = vi
+      .fn<() => Promise<string>>()
+      .mockImplementationOnce(() => new Promise((_, rej) => (reject = rej)))
+      .mockResolvedValueOnce("back");
+    const opts = { ttlMs: 60_000, errorTtlMs: 5000 };
+
+    const first = cached("k", opts, load);
+    await Promise.resolve();
+    vi.advanceTimersByTime(8000);
+    reject(new Error("timed out"));
+    await expect(first).rejects.toThrow("timed out");
+
+    // Right after the failure it is still remembered…
+    vi.advanceTimersByTime(4999);
+    await expect(cached("k", opts, load)).rejects.toThrow("timed out");
+    expect(load).toHaveBeenCalledTimes(1);
+
+    // …and retried only once 5 s have passed since it failed.
+    vi.advanceTimersByTime(1);
+    expect(await cached("k", opts, load)).toBe("back");
+  });
+
   it("turns a synchronous throw in the loader into a rejection", async () => {
     const load = () => {
       throw new Error("sync");

@@ -242,6 +242,23 @@ describe("fetchParkings — caching", () => {
     await expect(fetchParkings()).rejects.toThrow();
   });
 
+  it("treats a 200 with an unusable body as a failure, not as 30 s of cached success", async () => {
+    vi.useFakeTimers();
+    route(LIVE, ok({ error: "maintenance" }));
+    route(LOCATIONS, ok(locationsResponse([])));
+
+    await expect(fetchParkings()).rejects.toThrow();
+    await expect(fetchParkings()).rejects.toThrow();
+    expect(callsTo(LIVE)).toBe(1);
+
+    // The portal recovers: we notice after the short failure window, well
+    // before the live TTL would have expired.
+    route(LIVE, ok(primaryResponse([primaryRecord("p1", { name: "Tolhuis" })])));
+    vi.advanceTimersByTime(5_000);
+    expect(await fetchParkings()).toHaveLength(1);
+    expect(callsTo(LIVE)).toBe(2);
+  });
+
   it("remembers a failure briefly instead of hammering a feed that is down", async () => {
     vi.useFakeTimers();
     route(LIVE, fail(503));
