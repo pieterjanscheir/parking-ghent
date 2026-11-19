@@ -10,7 +10,9 @@ let request: Promise<Profile | null> | null = null;
 
 function load(): Promise<Profile | null> {
   request ??= fetch("/api/typical")
-    .then((res) => (res.ok ? res.json() : null))
+    // A server error is a failure, not an answer: it must reach the catch
+    // below so a later page asks again.
+    .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
     .then((json: { profile?: unknown } | null) => {
       const parsed = ProfileSchema.safeParse(json?.profile);
       return parsed.success ? parsed.data : null;

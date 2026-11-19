@@ -135,12 +135,26 @@ describe("listGarages", () => {
 
   it("adds the forecast where there is one", () => {
     const [first] = listGarages(sources({ parkings: [near], trends: { near: trend(40) } }), {}).garages_with_live_count;
+    // No time on this forecast: taken as made now.
     expect(first.forecast).toEqual({
-      free_in_15_min: 110,
-      free_in_30_min: 95,
-      free_in_60_min: 70,
+      expected_free_spaces: [
+        { at: "2026-11-19T13:15:00.000Z", free_spaces: 110 },
+        { at: "2026-11-19T13:30:00.000Z", free_spaces: 95 },
+        { at: "2026-11-19T14:00:00.000Z", free_spaces: 70 },
+      ],
       likely_full_in_minutes: 40,
     });
+  });
+
+  it("leaves out forecast moments that have already passed", () => {
+    // Made from a reading 20 minutes old: its "+15 min" is behind us.
+    const aged = trend(null);
+    Object.assign(aged.forecast, { horizonMinutes: 30, atTimestamp: NOW - 20 * MINUTE + 30 * MINUTE });
+    const [first] = listGarages(sources({ parkings: [near], trends: { near: aged } }), {}).garages_with_live_count;
+    expect(first.forecast?.expected_free_spaces).toEqual([
+      { at: "2026-11-19T13:10:00.000Z", free_spaces: 95 },
+      { at: "2026-11-19T13:40:00.000Z", free_spaces: 70 },
+    ]);
   });
 });
 
@@ -199,6 +213,8 @@ describe("findParking", () => {
 
   it("refuses places it doesn't know and points outside Ghent", () => {
     expect(() => findParking(sources(), { destination: "Hoogstraat 12" })).toThrow(/Pass lat and lng instead/);
+    // Nothing to search for is not "the most popular place".
+    expect(() => findParking(sources(), { destination: "!!!" })).toThrow(/Pass lat and lng instead/);
     expect(() => findParking(sources(), {})).toThrow(ToolInputError);
     expect(() => findParking(sources(), { lat: 48.85, lng: 2.35 })).toThrow(/in or around Ghent/);
     expect(() => findParking(sources(), { lat: 51.05 })).toThrow(ToolInputError);

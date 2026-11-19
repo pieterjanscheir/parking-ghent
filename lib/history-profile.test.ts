@@ -119,14 +119,19 @@ describe("rebuildProfile", () => {
     const line = (ms: number, free: number) => `${JSON.stringify(snap(ms, free))}\n`;
     store.files.set(dayFile(dayKey(THU_18)), line(THU_18, 230));
     store.files.set(dayFile(dayKey(THU_18 - WEEK)), line(THU_18 - WEEK, 210));
+    // Exactly four weeks back still counts: at midnight today's own file is
+    // empty, and this is the fourth full day of its weekday.
+    store.files.set(dayFile(dayKey(THU_18 - 4 * WEEK)), line(THU_18 - 4 * WEEK, 190));
     // Five weeks back: too old to count.
     store.files.set(dayFile(dayKey(THU_18 - 5 * WEEK)), line(THU_18 - 5 * WEEK, 1));
     store.files.set(PROFILE_FILE, "an older pattern");
 
-    expect(await rebuildProfile(store, THU_18 + 7 * 60 * MIN)).toEqual({ days: 2, garages: 1 });
+    // Run later that same Thursday (23:00 UTC): today plus the 28 days before.
+    expect(await rebuildProfile(store, THU_18 + 6 * 60 * MIN)).toEqual({ days: 3, garages: 1 });
     const profile = await readProfile(store);
-    expect(typicalAt(profile, "reep", 3, 18)).toEqual({ hour: 18, free: 220, days: 2 });
-    expect(profile?.garages.reep.n[slotOf(3, 18)]).toBe(2);
+    // The median of 190, 210 and 230.
+    expect(typicalAt(profile, "reep", 3, 18)).toEqual({ hour: 18, free: 210, days: 3 });
+    expect(profile?.garages.reep.n[slotOf(3, 18)]).toBe(3);
   });
 
   it("gives no pattern when nothing was stored", async () => {

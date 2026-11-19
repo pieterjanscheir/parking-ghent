@@ -61,7 +61,9 @@ export async function GET(request: Request) {
   try {
     return Response.json({ ...saved, profile: await rebuildProfile(store, now) });
   } catch (err) {
-    // The snapshot is saved; the pattern is tried again at the next run.
+    // The snapshot is saved. The pattern is next tried at the 03:00 UTC run
+    // (or the following midnight), or right away with ?profile=1; until then
+    // pages keep the previous one.
     console.error("Weekly pattern failed", err);
     return Response.json({ ...saved, profile: { error: message(err) } });
   }

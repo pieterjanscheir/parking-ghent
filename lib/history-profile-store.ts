@@ -28,7 +28,9 @@ export async function rebuildProfile(
   store: ArchiveStore,
   now: number,
 ): Promise<{ days: number; garages: number }> {
-  const days = Array.from({ length: PROFILE_DAYS }, (_, back) => dayKey(now - back * DAY_MS));
+  // Today's file is only partly filled (at midnight it is empty), so four
+  // full weeks reach one file further back: today plus the 28 days before.
+  const days = Array.from({ length: PROFILE_DAYS + 1 }, (_, back) => dayKey(now - back * DAY_MS));
   const files = await Promise.all(days.map((day) => store.read(dayFile(day))));
   const snapshots = files.flatMap((file) => (file ? parseDay(file.text) : []));
   const profile = buildProfile(snapshots, now);

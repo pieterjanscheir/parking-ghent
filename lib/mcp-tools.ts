@@ -33,14 +33,19 @@ function forecastOf(p: Parking, src: Sources) {
   const trend = src.trends[p.id];
   // The same rule as the website: no forecast on top of an out-of-date count.
   if (!trend || !p.hasLiveData || isStale(p, src.now)) return null;
-  const at = (minutes: number) =>
-    trend.forecast.horizons.find((h) => h.minutes === minutes)?.freeSpaces ?? null;
-  return {
-    free_in_15_min: at(15),
-    free_in_30_min: at(30),
-    free_in_60_min: at(60),
-    likely_full_in_minutes: minutesLeftUntilFull(trend, src.now),
-  };
+  // The forecast counts from the reading it was made from, which is a few
+  // minutes old by now. Each value is given with its moment, and moments that
+  // have already passed are left out.
+  const { forecast } = trend;
+  const madeAt = forecast.atTimestamp - forecast.horizonMinutes * 60_000;
+  const base = Number.isFinite(madeAt) ? madeAt : src.now;
+  const expected = forecast.horizons
+    .map((h) => ({ at: base + h.minutes * 60_000, free_spaces: h.freeSpaces }))
+    .filter((h) => h.at > src.now)
+    .map((h) => ({ at: new Date(h.at).toISOString(), free_spaces: h.free_spaces }));
+  const untilFull = minutesLeftUntilFull(trend, src.now);
+  if (expected.length === 0 && untilFull === null) return null;
+  return { expected_free_spaces: expected, likely_full_in_minutes: untilFull };
 }
 
 function liveGarage(p: Parking, src: Sources) {
@@ -167,7 +172,9 @@ function resolvePlace(input: { destination?: string; lat?: number; lng?: number 
     return { name: input.destination?.trim() || formatLatLng(point), ...point };
   }
   const text = input.destination?.trim() ?? "";
-  const place = text ? searchKnownPlaces(text, 1)[0] : undefined;
+  // A name with nothing to search for ("!!!") must not fall back to the list
+  // of popular places.
+  const place = normalizeSearch(text) ? searchKnownPlaces(text, 1)[0] : undefined;
   if (!place) {
     const known = knownPlaces().map((p) => p.name).join(", ");
     throw new ToolInputError(
