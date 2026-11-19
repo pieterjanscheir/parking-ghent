@@ -50,7 +50,7 @@ export function AvailabilityGauge({
           cy="18"
           r="15.5"
           fill="none"
-          stroke="oklch(1 0 0 / 0.07)"
+          stroke="var(--gauge-track)"
           strokeWidth="3"
         />
         <circle

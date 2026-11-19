@@ -296,7 +296,7 @@ export default async function ParkingDetailPage({ params }: Props) {
 
         {parking.isInsideLez ? (
           <p className="mt-8 flex items-start gap-3 rounded-lg border border-border/70 bg-card/40 px-4 py-3 text-sm text-muted-foreground">
-            <Leaf className="mt-0.5 size-4 shrink-0 text-emerald-400" aria-hidden />
+            <Leaf className="mt-0.5 size-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden />
             <span>
               {tLez("inside")}{" "}
               <a

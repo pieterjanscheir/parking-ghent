@@ -29,13 +29,14 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Short-term forecast** on cards ("~120 free in 30 min", "Likely full in ~20 min") and a 60-minute forecast with ranges on detail pages — see [Forecasting](#forecasting).
 - **Favorites** — pin up to 3 garages to the top (stored only in the browser).
 - **Detail pages** — opening hours, operator, LEZ, a map of the garage, navigation via Google Maps / Waze / Apple Maps, call, share.
+- **Light and dark** — the settings menu switches between the dark theme (the default, as the site has always looked), a light one for reading outdoors, and "same as this device". The choice is kept in the browser; the map follows it ([components/theme-provider.tsx](components/theme-provider.tsx), colours in [app/globals.css](app/globals.css)).
 - **Your choice of map** — garage pages show an OpenStreetMap map by default, so nothing is loaded from Google. Visitors who prefer Google Maps can switch in the settings menu (the gear in the header) or with the link under the map; the choice is remembered in their browser ([lib/map-provider.ts](lib/map-provider.ts)).
 - **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh; the spinner runs for as long as the request actually takes.
 - **Honest data age** — "City data updated 2 min ago" comes from the feed's own timestamps, not from when the page last asked. A garage whose count is more than 30 minutes old gets a warning and loses its forecast, and if no garage has updated for 15 minutes a banner says the feed has stopped ([lib/freshness.ts](lib/freshness.ts)).
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
 - **Its own history** — a scheduled job saves every garage's count every 10 minutes, because the city only publishes the last few hours — see [Our own history archive](#our-own-history-archive).
 - **A typical day** — a garage page shows how much room there usually is, hour by hour, for today's day of the week or any other ("A typical Saturday"), with the hours that usually have the most and the least room. Worked out from the site's own history, so it fills in as the weeks go by — see [The weekly pattern](#the-weekly-pattern).
-- **For AI assistants** — an MCP server at `/api/mcp` lets an assistant such as Claude ask where to park: live counts, the best garage for a destination, one garage in detail, and what is usual at a given hour of the week — see [MCP server](#mcp-server).
+- **For AI assistants** — an MCP server at `/api/mcp` lets an assistant such as Claude ask where to park: live counts, the best garage for a destination, one garage in detail, and what is usual at a given hour of the week. The page `/mcp` (linked in the footer) explains to visitors how to connect it — see [MCP server](#mcp-server).
 - **Five languages** — Dutch, English, French, German and Spanish; every page exists under `/nl`, `/en`, `/fr`, `/de` and `/es`. A first visit picks the browser's language (Dutch if it's none of the five), the choice is remembered, and the language menu in the header keeps your search, sort, filters and destination — see [Languages](#languages).
 - **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space*, *Map* and *Where did I park?* ([app/manifest.ts](app/manifest.ts)). The settings menu offers "Install on this device" where the browser supports it, and explains the Share-menu route on iPhone and iPad ([lib/use-install-prompt.ts](lib/use-install-prompt.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
 
@@ -273,6 +274,7 @@ app/                          App Router routes
     page.tsx                  Overview (server)
     parkings/[id]/            Detail page (server) + loading / error / not-found
     parked/page.tsx           "Where did I park?"
+    mcp/page.tsx              How to connect an AI assistant (MCP)
     opengraph-image.tsx       Share preview card, one per language
     [...rest]/page.tsx        Translated "page not found" for unknown paths
   api/cron/snapshot/route.ts  Scheduled job: save the current counts to the archive
@@ -302,6 +304,8 @@ components/                   UI building blocks
   parked-here.tsx             "I parked here" and the reminder on the overview
   parked-page.tsx             "Where did I park?": the saved spot, or save one on the street
   parked-link.tsx             The car icon in the header
+  theme-provider.tsx          Light / dark / same as device
+  copy-field.tsx              A value with a copy button
   parking-bans-note.tsx       Temporary parking bans around a spot on the street
   onward-travel.tsx           Routes to the centre and shared bikes near a Park & Ride
   offline-notice.tsx          Registers the service worker; "you are looking at a saved copy"

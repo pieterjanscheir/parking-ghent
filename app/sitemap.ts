@@ -23,12 +23,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return [
       ...entries(""),
       ...entries("/parked"),
+      ...entries("/mcp"),
       ...[...parkings, ...extras].flatMap((p) =>
         entries(`/parkings/${encodeURIComponent(p.id)}`),
       ),
     ];
   } catch {
     // The city's feed is down: still serve a valid sitemap.
-    return [...entries(""), ...entries("/parked")];
+    return [...entries(""), ...entries("/parked"), ...entries("/mcp")];
   }
 }

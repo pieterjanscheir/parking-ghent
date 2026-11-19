@@ -144,7 +144,7 @@ export function ParkedBanner() {
           <p
             className={cn(
               "mt-0.5 text-xs font-medium",
-              until.urgent ? "text-amber-200" : "text-foreground",
+              until.urgent ? "text-amber-800 dark:text-amber-200" : "text-foreground",
             )}
           >
             {until.text}

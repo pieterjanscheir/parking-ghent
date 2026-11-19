@@ -27,7 +27,8 @@
   },
   "footer": {
     "builtBy": "Réalisé par",
-    "dataSource": "Données : portail open data stad.gent"
+    "dataSource": "Données : portail open data stad.gent",
+    "mcp": "Pour les assistants IA (MCP)"
   },
   "overview": {
     "title": "Où se garer à Gand",
@@ -229,7 +230,13 @@
     "appTitle": "Application",
     "install": "Installer sur cet appareil",
     "installNote": "S’ouvre dans sa propre fenêtre. Les pages déjà consultées s’ouvrent aussi sans connexion.",
-    "installIos": "Sur iPhone ou iPad : touchez Partager, puis « Sur l’écran d’accueil »."
+    "installIos": "Sur iPhone ou iPad : touchez Partager, puis « Sur l’écran d’accueil ».",
+    "themeTitle": "Apparence",
+    "theme": {
+      "dark": "Sombre",
+      "light": "Clair",
+      "system": "Appareil"
+    }
   },
   "errors": {
     "title": "Une erreur s’est produite",
@@ -413,5 +420,33 @@
     "busiest": "Le plus chargé : vers {time} (environ {free} libres).",
     "bar": "{time} : environ {free} libres",
     "source": "D’après les mesures de ce site, toutes les 10 minutes depuis le {since}. Une tendance, pas une promesse."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking pour les assistants IA",
+    "intro": "Ce site dispose d’un serveur MCP. Connectez-le à un assistant comme Claude et demandez simplement où vous garer à Gand : l’assistant lit les mêmes données en direct et suit les mêmes règles que ce site.",
+    "urlLabel": "Adresse du serveur",
+    "copy": "Copier",
+    "copied": "Copié",
+    "connectTitle": "Comment le connecter",
+    "step1": "Dans Claude, ouvrez les paramètres et allez dans Connecteurs.",
+    "step2": "Choisissez « Ajouter un connecteur personnalisé » et collez l’adresse ci-dessus.",
+    "step3": "Aucune clé ni aucun compte n’est nécessaire. Posez votre question.",
+    "otherClients": "Les noms des menus peuvent différer dans votre version. Les autres assistants qui prennent en charge MCP via HTTP (« Streamable HTTP ») fonctionnent de la même manière.",
+    "toolsTitle": "Ce que l’assistant peut consulter",
+    "tools": {
+      "list_garages": "Tous les parkings avec leurs places libres en ce moment, la prévision pour l’heure à venir et des caractéristiques comme Park & Ride, gratuité et bornes de recharge.",
+      "find_parking": "Le meilleur parking pour une destination, avec la raison, d’autres parkings avec de la place, le temps de marche et le Park & Ride le plus proche.",
+      "get_garage": "Un parking en détail : places libres, prévision, ce qui est habituel à cette heure, heures d’ouverture, position et remarque de la ville.",
+      "typical_availability": "Pour prévoir : la place dont dispose habituellement chaque parking à une heure de la semaine, par exemple le samedi à 14 h."
+    },
+    "examplesTitle": "Questions que vous pouvez poser",
+    "example1": "Où me garer ce soir pour le Vooruit ?",
+    "example2": "Quels parkings à Gand ont de la place en ce moment ?",
+    "example3": "À quel point le Vrijdagmarkt est-il rempli le samedi après-midi ?",
+    "notesTitle": "Bon à savoir",
+    "note1": "Lecture seule : l’assistant peut consulter des données, rien d’autre.",
+    "note2": "Données ouvertes de la Ville de Gand et mesures propres à ce site. Aucune donnée personnelle.",
+    "note3": "Les lieux connus fonctionnent par leur nom. Pour une adresse, l’assistant transmet lui-même des coordonnées.",
+    "note4": "Les noms et descriptions des outils sont en anglais ; l’assistant répond dans votre langue."
   }
 }

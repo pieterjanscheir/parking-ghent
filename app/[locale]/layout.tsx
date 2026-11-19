@@ -9,6 +9,7 @@ import { FavoritesProvider } from "@/lib/favorites";
 import { SiteHeader } from "@/components/site-header";
 import { OfflineNotice } from "@/components/offline-notice";
 import { SiteFooter } from "@/components/site-footer";
+import { ThemeProvider } from "@/components/theme-provider";
 import { routing } from "@/i18n/routing";
 import {
   BACKGROUND_COLOR,
@@ -67,8 +68,9 @@ export async function generateMetadata({
 
 export const viewport: Viewport = {
   // Colours the browser / status bar to match the page instead of white.
+  // This is the dark theme's colour; components/theme-provider.tsx changes it
+  // when the visitor has chosen the light one.
   themeColor: BACKGROUND_COLOR,
-  colorScheme: "dark",
 };
 
 export default async function LocaleLayout({ children, params }: Props) {
@@ -78,10 +80,13 @@ export default async function LocaleLayout({ children, params }: Props) {
   setRequestLocale(locale);
 
   return (
+    // next-themes sets the theme's class on <html> before the page is shown,
+    // which React must not report as a mismatch.
     <html
       lang={locale}
+      suppressHydrationWarning
       className={cn(
-        "dark h-full antialiased",
+        "h-full antialiased",
         raleway.variable,
         geistHeading.variable,
         geistMono.variable,
@@ -89,17 +94,19 @@ export default async function LocaleLayout({ children, params }: Props) {
       )}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <NextIntlClientProvider>
-          <NuqsAdapter>
-            <FavoritesProvider>
-              <SiteHeader />
-              <OfflineNotice />
-              <main className="flex-1">{children}</main>
-              <SiteFooter />
-            </FavoritesProvider>
-          </NuqsAdapter>
-          <Toaster position="top-center" />
-        </NextIntlClientProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider>
+            <NuqsAdapter>
+              <FavoritesProvider>
+                <SiteHeader />
+                <OfflineNotice />
+                <main className="flex-1">{children}</main>
+                <SiteFooter />
+              </FavoritesProvider>
+            </NuqsAdapter>
+            <Toaster position="top-center" />
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -28,7 +28,7 @@ const ICON: Record<Trend["direction"], typeof TrendingUp> = {
 
 const TONE: Record<Trend["direction"], string> = {
   rising: "text-destructive border-destructive/40 bg-destructive/10",
-  falling: "text-emerald-300 border-emerald-400/40 bg-emerald-400/10",
+  falling: "text-emerald-700 dark:text-emerald-300 border-emerald-400/40 bg-emerald-400/10",
   steady: "text-muted-foreground border-border/60 bg-muted/40",
 };
 

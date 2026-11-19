@@ -7,15 +7,15 @@ import { MapContainer, Marker, Polyline, TileLayer, useMap } from "react-leaflet
 import type { RouteLine } from "@/lib/approach-routes";
 import type { Parking } from "@/lib/parkings.schema";
 import {
-  DARK_TILE_FILTER,
   extraMarkerIcon,
   markerIcon,
   OSM_ATTRIBUTION,
   OSM_TILE_URL,
 } from "./leaflet-shared";
 
-// The same blue as the app's accent, readable on the darkened map.
-const ROUTE_STYLE = { color: "oklch(0.7 0.17 258)", weight: 4, opacity: 0.85 } as const;
+// The app's accent blue, at a lightness that reads on the light map and on
+// the darkened one.
+const ROUTE_STYLE = { color: "oklch(0.62 0.19 262)", weight: 4, opacity: 0.85 } as const;
 
 function MapSetup({ routes, position }: { routes: RouteLine[]; position: [number, number] }) {
   const map = useMap();
@@ -31,7 +31,6 @@ function MapSetup({ routes, position }: { routes: RouteLine[]; position: [number
     }
   }, [map, routes, lat, lng]);
   useEffect(() => {
-    map.getPane("tilePane")!.style.filter = DARK_TILE_FILTER;
     // The container gets its final size after mount (lazy load, layout
     // shift); keep Leaflet's idea of it in sync.
     const container = map.getContainer();

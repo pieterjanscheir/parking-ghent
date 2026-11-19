@@ -196,7 +196,7 @@ export function ParkedPage() {
   );
   const problem =
     locating === "denied" || locating === "unavailable" ? (
-      <p role="alert" className="mt-3 text-sm text-amber-200">
+      <p role="alert" className="mt-3 text-sm text-amber-800 dark:text-amber-200">
         {t(locating)}
       </p>
     ) : null;
@@ -312,7 +312,7 @@ export function ParkedPage() {
               <div className="mt-3">
                 <p
                   aria-live="polite"
-                  className={cn("text-sm font-medium", until.urgent && "text-amber-200")}
+                  className={cn("text-sm font-medium", until.urgent && "text-amber-800 dark:text-amber-200")}
                 >
                   {until.text}
                 </p>

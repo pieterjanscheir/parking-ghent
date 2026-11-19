@@ -8,11 +8,6 @@ export const OSM_TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 export const OSM_ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-// Standard OSM tiles are light; invert + rotate hue to fit the dark theme
-// without depending on a keyed dark-tile provider.
-export const DARK_TILE_FILTER =
-  "invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.85) saturate(0.4)";
-
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }

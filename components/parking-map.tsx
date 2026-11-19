@@ -24,7 +24,6 @@ import { Link } from "@/i18n/navigation";
 import { distanceTo } from "@/lib/parkings";
 import { dataAgeMs, isStale } from "@/lib/freshness";
 import {
-  DARK_TILE_FILTER,
   OSM_ATTRIBUTION,
   OSM_TILE_URL,
   destinationIcon,
@@ -139,7 +138,6 @@ function MapSetup({ points }: { points: [number, number][] }) {
   });
 
   useEffect(() => {
-    map.getPane("tilePane")!.style.filter = DARK_TILE_FILTER;
     const markInteracted = () => {
       interacted.current = true;
     };

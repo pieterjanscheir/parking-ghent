@@ -27,7 +27,8 @@
   },
   "footer": {
     "builtBy": "Built by",
-    "dataSource": "Data: stad.gent open data portal"
+    "dataSource": "Data: stad.gent open data portal",
+    "mcp": "For AI assistants (MCP)"
   },
   "overview": {
     "title": "Where to park in Ghent",
@@ -229,7 +230,13 @@
     "appTitle": "App",
     "install": "Install on this device",
     "installNote": "Opens in its own window. Pages you have seen before also open without a connection.",
-    "installIos": "On iPhone or iPad: tap Share, then “Add to Home Screen”."
+    "installIos": "On iPhone or iPad: tap Share, then “Add to Home Screen”.",
+    "themeTitle": "Appearance",
+    "theme": {
+      "dark": "Dark",
+      "light": "Light",
+      "system": "Device"
+    }
   },
   "errors": {
     "title": "Something went wrong",
@@ -413,5 +420,33 @@
     "busiest": "Busiest: around {time} (about {free} free).",
     "bar": "{time}: about {free} free",
     "source": "From this site's own measurements, every 10 minutes since {since}. A pattern, not a promise."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking for AI assistants",
+    "intro": "This site has an MCP server. Connect it to an assistant such as Claude and simply ask where to park in Ghent: the assistant reads the same live data and follows the same rules as this site.",
+    "urlLabel": "Server address",
+    "copy": "Copy",
+    "copied": "Copied",
+    "connectTitle": "How to connect",
+    "step1": "In Claude, open Settings and go to Connectors.",
+    "step2": "Choose “Add custom connector” and paste the address above.",
+    "step3": "No key or account is needed. Ask your question.",
+    "otherClients": "The menu names may differ in your version. Other assistants that support MCP over HTTP (“Streamable HTTP”) work the same way.",
+    "toolsTitle": "What the assistant can look up",
+    "tools": {
+      "list_garages": "Every car park with its free spaces right now, the forecast for the next hour and facts such as Park & Ride, free of charge and charge points.",
+      "find_parking": "The best garage for a destination, with the reason, other garages with space, the walking time and the nearest Park & Ride.",
+      "get_garage": "One car park in detail: free spaces, forecast, what is usual at this hour, opening hours, position and the city's remark.",
+      "typical_availability": "Planning ahead: how much room each garage usually has at an hour of the week, for example Saturday at 14:00."
+    },
+    "examplesTitle": "Things you can ask",
+    "example1": "Where should I park for Vooruit tonight?",
+    "example2": "Which garages in Ghent have space right now?",
+    "example3": "How full is Vrijdagmarkt usually on a Saturday afternoon?",
+    "notesTitle": "Good to know",
+    "note1": "Read-only: the assistant can look things up, nothing else.",
+    "note2": "Open data from the City of Ghent and this site's own measurements. No personal data.",
+    "note3": "Well-known places work by name. For a street address the assistant passes coordinates itself.",
+    "note4": "The tools' own names and descriptions are in English; the assistant answers in your language."
   }
 }

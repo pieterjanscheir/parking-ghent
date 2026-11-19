@@ -27,7 +27,8 @@
   },
   "footer": {
     "builtBy": "Gemaakt door",
-    "dataSource": "Data: open data portaal stad.gent"
+    "dataSource": "Data: open data portaal stad.gent",
+    "mcp": "Voor AI-assistenten (MCP)"
   },
   "overview": {
     "title": "Waar parkeren in Gent",
@@ -229,7 +230,13 @@
     "appTitle": "App",
     "install": "Installeren op dit toestel",
     "installNote": "Opent in een eigen venster. Pagina's die je al bekeken hebt, openen ook zonder verbinding.",
-    "installIos": "Op iPhone of iPad: tik op Delen en kies ‘Zet op beginscherm’."
+    "installIos": "Op iPhone of iPad: tik op Delen en kies ‘Zet op beginscherm’.",
+    "themeTitle": "Weergave",
+    "theme": {
+      "dark": "Donker",
+      "light": "Licht",
+      "system": "Toestel"
+    }
   },
   "errors": {
     "title": "Er ging iets mis",
@@ -413,5 +420,33 @@
     "busiest": "Drukst: rond {time} (ongeveer {free} vrij).",
     "bar": "{time}: ongeveer {free} vrij",
     "source": "Uit de eigen metingen van deze site, om de 10 minuten sinds {since}. Een patroon, geen belofte."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking voor AI-assistenten",
+    "intro": "Deze site heeft een MCP-server. Koppel die aan een assistent zoals Claude en vraag gewoon waar je in Gent kunt parkeren: de assistent leest dezelfde live gegevens en volgt dezelfde regels als deze site.",
+    "urlLabel": "Adres van de server",
+    "copy": "Kopiëren",
+    "copied": "Gekopieerd",
+    "connectTitle": "Zo koppel je het",
+    "step1": "Open in Claude de instellingen en ga naar Connectors.",
+    "step2": "Kies ‘Aangepaste connector toevoegen’ en plak het adres hierboven.",
+    "step3": "Je hebt geen sleutel of account nodig. Stel je vraag.",
+    "otherClients": "De namen in de menu's kunnen bij jou anders zijn. Andere assistenten die MCP over HTTP ondersteunen (‘Streamable HTTP’) werken op dezelfde manier.",
+    "toolsTitle": "Wat de assistent kan opvragen",
+    "tools": {
+      "list_garages": "Alle parkings met hun vrije plaatsen van dit moment, de verwachting voor het komende uur en kenmerken zoals Park & Ride, gratis en laadpunten.",
+      "find_parking": "De beste parking voor een bestemming, met de reden, alternatieven met plaats, de wandeltijd en de dichtstbijzijnde Park & Ride.",
+      "get_garage": "Eén parking in detail: vrije plaatsen, verwachting, wat gewoon is op dit uur, openingsuren, ligging en de opmerking van de stad.",
+      "typical_availability": "Vooruit plannen: hoeveel plaats elke parking meestal heeft op een uur van de week, bijvoorbeeld zaterdag om 14 uur."
+    },
+    "examplesTitle": "Vragen die je kunt stellen",
+    "example1": "Waar parkeer ik vanavond het best voor Vooruit?",
+    "example2": "Welke parkings in Gent hebben nu plaats?",
+    "example3": "Hoe vol is de Vrijdagmarkt meestal op zaterdagnamiddag?",
+    "notesTitle": "Goed om te weten",
+    "note1": "Alleen lezen: de assistent kan gegevens opvragen, verder niets.",
+    "note2": "Open data van de stad Gent en de eigen metingen van deze site. Geen persoonsgegevens.",
+    "note3": "Bekende plaatsen werken op naam. Voor een straatadres geeft de assistent zelf coördinaten door.",
+    "note4": "De namen en beschrijvingen van de tools zelf zijn in het Engels; de assistent antwoordt in jouw taal."
   }
 }

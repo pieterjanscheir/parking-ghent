@@ -113,13 +113,13 @@ export function ParkingBansNote({ lat, lng, className }: { lat: number; lng: num
               )}
             >
               <TriangleAlert
-                className={cn("mt-0.5 size-4 shrink-0", ban.active ? "text-amber-300" : "text-muted-foreground")}
+                className={cn("mt-0.5 size-4 shrink-0", ban.active ? "text-amber-700 dark:text-amber-300" : "text-muted-foreground")}
                 aria-hidden
               />
               <span className="min-w-0">
                 <span className="font-medium">{t(`kinds.${ban.kind}`)}</span>{" "}
                 {ban.active ? (
-                  <span className="ml-1 rounded-4xl bg-amber-400/15 px-2 py-0.5 text-xs font-medium text-amber-200">
+                  <span className="ml-1 rounded-4xl bg-amber-400/15 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
                     {t("active")}
                   </span>
                 ) : null}

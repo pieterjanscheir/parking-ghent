@@ -27,7 +27,8 @@
   },
   "footer": {
     "builtBy": "Creado por",
-    "dataSource": "Datos: portal de datos abiertos stad.gent"
+    "dataSource": "Datos: portal de datos abiertos stad.gent",
+    "mcp": "Para asistentes de IA (MCP)"
   },
   "overview": {
     "title": "Dónde aparcar en Gante",
@@ -229,7 +230,13 @@
     "appTitle": "Aplicación",
     "install": "Instalar en este dispositivo",
     "installNote": "Se abre en su propia ventana. Las páginas que ya has visto también se abren sin conexión.",
-    "installIos": "En iPhone o iPad: toca Compartir y luego «Añadir a pantalla de inicio»."
+    "installIos": "En iPhone o iPad: toca Compartir y luego «Añadir a pantalla de inicio».",
+    "themeTitle": "Apariencia",
+    "theme": {
+      "dark": "Oscuro",
+      "light": "Claro",
+      "system": "Dispositivo"
+    }
   },
   "errors": {
     "title": "Algo ha salido mal",
@@ -413,5 +420,33 @@
     "busiest": "Más lleno: hacia las {time} (unas {free} libres).",
     "bar": "{time}: unas {free} libres",
     "source": "Según las mediciones propias de este sitio, cada 10 minutos desde el {since}. Un patrón, no una promesa."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking para asistentes de IA",
+    "intro": "Este sitio tiene un servidor MCP. Conéctalo a un asistente como Claude y pregunta sin más dónde aparcar en Gante: el asistente lee los mismos datos en directo y sigue las mismas reglas que este sitio.",
+    "urlLabel": "Dirección del servidor",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "connectTitle": "Cómo conectarlo",
+    "step1": "En Claude, abre Ajustes y ve a Conectores.",
+    "step2": "Elige «Añadir conector personalizado» y pega la dirección de arriba.",
+    "step3": "No hace falta clave ni cuenta. Haz tu pregunta.",
+    "otherClients": "Los nombres de los menús pueden variar en tu versión. Otros asistentes compatibles con MCP por HTTP («Streamable HTTP») funcionan igual.",
+    "toolsTitle": "Lo que el asistente puede consultar",
+    "tools": {
+      "list_garages": "Todos los aparcamientos con sus plazas libres ahora mismo, la previsión para la próxima hora y datos como Park & Ride, gratuito y puntos de recarga.",
+      "find_parking": "El mejor aparcamiento para un destino, con el motivo, otros aparcamientos con sitio, el tiempo a pie y el Park & Ride más cercano.",
+      "get_garage": "Un aparcamiento en detalle: plazas libres, previsión, lo habitual a esta hora, horario, posición y la observación de la ciudad.",
+      "typical_availability": "Para planificar: cuánto sitio suele tener cada aparcamiento a una hora de la semana, por ejemplo el sábado a las 14:00."
+    },
+    "examplesTitle": "Preguntas que puedes hacer",
+    "example1": "¿Dónde aparco esta noche para ir al Vooruit?",
+    "example2": "¿Qué aparcamientos de Gante tienen sitio ahora?",
+    "example3": "¿Cómo de lleno suele estar Vrijdagmarkt un sábado por la tarde?",
+    "notesTitle": "Conviene saber",
+    "note1": "Solo lectura: el asistente puede consultar datos, nada más.",
+    "note2": "Datos abiertos de la ciudad de Gante y mediciones propias de este sitio. Sin datos personales.",
+    "note3": "Los lugares conocidos funcionan por su nombre. Para una dirección, el asistente pasa él mismo las coordenadas.",
+    "note4": "Los nombres y descripciones de las herramientas están en inglés; el asistente responde en tu idioma."
   }
 }

@@ -27,7 +27,8 @@
   },
   "footer": {
     "builtBy": "Erstellt von",
-    "dataSource": "Daten: Open-Data-Portal stad.gent"
+    "dataSource": "Daten: Open-Data-Portal stad.gent",
+    "mcp": "Für KI-Assistenten (MCP)"
   },
   "overview": {
     "title": "Parken in Gent",
@@ -229,7 +230,13 @@
     "appTitle": "App",
     "install": "Auf diesem Gerät installieren",
     "installNote": "Öffnet sich in einem eigenen Fenster. Bereits besuchte Seiten öffnen sich auch ohne Verbindung.",
-    "installIos": "Auf iPhone oder iPad: auf „Teilen“ tippen, dann „Zum Home-Bildschirm“."
+    "installIos": "Auf iPhone oder iPad: auf „Teilen“ tippen, dann „Zum Home-Bildschirm“.",
+    "themeTitle": "Darstellung",
+    "theme": {
+      "dark": "Dunkel",
+      "light": "Hell",
+      "system": "Gerät"
+    }
   },
   "errors": {
     "title": "Etwas ist schiefgelaufen",
@@ -413,5 +420,33 @@
     "busiest": "Am vollsten: gegen {time} (etwa {free} frei).",
     "bar": "{time}: etwa {free} frei",
     "source": "Aus den eigenen Messungen dieser Website, alle 10 Minuten seit dem {since}. Ein Muster, kein Versprechen."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking für KI-Assistenten",
+    "intro": "Diese Website hat einen MCP-Server. Verbinden Sie ihn mit einem Assistenten wie Claude und fragen Sie einfach, wo Sie in Gent parken können: Der Assistent liest dieselben Live-Daten und folgt denselben Regeln wie diese Website.",
+    "urlLabel": "Adresse des Servers",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "connectTitle": "So verbinden Sie ihn",
+    "step1": "Öffnen Sie in Claude die Einstellungen und gehen Sie zu Konnektoren.",
+    "step2": "Wählen Sie „Benutzerdefinierten Konnektor hinzufügen“ und fügen Sie die Adresse oben ein.",
+    "step3": "Sie brauchen weder Schlüssel noch Konto. Stellen Sie Ihre Frage.",
+    "otherClients": "Die Menünamen können in Ihrer Version abweichen. Andere Assistenten, die MCP über HTTP („Streamable HTTP“) unterstützen, funktionieren genauso.",
+    "toolsTitle": "Was der Assistent abfragen kann",
+    "tools": {
+      "list_garages": "Alle Parkhäuser mit ihren derzeit freien Plätzen, der Prognose für die nächste Stunde und Merkmalen wie Park & Ride, kostenlos und Ladepunkten.",
+      "find_parking": "Das beste Parkhaus für ein Ziel, mit Begründung, weiteren Parkhäusern mit Platz, der Gehzeit und dem nächsten Park & Ride.",
+      "get_garage": "Ein Parkhaus im Detail: freie Plätze, Prognose, was zu dieser Stunde üblich ist, Öffnungszeiten, Lage und der Hinweis der Stadt.",
+      "typical_availability": "Vorausplanen: wie viel Platz jedes Parkhaus zu einer Stunde der Woche üblicherweise hat, zum Beispiel samstags um 14 Uhr."
+    },
+    "examplesTitle": "Fragen, die Sie stellen können",
+    "example1": "Wo parke ich heute Abend am besten für das Vooruit?",
+    "example2": "Welche Parkhäuser in Gent haben gerade Platz?",
+    "example3": "Wie voll ist der Vrijdagmarkt samstagnachmittags normalerweise?",
+    "notesTitle": "Gut zu wissen",
+    "note1": "Nur lesend: Der Assistent kann Daten abfragen, sonst nichts.",
+    "note2": "Offene Daten der Stadt Gent und eigene Messungen dieser Website. Keine personenbezogenen Daten.",
+    "note3": "Bekannte Orte funktionieren mit ihrem Namen. Für eine Straßenadresse übergibt der Assistent selbst Koordinaten.",
+    "note4": "Die Namen und Beschreibungen der Tools selbst sind auf Englisch; der Assistent antwortet in Ihrer Sprache."
   }
 }

@@ -21,7 +21,7 @@ export function FacilityBadges({ parkAndRide, isFree, evChargers, className }: P
     <span className={cn("inline-flex flex-wrap items-center gap-1.5", className)}>
       {parkAndRide ? (
         <span
-          className={cn(BADGE, "border-sky-400/30 bg-sky-400/10 text-sky-300")}
+          className={cn(BADGE, "border-sky-400/30 bg-sky-400/10 text-sky-700 dark:text-sky-300")}
           title={t("parkAndRideDetail")}
         >
           <abbr title={t("parkAndRide")} className="no-underline">
@@ -30,13 +30,13 @@ export function FacilityBadges({ parkAndRide, isFree, evChargers, className }: P
         </span>
       ) : null}
       {isFree === true ? (
-        <span className={cn(BADGE, "border-emerald-400/30 bg-emerald-400/10 text-emerald-300")}>
+        <span className={cn(BADGE, "border-emerald-400/30 bg-emerald-400/10 text-emerald-700 dark:text-emerald-300")}>
           {t("free")}
         </span>
       ) : null}
       {evChargers > 0 ? (
         <span
-          className={cn(BADGE, "border-amber-300/30 bg-amber-300/10 text-amber-200")}
+          className={cn(BADGE, "border-amber-300/30 bg-amber-300/10 text-amber-800 dark:text-amber-200")}
           title={t("chargePoints", { count: evChargers })}
         >
           <Zap className="size-3" aria-hidden />

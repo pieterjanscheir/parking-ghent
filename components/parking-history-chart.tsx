@@ -93,7 +93,7 @@ const CONFIDENCE_KEY: Record<TrendConfidence, string> = {
 const TONE_CLASS: Record<"rising" | "falling" | "steady", string> = {
   rising:
     "border-destructive/40 bg-destructive/10 text-destructive-foreground",
-  falling: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
+  falling: "border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-200",
   steady: "border-border/60 bg-muted/40 text-muted-foreground",
 };
 
