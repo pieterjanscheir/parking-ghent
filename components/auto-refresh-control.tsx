@@ -1,7 +1,7 @@
 "use client";
 
 import { RefreshCw } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { REFRESH_OPTIONS } from "@/lib/use-auto-refresh";
 import { cn } from "@/lib/utils";
-import { useFormatAge } from "./use-labels";
+import { useFormatAge, useFormatTime } from "./use-labels";
 
 type Props = {
   intervalMs: number;
@@ -37,7 +37,7 @@ export function AutoRefreshControl({
 }: Props) {
   const t = useTranslations("refresh");
   const tFresh = useTranslations("freshness");
-  const format = useFormatter();
+  const formatTime = useFormatTime();
   const formatAge = useFormatAge();
   const isOn = intervalMs > 0;
 
@@ -86,10 +86,7 @@ export function AutoRefreshControl({
           <time dateTime={new Date(dataUpdatedAt).toISOString()}>
             {tFresh("cityDataUpdated", {
               age: formatAge(Math.max(0, now - dataUpdatedAt)),
-              time: format.dateTime(dataUpdatedAt, {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
+              time: formatTime(dataUpdatedAt),
             })}
           </time>
         </span>

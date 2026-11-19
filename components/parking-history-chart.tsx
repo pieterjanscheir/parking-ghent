@@ -1,7 +1,7 @@
 "use client";
 
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   Area,
   CartesianGrid,
@@ -19,6 +19,7 @@ import type {
   TrendConfidence,
 } from "@/lib/parking-history";
 import { cn } from "@/lib/utils";
+import { useFormatTime } from "./use-labels";
 
 type Props = {
   points: HistoryPoint[];
@@ -148,10 +149,7 @@ function buildRows(points: HistoryPoint[], trend: Trend | null): Row[] {
 
 export function ParkingHistoryChart({ points, trend, totalSpaces }: Props) {
   const t = useTranslations("history");
-  const format = useFormatter();
-  // Ghent time, in the visitor's language (the time zone is set globally).
-  const formatTime = (ts: number) =>
-    format.dateTime(ts, { hour: "2-digit", minute: "2-digit" });
+  const formatTime = useFormatTime();
 
   if (points.length === 0) {
     return <p className="text-sm text-muted-foreground">{t("empty")}</p>;

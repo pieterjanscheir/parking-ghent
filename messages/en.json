@@ -192,6 +192,18 @@
     "full": "Favorite list is full (max {max})",
     "limit": "Up to {max} favorites — remove one first"
   },
+  "settings": {
+    "open": "Settings",
+    "title": "Settings",
+    "mapTitle": "Map on garage pages",
+    "osm": "OpenStreetMap",
+    "osmNote": "Default. Loads nothing from Google.",
+    "google": "Google Maps",
+    "googleNote": "Loads the map from Google, which can then see that you viewed the page.",
+    "switchToGoogle": "Use Google Maps instead",
+    "switchToOsm": "Use OpenStreetMap instead",
+    "changeHint": "You can change the map any time in settings."
+  },
   "errors": {
     "title": "Something went wrong",
     "body": "We couldn't load the parking data. Please try again.",

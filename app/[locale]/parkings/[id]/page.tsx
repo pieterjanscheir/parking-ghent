@@ -34,6 +34,7 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { LiveDataWarning } from "@/components/live-data-warning";
 import { ParkingActions } from "@/components/parking-actions";
 import { ParkingHistorySection } from "@/components/parking-history-section";
+import { ParkingLocationMap } from "@/components/parking-location-map";
 import {
   ParkingStatusBadge,
   MetaBadge,
@@ -86,11 +87,6 @@ export default async function ParkingDetailPage({ params }: Props) {
   const detail = await fetchParkingDetailById(decodeURIComponent(id));
   if (!detail) notFound();
   const { parking } = detail;
-
-  const mapSrc =
-    parking.lat !== null && parking.lng !== null
-      ? `https://www.google.com/maps?q=${parking.lat},${parking.lng}&z=16&output=embed`
-      : null;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -243,20 +239,7 @@ export default async function ParkingDetailPage({ params }: Props) {
         </div>
       ) : null}
 
-      {mapSrc ? (
-        <div className="mt-6 surface-card overflow-hidden rounded-xl border border-border/70">
-          <iframe
-            title={t("mapTitle", { name: parking.name })}
-            src={mapSrc}
-            width="100%"
-            height="360"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            className="block w-full"
-          />
-        </div>
-      ) : null}
-
+      <ParkingLocationMap parking={parking} />
     </div>
   );
 }

@@ -192,6 +192,18 @@
     "full": "La liste des favoris est pleine (max. {max})",
     "limit": "Maximum {max} favoris — retirez-en un d’abord"
   },
+  "settings": {
+    "open": "Paramètres",
+    "title": "Paramètres",
+    "mapTitle": "Plan sur les pages des parkings",
+    "osm": "OpenStreetMap",
+    "osmNote": "Par défaut. Ne charge rien depuis Google.",
+    "google": "Google Maps",
+    "googleNote": "Charge le plan depuis Google, qui peut alors voir que vous avez consulté la page.",
+    "switchToGoogle": "Utiliser plutôt Google Maps",
+    "switchToOsm": "Utiliser plutôt OpenStreetMap",
+    "changeHint": "Vous pouvez changer de plan à tout moment dans les paramètres."
+  },
   "errors": {
     "title": "Une erreur s’est produite",
     "body": "Impossible de charger les données des parkings. Veuillez réessayer.",

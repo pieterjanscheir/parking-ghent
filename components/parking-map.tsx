@@ -18,7 +18,12 @@ import type { LatLng } from "@/lib/geo";
 import { Link } from "@/i18n/navigation";
 import { distanceTo } from "@/lib/parkings";
 import { dataAgeMs, isStale } from "@/lib/freshness";
-import { BUCKET_COLOR } from "./availability-gauge";
+import {
+  DARK_TILE_FILTER,
+  OSM_ATTRIBUTION,
+  OSM_TILE_URL,
+  markerIcon,
+} from "./leaflet-shared";
 import { forecastHint } from "./forecast-hint";
 import { useFormatAge, useFormatDistance } from "./use-labels";
 
@@ -31,29 +36,6 @@ type Props = {
 };
 
 const GHENT: [number, number] = [51.0543, 3.7174];
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-}
-
-// A pill with the live free-space count, coloured like the availability
-// gauge, so the map answers "where is there space?" without any clicks.
-function markerIcon(p: Parking, closedLabel: string): L.DivIcon {
-  const color = BUCKET_COLOR[p.bucket];
-  const label = !p.isOpen ? closedLabel : p.hasLiveData ? String(p.freeSpaces) : "?";
-  return L.divIcon({
-    className: "parking-marker",
-    html: `<span style="--marker-color:${color}" title="${escapeHtml(p.name)}">${escapeHtml(label)}</span>`,
-    iconSize: [0, 0],
-    iconAnchor: [0, 0],
-    popupAnchor: [0, -14],
-  });
-}
-
-// Standard OSM tiles are light; invert + rotate hue to fit the dark theme
-// without depending on a keyed dark-tile provider.
-const DARK_TILE_FILTER =
-  "invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.85) saturate(0.4)";
 
 function MapSetup({ points }: { points: [number, number][] }) {
   const map = useMap();
@@ -140,8 +122,8 @@ export default function ParkingMap({ parkings, trendsById, userLocation, now }: 
         className="h-[min(70vh,640px)] w-full"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution={OSM_ATTRIBUTION}
+          url={OSM_TILE_URL}
           maxZoom={19}
         />
         <MapSetup points={bounds} />
