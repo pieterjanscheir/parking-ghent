@@ -449,7 +449,7 @@
     "note2": "Open data van de stad Gent en de eigen metingen van deze site. Geen persoonsgegevens.",
     "note3": "Bekende plaatsen werken op naam. Voor een straatadres geeft de assistent zelf coördinaten door.",
     "note4": "De namen en beschrijvingen van de tools zelf zijn in het Engels; de assistent antwoordt in jouw taal.",
-    "example4": "Welke parkings in Straatsburg hebben nu plaats?",
-    "note5": "Naast Gent kan de assistent ook Straatsburg opzoeken, met open data van de stad Straatsburg. Daar kent hij alleen de live telling: nog geen verwachting, gebruikelijk patroon, prijzen of plaatsen op naam, en deze site heeft er geen pagina’s voor."
+    "example4": "Welke parkings in Hasselt hebben nu plaats?",
+    "note5": "Naast Gent heeft de assistent live tellingen voor Hasselt en Straatsburg. Voor Antwerpen, Brussel, Luik en Namen weet hij waar de parkings liggen en hoe groot ze zijn, niet hoe vol. Buiten Gent is er nog geen verwachting, gebruikelijk patroon of zoeken op plaatsnaam, en deze site heeft geen pagina’s voor die steden."
   }
 }

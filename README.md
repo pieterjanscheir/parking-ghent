@@ -208,15 +208,25 @@ Usage on Vercel, per month: about 4,300 scheduled calls, 4,300 file writes, 4,30
 
 The website is about Ghent. Underneath, a city is a plug-in ([lib/cities/](lib/cities)): a few facts ([info.ts](lib/cities/info.ts)) and a loader that turns the city's feed into the same garage list Ghent uses ([index.ts](lib/cities/index.ts)). Whatever is built on that list then works for the city unchanged; so far that is the MCP server.
 
-| City | Live free spaces | Forecast, usual pattern | Park & Ride, price, charging, low-emission zone | Pages on this site |
+| City | Live free spaces | Car parks without a count | Forecast, usual pattern | Pages on this site |
 | :--- | :--- | :--- | :--- | :--- |
-| Ghent | yes | yes | yes | yes |
-| Strasbourg | yes, 35 car parks ([lib/cities/strasbourg.ts](lib/cities/strasbourg.ts)) | no | not in its data | no (MCP only) |
+| Ghent | yes, 15 garages | 18 | yes | yes |
+| Hasselt | yes, 18 car parks ([lib/cities/hasselt.ts](lib/cities/hasselt.ts)) | 1 | no | no (MCP only) |
+| Strasbourg | yes, 35 car parks ([lib/cities/strasbourg.ts](lib/cities/strasbourg.ts)) | none | no | no (MCP only) |
+| Antwerp | no | 71, of which 19 Park & Ride | no | no (MCP only) |
+| Brussels | no | 80, of which 9 Park & Ride | no | no (MCP only) |
+| Liège | no | 40, of which 5 Park & Ride | no | no (MCP only) |
+| Namur | no | 32, of which 2 Park & Ride | no | no (MCP only) |
+
+The numbers are what each feed held on 19 November 2026.
 
 - **Unknown is not "no".** Where a city's data doesn't say whether a car park is free, has chargers, is a Park & Ride or lies in the low-emission zone, the tools answer `null`, never `false`.
+- **Hasselt** has no open data for this. Its counts come from the two files the city's own "Vind een parking" page reads: a DATEX II status file supplied by Be-Mobile, rewritten every few minutes, and the website's list of car parks for names and positions. Neither is documented and **no licence is stated**, so they can move or change without notice, and whether reuse is welcome has not been asked. The file gives no capacity; like the city's page, the total is free spaces plus vehicles.
+- **Antwerp, Brussels, Liège and Namur** publish where their car parks are and how big, not how full ([lib/cities/belgium-static.ts](lib/cities/belgium-static.ts)). They are listed as car parks without a live count; "where to park" answers with the nearest ones by distance and says that nothing is known about room. Antwerp's live counts exist, but only behind an API that is not open.
+- **Looked at and left out:** Arlon has sensors per parking bay in four car parks, but about half of them have not reported for months, so a count would mislead. Mons lists its car parks without coordinates. Leuven, Bruges, Mechelen and Kortrijk publish nothing reusable.
 - **Strasbourg** comes from the Eurométropole's open data (Licence Ouverte): one list with free spaces, one with addresses and positions, joined on the car park's id. Its feed labels local time as UTC; the clock digits are read as the time in Strasbourg ([lib/zoned-time.ts](lib/zoned-time.ts)).
-- **No history is recorded for Strasbourg**: no extra scheduled work or storage. It gets a forecast and "a typical day" only if that is switched on later.
-- **To add a city:** add its id and facts to `info.ts`, write a loader that returns `Parking[]`, and register it in `index.ts`. Give its feed a test with real sample records, as Strasbourg has.
+- **No history is recorded outside Ghent**: no extra scheduled work or storage. A city gets a forecast and "a typical day" only if that is switched on later.
+- **To add a city:** add its id and facts to `info.ts`, write a loader that returns `Parking[]` (or the list without counts), and register it in `index.ts`. Give its feed a test with real sample records, as the others have.
 
 ## MCP server
 
@@ -368,7 +378,7 @@ lib/
   history-profile.ts          The weekly pattern: usual free spaces per hour of the week
   history-profile-store.ts    Building and reading that pattern (server)
   mcp-tools.ts                What the MCP endpoint answers with
-  cities/                     City plug-ins: facts, loaders, Strasbourg's feed
+  cities/                     City plug-ins: facts, loaders, one file per feed
   zoned-time.ts               Clock time in a time zone → a moment
   parking-bans.ts             The city's temporary parking bans near a spot
   pay-machines.ts             The nearest on-street pay machine

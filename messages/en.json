@@ -449,7 +449,7 @@
     "note2": "Open data from the City of Ghent and this site's own measurements. No personal data.",
     "note3": "Well-known places work by name. For a street address the assistant passes coordinates itself.",
     "note4": "The tools' own names and descriptions are in English; the assistant answers in your language.",
-    "example4": "Which car parks in Strasbourg have space right now?",
-    "note5": "Besides Ghent, the assistant can look up Strasbourg, with open data from the city of Strasbourg. There it knows the live count only: no forecast, usual pattern, prices or places by name yet, and this site has no pages for it."
+    "example4": "Which car parks in Hasselt have space right now?",
+    "note5": "Besides Ghent, the assistant has live counts for Hasselt and Strasbourg. For Antwerp, Brussels, Liège and Namur it knows where the car parks are and how big, not how full. Outside Ghent there is no forecast, usual pattern or place search by name yet, and this site has no pages for those cities."
   }
 }

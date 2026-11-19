@@ -83,6 +83,7 @@ function liveGarage(p: Parking, src: Sources) {
 }
 
 function carParkWithoutCount(e: DirectoryEntry, src: Sources) {
+  const { knows } = src.city;
   return {
     id: e.id,
     name: e.name,
@@ -90,12 +91,21 @@ function carParkWithoutCount(e: DirectoryEntry, src: Sources) {
     // The city publishes no live count for this one.
     free_spaces: null,
     total_spaces: e.capacity,
-    park_and_ride: e.parkAndRide,
+    park_and_ride: knows.parkAndRide ? e.parkAndRide : null,
+    // null where it isn't known.
     free_of_charge: e.isFree,
-    ev_charge_points: e.evChargers,
-    url: pageUrl(src, e.id),
+    // Where a city's data isn't complete on this, a number means "at least
+    // these" and nothing means unknown, not none.
+    ev_charge_points: knows.charging ? e.evChargers : e.evChargers > 0 ? e.evChargers : null,
+    url: pageUrl(src, e.id) ?? e.url,
   };
 }
+
+// What a city that only lists its car parks can and cannot answer.
+const noCountsNote = (src: Sources) =>
+  src.city.knows.liveCounts
+    ? null
+    : `${src.city.name} publishes where its car parks are and how big, not how full they are right now. Nothing here says whether there is space.`;
 
 const hasSpace = (p: Parking, src: Sources) =>
   p.isOpen && p.hasLiveData && !isStale(p, src.now) && p.freeSpaces > 0;
@@ -112,6 +122,7 @@ export function listGarages(src: Sources, input: { only_with_space?: boolean }) 
     car_parks_without_live_count: input.only_with_space
       ? []
       : src.extras.map((e) => carParkWithoutCount(e, src)),
+    note: noCountsNote(src),
     source: sourceLine(src),
   };
 }
@@ -164,6 +175,9 @@ export function getGarage(src: Sources, input: { garage: string }) {
     `No car park called "${input.garage}" in ${src.city.name}. Known car parks: ${allNames(src)}.`,
   );
 }
+
+// How many car parks without a count find_parking lists by distance.
+const NEAREST_WITHOUT_COUNT = 3;
 
 const PASS_REASON = {
   closed: "is closed",
@@ -223,6 +237,14 @@ export function findParking(src: Sources, input: { destination?: string; lat?: n
     : null;
   const passed = suggestion?.passedOver ?? null;
   const link = new URLSearchParams({ dest: place.name, at: formatLatLng(place), sort: "distance" });
+  // Nearest first, by distance only: nothing is known about room in these.
+  const uncounted = src.extras
+    .map((e) => {
+      const km = distanceKm(place, e);
+      return { ...carParkWithoutCount(e, src), distance_m: Math.round(km * 1000), walking_minutes: walkingMinutes(km) };
+    })
+    .sort((a, b) => a.distance_m - b.distance_m)
+    .slice(0, NEAREST_WITHOUT_COUNT);
 
   return {
     city: src.city.name,
@@ -235,7 +257,9 @@ export function findParking(src: Sources, input: { destination?: string; lat?: n
     nearest_park_and_ride: ride
       ? { id: ride.id, name: ride.name, distance_m: Math.round(ride.km * 1000), url: pageUrl(src, ride.id) }
       : null,
+    nearest_car_parks_without_live_count: uncounted,
     see_on_the_website: src.city.hasPages ? `${src.siteUrl}/en?${link}` : null,
+    note: noCountsNote(src),
     source: sourceLine(src),
   };
 }
@@ -294,7 +318,9 @@ export function listCities(siteUrl: string) {
       name: city.name,
       country: city.country,
       centre: city.center,
-      live_free_spaces: true,
+      // false: the city only lists where its car parks are and how big.
+      live_free_spaces: city.knows.liveCounts,
+      park_and_ride_marked: city.knows.parkAndRide,
       forecast_for_the_next_hour: city.knows.forecast,
       usual_pattern_per_hour_of_the_week: city.knows.typical,
       well_known_places_by_name: city.placeNames().length > 0,
