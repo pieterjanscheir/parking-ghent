@@ -33,8 +33,8 @@ export function forecastHint(parking: Parking, trend: Trend | null): Hint | null
 }
 
 const TONE: Record<Hint["tone"], string> = {
-  warn: "text-amber-300",
-  good: "text-emerald-300",
+  warn: "text-amber-700 dark:text-amber-300",
+  good: "text-emerald-700 dark:text-emerald-300",
   neutral: "text-muted-foreground",
 };
 

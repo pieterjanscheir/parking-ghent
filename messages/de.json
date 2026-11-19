@@ -4,7 +4,8 @@
     "description": "Parkplatzverfügbarkeit in Gent in Echtzeit — sehen Sie vor der Abfahrt, wo Sie parken können.",
     "garageTitle": "Parkhaus {name}",
     "garageFallbackTitle": "Parkhaus",
-    "garageDescription": "Freie Plätze in Echtzeit und eine Kurzzeitprognose für das Parkhaus {name} in Gent."
+    "garageDescription": "Freie Plätze in Echtzeit und eine Kurzzeitprognose für das Parkhaus {name} in Gent.",
+    "extraDescription": "Lage, Kapazität und Route für {name} in Gent. Für diesen Parkplatz gibt es keine Live-Zählung."
   },
   "common": {
     "open": "Geöffnet",
@@ -21,15 +22,17 @@
   "header": {
     "home": "Ghent Parking — Startseite",
     "liveData": "Live-Daten · Stad Gent",
-    "language": "Sprache"
+    "language": "Sprache",
+    "parked": "Wo steht mein Auto?"
   },
   "footer": {
     "builtBy": "Erstellt von",
-    "dataSource": "Daten: Open-Data-Portal stad.gent"
+    "dataSource": "Daten: Open-Data-Portal stad.gent",
+    "mcp": "Für KI-Assistenten (MCP)"
   },
   "overview": {
     "title": "Parken in Gent",
-    "intro": "Freie Plätze in den Parkhäusern der Stadt in Echtzeit, mit einer Kurzzeitprognose, damit Sie wissen, was Sie bei der Ankunft erwartet.",
+    "intro": "Freie Plätze in den Parkhäusern der Stadt in Echtzeit, mit einer Kurzzeitprognose, dazu alle Park & Ride und weiteren Parkmöglichkeiten in Gent.",
     "stats": {
       "openNow": "Jetzt geöffnet",
       "withSpace": "Mit freien Plätzen",
@@ -72,7 +75,10 @@
     "sortedNote": "Parkhäuser sortiert nach Fußweg bis {place}.",
     "walk": "~{minutes} Min. zu Fuß",
     "nearestToDestination": "Am nächsten zum Ziel",
-    "marker": "Ihr Ziel"
+    "marker": "Ihr Ziel",
+    "recentAndPopular": "Letzte und beliebte Ziele",
+    "recent": "zuletzt",
+    "forgetRecent": "Letzte Ziele vergessen"
   },
   "sort": {
     "spaces-desc": "Meiste freie Plätze",
@@ -92,7 +98,8 @@
     "availability": "Verfügbarkeit",
     "available": "Verfügbar",
     "almostFull": "Fast voll",
-    "full": "Voll"
+    "full": "Voll",
+    "facilities": "Ausstattung"
   },
   "garage": {
     "favorite": "Favorit",
@@ -170,7 +177,9 @@
     "type": "Art",
     "lez": "Umweltzone (LEZ)",
     "website": "Website besuchen",
-    "mapTitle": "Karte von {name}"
+    "mapTitle": "Karte von {name}",
+    "routesTitle": "Anfahrtsrouten",
+    "routesNote": "Die blauen Linien sind die von der Stadt empfohlenen Routen zwischen dem Stadtring (R40) und diesem Parkhaus. Der Genter Verkehrsplan sperrt viele andere Straßen für den Durchgangsverkehr."
   },
   "list": {
     "favorite": "Favorit",
@@ -217,7 +226,17 @@
     "googleNote": "Lädt die Karte von Google, das dann sehen kann, dass Sie die Seite aufgerufen haben.",
     "switchToGoogle": "Lieber Google Maps verwenden",
     "switchToOsm": "Lieber OpenStreetMap verwenden",
-    "changeHint": "Sie können die Karte jederzeit in den Einstellungen ändern."
+    "changeHint": "Sie können die Karte jederzeit in den Einstellungen ändern.",
+    "appTitle": "App",
+    "install": "Auf diesem Gerät installieren",
+    "installNote": "Öffnet sich in einem eigenen Fenster. Bereits besuchte Seiten öffnen sich auch ohne Verbindung.",
+    "installIos": "Auf iPhone oder iPad: auf „Teilen“ tippen, dann „Zum Home-Bildschirm“.",
+    "themeTitle": "Darstellung",
+    "theme": {
+      "dark": "Dunkel",
+      "light": "Hell",
+      "system": "Gerät"
+    }
   },
   "errors": {
     "title": "Etwas ist schiefgelaufen",
@@ -231,5 +250,203 @@
   },
   "share": {
     "features": "Live-Verfügbarkeit|30-Minuten-Prognose|Stadtplan|In meiner Nähe"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Kostenlos",
+    "freeParking": "Kostenlos parken",
+    "paid": "Kostenpflichtig",
+    "evCharging": "Laden von Elektroautos",
+    "evShort": "{count} Ladepunkte",
+    "chargePoints": "{count, plural, one {# Ladepunkt} other {# Ladepunkte}}",
+    "chargePointsKw": "{count, plural, one {# Ladepunkt} other {# Ladepunkte}}, bis zu {kw} kW",
+    "chargingLabel": "Elektroauto laden",
+    "priceLabel": "Preis",
+    "parkAndRideDetail": "Parken Sie hier und fahren Sie mit Straßenbahn, Bus oder Fahrrad weiter ins Zentrum.",
+    "cityNote": "Gut zu wissen",
+    "cityNoteSource": "Hinweis der Stadt Gent."
+  },
+  "extras": {
+    "title": "Park & Ride und weitere Parkmöglichkeiten",
+    "intro": "Diese Parkplätze melden nicht, wie viele Plätze frei sind. Es gibt daher keine Live-Zählung.",
+    "noLiveCount": "Keine Live-Zählung",
+    "spaces": "{count, plural, one {# Stellplatz} other {# Stellplätze}}",
+    "capacity": "Kapazität",
+    "detailLead": "Dieser Parkplatz veröffentlicht keine Live-Zählung. Wir können zeigen, wo er liegt und wie groß er ist, aber nicht, wie voll er gerade ist.",
+    "moreInfo": "Weitere Informationen",
+    "shareText": "Parkplatz in Gent, keine Live-Zählung"
+  },
+  "advice": {
+    "titleFor": "Beste Wahl für {place}",
+    "titleNearYou": "Beste Wahl in Ihrer Nähe",
+    "free": "{count, plural, one {# Platz frei} other {# Plätze frei}}",
+    "nearestToo": "Es ist auch das nächstgelegene Parkhaus.",
+    "passed": {
+      "closed": "{name} liegt näher, ist aber geschlossen.",
+      "noData": "{name} liegt näher, hat aber derzeit keine verlässliche Zählung.",
+      "full": "{name} liegt näher, ist aber voll.",
+      "almostFull": "{name} liegt näher, hat aber nur noch {count, plural, one {# freien Platz} other {# freie Plätze}}.",
+      "fillingUp": "{name} liegt näher, ist aber voraussichtlich in etwa {minutes} Min. voll."
+    },
+    "none": "Derzeit hat kein Parkhaus mit Live-Zählung ausreichend freie Plätze. Sehen Sie in der Liste unten nach oder wählen Sie einen Park & Ride.",
+    "parkAndRide": "Lieber nicht ins Zentrum fahren? Nächster Park & Ride:",
+    "details": "Details",
+    "walkRoute": "Fußweg ab diesem Parkhaus",
+    "walkRouteLabel": "Fußweg von {garage} nach {place}"
+  },
+  "alternatives": {
+    "title": "Parkhäuser in der Nähe",
+    "titleNoSpace": "Hier kein Platz? Versuchen Sie es in der Nähe",
+    "intro": "Weitere Parkhäuser mit freien Plätzen, das nächste zuerst. Entfernungen in Luftlinie von diesem Parkhaus."
+  },
+  "parked": {
+    "button": "Ich parke hier",
+    "saved": "Gespeichert. {name} wird auf diesem Gerät gemerkt.",
+    "bannerTitle": "Sie parken in {name}",
+    "here": "Sie parken hier",
+    "since": "Seit {time} ({age})",
+    "noteLabel": "Ebene oder Stellplatz (optional)",
+    "notePlaceholder": "z. B. Ebene -2, Reihe C",
+    "walkBack": "Zurück zum Auto",
+    "walkBackLabel": "Fußweg zu {name}",
+    "clear": "Ich bin weggefahren",
+    "clearLabel": "Parkplatz vergessen",
+    "privacy": "Nur in diesem Browser gespeichert.",
+    "pageTitle": "Wo steht mein Auto?",
+    "pageIntro": "Speichern Sie, wo Ihr Auto steht, und finden Sie den Weg zurück. Nur auf diesem Gerät gespeichert.",
+    "none": "Noch kein Parkplatz gespeichert.",
+    "saveHere": "Meinen aktuellen Standort speichern",
+    "saveHereHint": "Auf der Straße geparkt? Stellen Sie sich neben Ihr Auto und tippen Sie auf die Schaltfläche. Ihr Browser fragt nach Ihrem Standort.",
+    "garageHint": "In einem Parkhaus? Öffnen Sie die Seite des Parkhauses und tippen Sie auf „Ich parke hier“.",
+    "toOverview": "Alle Parkhäuser ansehen",
+    "locating": "Standort wird ermittelt…",
+    "denied": "Der Zugriff auf Ihren Standort wurde verweigert. Erlauben Sie ihn in den Browsereinstellungen und versuchen Sie es erneut.",
+    "unavailable": "Ihr Standort konnte nicht ermittelt werden. Versuchen Sie es erneut, am besten im Freien.",
+    "streetSaved": "Gespeichert, auf etwa {metres} m genau.",
+    "streetTitle": "Sie parken auf der Straße",
+    "streetCar": "Ihrem Auto",
+    "streetNoteLabel": "Notiz (optional)",
+    "streetNotePlaceholder": "z. B. gegenüber Hausnummer 12",
+    "update": "Auf meinen aktuellen Standort ändern",
+    "zoneLabel": "Parkzone hier:",
+    "lookupNote": "Der Ort selbst bleibt in diesem Browser. Um die Parkzone, Parkverbote und den nächsten Parkautomaten anzuzeigen, werden nur seine Koordinaten abgefragt: bei dieser Website und beim Open-Data-Portal der Stadt.",
+    "garagePage": "Seite des Parkhauses",
+    "untilLabel": "Parkschein oder Parkscheibe gilt bis (optional)",
+    "untilRunning": "Läuft um {time} ab, {left}",
+    "untilPassed": "Um {time} abgelaufen, {age}",
+    "inMinutes": "in {count} Min.",
+    "inHours": "in {hours} Std. {minutes} Min.",
+    "clearUntil": "Zeit löschen",
+    "addReminder": "Erinnerung in meinen Kalender eintragen",
+    "reminderNote": "Lädt einen Kalendertermin mit einer Erinnerung 10 Minuten vorher herunter. Der Kalender Ihres Telefons erinnert Sie daran.",
+    "reminderTitle": "Parkzeit läuft ab",
+    "reminderBody": "Bis {time} zurück am Auto.",
+    "shareSpot": "Diesen Ort teilen",
+    "shareSpotText": "Hier steht das Auto.",
+    "sharedTitle": "Ein mit Ihnen geteilter Parkplatz",
+    "sharedIntro": "Jemand hat Ihnen geschickt, wo das Auto steht.",
+    "walkThere": "Zu Fuß dorthin",
+    "saveShared": "Als meinen Parkplatz speichern",
+    "sharedSaved": "Als Ihr Parkplatz gespeichert.",
+    "backToMine": "Zurück zu meinem Parkplatz",
+    "payMachine": "Nächster Parkautomat: {address}, etwa {metres} m entfernt",
+    "payNoCash": "nimmt kein Bargeld",
+    "payCash": "nimmt Bargeld"
+  },
+  "street": {
+    "label": "Parken an der Straße bei {place}:",
+    "zones": {
+      "red": "rote Zone (kostenpflichtig)",
+      "orange": "orange Zone (kostenpflichtig)",
+      "yellow": "gelbe Zone (kostenpflichtig)",
+      "green": "grüne Zone (kostenpflichtig)",
+      "blue": "blaue Zone (Parkscheibe)"
+    },
+    "none": "außerhalb der Parkzonen der Stadt",
+    "rates": "Tarife und Höchstparkdauer"
+  },
+  "lez": {
+    "inside": "Dieses Parkhaus liegt in der Umweltzone (LEZ) von Gent. Prüfen Sie vor der Einfahrt, ob Ihr Fahrzeug zugelassen ist. Ein Fahrzeug mit ausländischem Kennzeichen muss in der Regel vorher registriert werden.",
+    "link": "Regeln und Fahrzeugprüfung (Stadt Gent)"
+  },
+  "offline": {
+    "savedCopy": "Offline-Kopie: Diese Seite wurde {age} gespeichert. Die Zahlen können sich seitdem geändert haben.",
+    "noConnection": "Sie sind offline. Die Zahlen auf dieser Seite sind möglicherweise veraltet.",
+    "reload": "Neu laden"
+  },
+  "chargers": {
+    "toggle": "Ladepunkte",
+    "toggleLabel": "Ladepunkte für Elektroautos auf der Karte anzeigen",
+    "fast": "Schnelllader",
+    "error": "Die Ladepunkte konnten nicht geladen werden."
+  },
+  "onward": {
+    "title": "Von hier weiter",
+    "toCentre": "Ins Stadtzentrum:",
+    "transit": "Öffentliche Verkehrsmittel",
+    "bike": "Mit dem Fahrrad",
+    "routeNote": "Öffnet die Route in Google Maps.",
+    "bikesTitle": "Leihfahrräder im Umkreis von 400 m, jetzt",
+    "bikesNone": "Derzeit keine Leihfahrräder im Umkreis von 400 m.",
+    "bikesLoading": "Leihfahrräder werden gesucht…",
+    "bikesSource": "Live aus den offenen Daten der Stadt, direkt von Ihrem Browser abgerufen.",
+    "stopsTitle": "Bus- und Tramhaltestellen im Umkreis von 400 m",
+    "bus": "Bus",
+    "tram": "Tram",
+    "busAndTram": "Bus und Tram"
+  },
+  "bans": {
+    "title": "Vorübergehende Parkverbote in der Nähe",
+    "none": "Keine vorübergehenden Parkverbote im Umkreis von {metres} m für die nächsten {days} Tage bekannt.",
+    "kinds": {
+      "loading": "Be- und Entladen",
+      "construction": "Baustellenfahrzeug",
+      "noParking": "Halte- und Parkverbot"
+    },
+    "active": "gilt jetzt",
+    "range": "{from} bis {until}",
+    "away": "etwa {metres} m entfernt",
+    "here": "direkt an dieser Stelle",
+    "caveat": "Aus den Genehmigungen der Stadt. Maßgeblich sind immer die Schilder in der Straße: Prüfen Sie sie dort, wo Sie parken."
+  },
+  "typical": {
+    "title": "Ein typischer {weekday}",
+    "pickDay": "Wochentag",
+    "noDay": "Für diesen Tag gibt es noch keine Messungen.",
+    "aroundNow": "Gegen {time} sind meist etwa {free} Plätze frei",
+    "basedOn": "{days, plural, one {bisher an # Tag gemessen} other {an # Tagen gemessen}}",
+    "quietest": "Am meisten Platz: gegen {time} (etwa {free} frei).",
+    "busiest": "Am vollsten: gegen {time} (etwa {free} frei).",
+    "bar": "{time}: etwa {free} frei",
+    "source": "Aus den eigenen Messungen dieser Website, alle 10 Minuten seit dem {since}. Ein Muster, kein Versprechen."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking für KI-Assistenten",
+    "intro": "Diese Website hat einen MCP-Server. Verbinden Sie ihn mit einem Assistenten wie Claude und fragen Sie einfach, wo Sie in Gent parken können: Der Assistent liest dieselben Live-Daten und folgt denselben Regeln wie diese Website.",
+    "urlLabel": "Adresse des Servers",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "connectTitle": "So verbinden Sie ihn",
+    "step1": "Öffnen Sie in Claude die Einstellungen und gehen Sie zu Konnektoren.",
+    "step2": "Wählen Sie „Benutzerdefinierten Konnektor hinzufügen“ und fügen Sie die Adresse oben ein.",
+    "step3": "Sie brauchen weder Schlüssel noch Konto. Stellen Sie Ihre Frage.",
+    "otherClients": "Die Menünamen können in Ihrer Version abweichen. Andere Assistenten, die MCP über HTTP („Streamable HTTP“) unterstützen, funktionieren genauso.",
+    "toolsTitle": "Was der Assistent abfragen kann",
+    "tools": {
+      "list_garages": "Alle Parkhäuser mit ihren derzeit freien Plätzen, der Prognose für die nächste Stunde und Merkmalen wie Park & Ride, kostenlos und Ladepunkten.",
+      "find_parking": "Das beste Parkhaus für ein Ziel, mit Begründung, weiteren Parkhäusern mit Platz, der Gehzeit und dem nächsten Park & Ride.",
+      "get_garage": "Ein Parkhaus im Detail: freie Plätze, Prognose, was zu dieser Stunde üblich ist, Öffnungszeiten, Lage und der Hinweis der Stadt.",
+      "typical_availability": "Vorausplanen: wie viel Platz jedes Parkhaus zu einer Stunde der Woche üblicherweise hat, zum Beispiel samstags um 14 Uhr."
+    },
+    "examplesTitle": "Fragen, die Sie stellen können",
+    "example1": "Wo parke ich heute Abend am besten für das Vooruit?",
+    "example2": "Welche Parkhäuser in Gent haben gerade Platz?",
+    "example3": "Wie voll ist der Vrijdagmarkt samstagnachmittags normalerweise?",
+    "notesTitle": "Gut zu wissen",
+    "note1": "Nur lesend: Der Assistent kann Daten abfragen, sonst nichts.",
+    "note2": "Offene Daten der Stadt Gent und eigene Messungen dieser Website. Keine personenbezogenen Daten.",
+    "note3": "Bekannte Orte funktionieren mit ihrem Namen. Für eine Straßenadresse übergibt der Assistent selbst Koordinaten.",
+    "note4": "Die Namen und Beschreibungen der Tools selbst sind auf Englisch; der Assistent antwortet in Ihrer Sprache."
   }
 }

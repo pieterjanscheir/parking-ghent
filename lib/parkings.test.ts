@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
+import type { DirectoryEntry } from "./directory";
 import {
+  combineSources,
+  filterExtras,
   filterParkings,
   isUsable,
+  sortExtras,
   sortParkings,
   uniqueTypes,
   type Filters,
@@ -34,6 +38,11 @@ function p(overrides: Partial<Parking> = {}): Parking {
     lng: null,
     phone: null,
     lastUpdatedAt: null,
+    isFree: false,
+    parkAndRide: false,
+    evChargers: 0,
+    evMaxKw: null,
+    note: null,
     ...overrides,
   };
 }
@@ -256,5 +265,168 @@ describe("isUsable", () => {
     expect(isUsable(p({ isOpen: false }))).toBe(false);
     expect(isUsable(p({ hasLiveData: false }))).toBe(false);
     expect(isUsable(p({ bucket: "full" }))).toBe(false);
+  });
+});
+
+// ---- Car parks from the city's directory, and facilities --------------------
+
+function entry(overrides: Partial<DirectoryEntry> = {}): DirectoryEntry {
+  return {
+    id: "p-kouter",
+    name: "Kouter",
+    parkAndRide: false,
+    capacity: 461,
+    address: "Kouter 31",
+    lat: 51.05012,
+    lng: 3.72365,
+    url: null,
+    note: null,
+    isFree: null,
+    evChargers: 0,
+    evMaxKw: null,
+    ...overrides,
+  };
+}
+
+const NO_FILTERS: Filters = { q: "", status: [], lez: [], type: [], bucket: [] };
+
+describe("combineSources", () => {
+  const savaan = p({ id: "parking-savaan", name: "Savaan", lat: 51.04877, lng: 3.72395 });
+  const ledeberg = p({ id: "parking-ledeberg", name: "Ledeberg", lat: 51.0379, lng: 3.7391 });
+  const directory = [
+    entry({ id: "p-savaan", name: "Savaan", lat: 51.04895, lng: 3.72405 }),
+    entry(),
+    entry({ id: "p-ledeberg", name: "Ledeberg", lat: 51.038, lng: 3.7392 }),
+    entry({
+      id: "pr-ledeberg",
+      name: "Ledeberg",
+      parkAndRide: true,
+      lat: 51.0381,
+      lng: 3.7393,
+      note: { nl: "Parking betalend.", en: "Parking paid for.", fr: null },
+    }),
+  ];
+  const chargePoints = [
+    { lat: 51.0488, lng: 3.7241, kw: 22 },
+    { lat: 51.0489, lng: 3.7238, kw: 11 },
+    { lat: 51.0501, lng: 3.7237, kw: 22 },
+  ];
+
+  it("adds Park & Ride, the city's note and charge points to live garages", () => {
+    const { parkings } = combineSources([savaan, ledeberg], directory, chargePoints);
+    expect(parkings[0]).toMatchObject({
+      id: "parking-savaan",
+      parkAndRide: false,
+      note: null,
+      evChargers: 2,
+      evMaxKw: 22,
+    });
+    expect(parkings[1]).toMatchObject({
+      id: "parking-ledeberg",
+      parkAndRide: true,
+      note: { nl: "Parking betalend.", en: "Parking paid for.", fr: null },
+      evChargers: 0,
+    });
+  });
+
+  it("returns the car parks the live feed doesn't cover, with their charge points", () => {
+    const { extras } = combineSources([savaan, ledeberg], directory, chargePoints);
+    expect(extras).toEqual([entry({ evChargers: 1, evMaxKw: 22 })]);
+  });
+
+  it("keeps a garage's own Park & Ride mark when the directory is unavailable", () => {
+    const loop = p({ id: "pr-loopexpo", name: "P+R The Loop", parkAndRide: true });
+    expect(combineSources([loop], [], []).parkings[0].parkAndRide).toBe(true);
+  });
+
+  it("counts charge points near the directory's pin of a garage matched by name", () => {
+    // The live feed and the directory put this garage's pin 300 m apart.
+    const loop = p({ id: "pr-loop", name: "The Loop", lat: 51.024, lng: 3.695 });
+    const loopC = entry({ id: "pr-the-loop-c", name: "The Loop C", lat: 51.0267, lng: 3.695 });
+    const { parkings, extras } = combineSources([loop], [loopC], [
+      { lat: 51.0268, lng: 3.6951, kw: 22 },
+    ]);
+    expect(extras).toEqual([]);
+    expect(parkings[0]).toMatchObject({ id: "pr-loop", evChargers: 1, evMaxKw: 22 });
+  });
+
+  it("lists the whole directory when the live feed is empty", () => {
+    expect(combineSources([], directory, []).extras).toHaveLength(4);
+  });
+});
+
+describe("facility filters", () => {
+  const plain = p({ id: "plain" });
+  const charging = p({ id: "charging", evChargers: 4 });
+  const freeRide = p({ id: "free-ride", isFree: true, parkAndRide: true });
+
+  it("keeps garages that have every ticked facility", () => {
+    const pick = (features: string[]) =>
+      filterParkings([plain, charging, freeRide], { ...NO_FILTERS, features }).map((x) => x.id);
+    expect(pick([])).toEqual(["plain", "charging", "free-ride"]);
+    expect(pick(["ev"])).toEqual(["charging"]);
+    expect(pick(["free"])).toEqual(["free-ride"]);
+    expect(pick(["pr", "free"])).toEqual(["free-ride"]);
+    expect(pick(["pr", "ev"])).toEqual([]);
+  });
+
+  it("doesn't count a car park as free when the price is unknown", () => {
+    const unknown = entry({ id: "unknown", isFree: null });
+    const paid = entry({ id: "paid", isFree: false });
+    const free = entry({ id: "free", isFree: true });
+    expect(
+      filterExtras([unknown, paid, free], { ...NO_FILTERS, features: ["free"] }).map((e) => e.id),
+    ).toEqual(["free"]);
+  });
+});
+
+describe("filterExtras", () => {
+  const kouter = entry();
+  const watersportbaan = entry({
+    id: "pr-watersportbaan",
+    name: "Watersportbaan",
+    address: "Zuiderlaan",
+    parkAndRide: true,
+  });
+
+  it("searches by name and street", () => {
+    const find = (q: string) =>
+      filterExtras([kouter, watersportbaan], { ...NO_FILTERS, q }).map((e) => e.id);
+    expect(find("")).toEqual(["p-kouter", "pr-watersportbaan"]);
+    expect(find("KOUT")).toEqual(["p-kouter"]);
+    expect(find("zuiderlaan")).toEqual(["pr-watersportbaan"]);
+    expect(find("nowhere")).toEqual([]);
+  });
+
+  it("hides them all when the filter needs live data they don't have", () => {
+    const all = [kouter, watersportbaan];
+    expect(filterExtras(all, { ...NO_FILTERS, onlyAvailable: true })).toEqual([]);
+    expect(filterExtras(all, { ...NO_FILTERS, status: ["open"] })).toEqual([]);
+    expect(filterExtras(all, { ...NO_FILTERS, lez: ["outside"] })).toEqual([]);
+    expect(filterExtras(all, { ...NO_FILTERS, type: ["carPark"] })).toEqual([]);
+    expect(filterExtras(all, { ...NO_FILTERS, bucket: ["available"] })).toEqual([]);
+  });
+});
+
+describe("sortExtras", () => {
+  const kouter = entry();
+  const zuid = entry({ id: "p-zuid", name: "Zuid", lat: 51.0419, lng: 3.7266 });
+  const muide = entry({ id: "pr-muide", name: "Muide", parkAndRide: true, lat: 51.0731, lng: 3.7337 });
+
+  it("puts Park & Ride first, then sorts by name, when there is nowhere to measure from", () => {
+    expect(sortExtras([zuid, kouter, muide], null).map((e) => e.id)).toEqual([
+      "pr-muide",
+      "p-kouter",
+      "p-zuid",
+    ]);
+  });
+
+  it("sorts by distance from a destination", () => {
+    const nearZuid = { lat: 51.042, lng: 3.727 };
+    expect(sortExtras([muide, kouter, zuid], nearZuid).map((e) => e.id)).toEqual([
+      "p-zuid",
+      "p-kouter",
+      "pr-muide",
+    ]);
   });
 });

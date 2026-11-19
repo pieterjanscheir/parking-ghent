@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { AvailabilityGauge } from "./availability-gauge";
+import { FacilityBadges } from "./facility-badges";
 import { FavoriteButton } from "./favorite-button";
 import { DataWarning } from "./live-data-warning";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
@@ -102,6 +103,11 @@ export function ParkingCard({
           <MetaBadge>{labels.lez(parking)}</MetaBadge>
         ) : null}
         {parking.type ? <MetaBadge>{labels.type(parking)}</MetaBadge> : null}
+        <FacilityBadges
+          parkAndRide={parking.parkAndRide}
+          isFree={parking.isFree}
+          evChargers={parking.evChargers}
+        />
       </div>
     </Link>
   );

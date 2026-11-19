@@ -18,6 +18,8 @@ export type ParkingFiltersValue = {
   lez: string[];
   type: string[];
   bucket: string[];
+  // "ev" | "free" | "pr" — a car park must have all that are ticked.
+  features: string[];
 };
 
 type Props = {
@@ -76,6 +78,12 @@ export function ParkingFilters({
 }: Props) {
   const t = useTranslations("filters");
   const tCommon = useTranslations("common");
+  const tFacilities = useTranslations("facilities");
+  const featureOptions: Option[] = [
+    { value: "pr", label: tFacilities("parkAndRide") },
+    { value: "free", label: tFacilities("freeParking") },
+    { value: "ev", label: tFacilities("evCharging") },
+  ];
   const statusOptions: Option[] = [
     { value: "open", label: tCommon("open") },
     { value: "closed", label: tCommon("closed") },
@@ -94,7 +102,8 @@ export function ParkingFilters({
     value.status.length +
     value.lez.length +
     value.type.length +
-    value.bucket.length;
+    value.bucket.length +
+    value.features.length;
 
   function toggleIn(
     key: keyof ParkingFiltersValue,
@@ -133,7 +142,13 @@ export function ParkingFilters({
             </button>
           ) : null}
         </div>
-        <div className="mt-3 flex flex-col gap-4">
+        <div className="mt-3 flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
+          <FacetGroup
+            title={t("facilities")}
+            options={featureOptions}
+            selected={value.features}
+            onToggle={(v) => onChange({ features: toggleIn("features", v) })}
+          />
           <FacetGroup
             title={t("status")}
             options={statusOptions}

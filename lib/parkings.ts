@@ -1,5 +1,12 @@
 import { z } from "zod";
 import { normalizeParking, RawResponseSchema, type Parking } from "./parkings.schema";
+import { chargingByPlace, fetchGarageChargePoints, type ChargePoint } from "./chargers";
+import {
+  directoryFacts,
+  fetchDirectory,
+  matchDirectory,
+  type DirectoryEntry,
+} from "./directory";
 import { distanceKm, type LatLng } from "./geo";
 import { cached } from "./ttl-cache";
 import { fetchUpstream } from "./upstream";
@@ -185,18 +192,59 @@ function enrichAddress(
 
 export type RawRecord = { recordid: string; fields: Record<string, unknown> };
 
+// Adds what the city's other lists know about the live garages (Park & Ride,
+// remarks, charge points) and returns the car parks the live feed doesn't
+// cover. Pure, so the matching can be tested without a network.
+export function combineSources(
+  live: Parking[],
+  directory: DirectoryEntry[],
+  chargePoints: ChargePoint[],
+): { parkings: Parking[]; extras: DirectoryEntry[] } {
+  const { extras, byLiveId } = matchDirectory(directory, live);
+  // A garage matched by name can have its directory pin well away from the
+  // live feed's pin (the far end of the same building). Charge points near
+  // either pin are that garage's.
+  const directoryPins = Object.entries(byLiveId).flatMap(([id, entries]) =>
+    entries.map((entry) => ({ id, lat: entry.lat, lng: entry.lng })),
+  );
+  const charging = chargingByPlace(chargePoints, [...live, ...extras, ...directoryPins]);
+  const parkings = live.map((p) => {
+    const facts = directoryFacts(byLiveId[p.id]);
+    return {
+      ...p,
+      parkAndRide: p.parkAndRide || facts.parkAndRide,
+      note: facts.note,
+      evChargers: charging[p.id]?.count ?? 0,
+      evMaxKw: charging[p.id]?.maxKw ?? null,
+    };
+  });
+  return {
+    parkings,
+    extras: extras.map((entry) => ({
+      ...entry,
+      evChargers: charging[entry.id]?.count ?? 0,
+      evMaxKw: charging[entry.id]?.maxKw ?? null,
+    })),
+  };
+}
+
 async function fetchParkingsResponse(): Promise<{
   parkings: Parking[];
+  extras: DirectoryEntry[];
   parsed: RawListResponse;
   calls: RawApiCall[];
 }> {
   const calls: RawApiCall[] = [];
-  // Both feeds in parallel: live (required) and locations (static address
-  // book, optional — it must not break the page if it fails).
-  const [primaryResult, locationsResult] = await Promise.allSettled([
-    fetchPrimaryFeed(),
-    fetchAddressOverrides(),
-  ]);
+  // All in parallel: the live feed is required; the address book, the
+  // directory and the charge points are extras that must not break the page
+  // when they fail.
+  const [primaryResult, locationsResult, directoryResult, chargersResult] =
+    await Promise.allSettled([
+      fetchPrimaryFeed(),
+      fetchAddressOverrides(),
+      fetchDirectory(),
+      fetchGarageChargePoints(),
+    ]);
 
   if (primaryResult.status === "rejected") {
     throw primaryResult.reason;
@@ -215,14 +263,44 @@ async function fetchParkingsResponse(): Promise<{
     /* swallow — address enrichment is best-effort */
   }
 
+  const combined = combineSources(
+    parkings,
+    directoryResult.status === "fulfilled" ? directoryResult.value : [],
+    chargersResult.status === "fulfilled" ? chargersResult.value : [],
+  );
+  parkings = combined.parkings;
+
   // Stable name sort by default so the order is deterministic across refreshes.
   parkings.sort((a, b) => a.name.localeCompare(b.name));
-  return { parkings, parsed, calls };
+  const extras = combined.extras.sort((a, b) => a.name.localeCompare(b.name));
+  return { parkings, extras, parsed, calls };
 }
 
 export async function fetchParkings(): Promise<Parking[]> {
   const { parkings } = await fetchParkingsResponse();
   return parkings;
+}
+
+// The live garages plus the car parks without a live count (Park & Ride and
+// privately run garages).
+export async function fetchAllParkings(): Promise<{
+  parkings: Parking[];
+  extras: DirectoryEntry[];
+}> {
+  const { parkings, extras } = await fetchParkingsResponse();
+  return { parkings, extras };
+}
+
+// A car park without live counts, by its id ("pr-watersportbaan"). Works
+// even when the live feed is down: the directory is all it needs.
+export async function fetchExtraParkingById(id: string): Promise<DirectoryEntry | null> {
+  const [liveResult, directory, chargePoints] = await Promise.all([
+    fetchParkings().catch(() => [] as Parking[]),
+    fetchDirectory().catch(() => [] as DirectoryEntry[]),
+    fetchGarageChargePoints().catch(() => [] as ChargePoint[]),
+  ]);
+  const { extras } = combineSources(liveResult, directory, chargePoints);
+  return extras.find((entry) => entry.id === id) ?? null;
 }
 
 export async function fetchParkingsWithRaw(): Promise<{
@@ -330,19 +408,66 @@ export type Filters = {
   bucket: string[]; // "available" | "almost-full" | "full"
   // Quick toggle: only parkings that are open with live space right now.
   onlyAvailable?: boolean;
+  // Must have all of these: "ev" | "free" | "pr".
+  features?: string[];
 };
+
+export const FEATURE_KEYS = ["ev", "free", "pr"] as const;
+
+type Facilities = { evChargers: number; isFree: boolean | null; parkAndRide: boolean };
+
+function hasFeatures(place: Facilities, features: string[] | undefined): boolean {
+  for (const feature of features ?? []) {
+    if (feature === "ev" && place.evChargers === 0) return false;
+    // "Unknown" is not "free".
+    if (feature === "free" && place.isFree !== true) return false;
+    if (feature === "pr" && !place.parkAndRide) return false;
+  }
+  return true;
+}
+
+function matchesQuery(place: { name: string; address: string }, q: string): boolean {
+  return !q || place.name.toLowerCase().includes(q) || place.address.toLowerCase().includes(q);
+}
+
+// The car parks without a live count that fit the search. A filter on
+// something only the live feed knows (open, has space, LEZ, type) hides them
+// all: we can't tell whether they match.
+export function filterExtras(list: DirectoryEntry[], filters: Filters): DirectoryEntry[] {
+  if (
+    filters.onlyAvailable ||
+    filters.status.length > 0 ||
+    filters.lez.length > 0 ||
+    filters.type.length > 0 ||
+    filters.bucket.length > 0
+  ) {
+    return [];
+  }
+  const q = filters.q.trim().toLowerCase();
+  return list.filter((entry) => matchesQuery(entry, q) && hasFeatures(entry, filters.features));
+}
+
+// Nearest first when there is a point to measure from; otherwise Park & Ride
+// first, then by name.
+export function sortExtras(list: DirectoryEntry[], origin: LatLng | null): DirectoryEntry[] {
+  const sorted = [...list];
+  if (origin) {
+    sorted.sort((a, b) => distanceKm(origin, a) - distanceKm(origin, b));
+  } else {
+    sorted.sort(
+      (a, b) =>
+        Number(b.parkAndRide) - Number(a.parkAndRide) || a.name.localeCompare(b.name),
+    );
+  }
+  return sorted;
+}
 
 export function filterParkings(list: Parking[], filters: Filters): Parking[] {
   const q = filters.q.trim().toLowerCase();
   return list.filter((p) => {
     if (filters.onlyAvailable && !isUsable(p)) return false;
-    if (
-      q &&
-      !p.name.toLowerCase().includes(q) &&
-      !p.address.toLowerCase().includes(q)
-    ) {
-      return false;
-    }
+    if (!matchesQuery(p, q)) return false;
+    if (!hasFeatures(p, filters.features)) return false;
     if (filters.status.length > 0) {
       const status = p.isOpen ? "open" : "closed";
       if (!filters.status.includes(status)) return false;

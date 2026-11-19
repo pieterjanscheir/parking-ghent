@@ -34,21 +34,25 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useFavorites } from "@/lib/favorites";
 import { useAutoRefresh } from "@/lib/use-auto-refresh";
-import { useNow } from "@/lib/use-now";
+import { useNow, useSavedCopyAt } from "@/lib/use-now";
 import { FEED_STALE_AFTER_MS, isStale, newestUpdate } from "@/lib/freshness";
 import { useGeolocation } from "@/lib/use-geolocation";
-import { formatLatLng, parseLatLng } from "@/lib/geo";
+import { distanceKm, formatLatLng, parseLatLng } from "@/lib/geo";
 import type { Place } from "@/lib/destinations";
 import {
   DEFAULT_SORT,
   SORT_KEYS,
   distanceTo,
+  filterExtras,
   filterParkings,
   isUsable,
+  sortExtras,
   sortParkings,
   uniqueTypes,
   type SortKey,
 } from "@/lib/parkings";
+import type { DirectoryEntry } from "@/lib/directory";
+import { nearestParkAndRide, suggestGarage } from "@/lib/recommend";
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { cn } from "@/lib/utils";
@@ -60,7 +64,11 @@ import {
   type ParkingFiltersValue,
 } from "./parking-filters";
 import { AutoRefreshControl } from "./auto-refresh-control";
+import { DestinationAdvice } from "./destination-advice";
 import { DestinationSearch } from "./destination-search";
+import { ExtraParkingCard } from "./extra-parking-card";
+import { ParkedBanner } from "./parked-here";
+import { StreetZoneNote } from "./street-zone-note";
 import { useFormatAge, useParkingLabels } from "./use-labels";
 
 // Leaflet touches `window` at import time, so the map is client-only.
@@ -71,6 +79,8 @@ const ParkingMap = dynamic(() => import("./parking-map"), {
 
 type Props = {
   parkings: Parking[];
+  // Car parks without a live count: Park & Ride and privately run garages.
+  extras: DirectoryEntry[];
   trendsById: Record<string, Trend>;
   // The server's clock when this data was rendered.
   serverNow: number;
@@ -90,6 +100,7 @@ const Q_OPTIONS = { defaultValue: "", clearOnDefault: true } as const;
 
 export function ParkingOverview({
   parkings,
+  extras,
   trendsById: allTrendsById,
   serverNow,
 }: Props) {
@@ -98,6 +109,7 @@ export function ParkingOverview({
   const tSort = useTranslations("sort");
   const tCommon = useTranslations("common");
   const tDestination = useTranslations("destination");
+  const tExtras = useTranslations("extras");
   const format = useFormatter();
   const formatAge = useFormatAge();
   const labels = useParkingLabels();
@@ -113,6 +125,9 @@ export function ParkingOverview({
   const [lezFilter, setLezFilter] = useQueryState("lez", ARRAY_PARSER);
   const [typeFilter, setTypeFilter] = useQueryState("type", ARRAY_PARSER);
   const [bucketFilter, setBucketFilter] = useQueryState("bucket", ARRAY_PARSER);
+  const [featureFilter, setFeatureFilter] = useQueryState("has", ARRAY_PARSER);
+  // The map's "Charge points" layer.
+  const [showChargers, setShowChargers] = useQueryState("ev", BOOL_PARSER);
   // Where the visitor is heading. Kept in the URL (name + coordinates) so
   // "parking near Vooruit" can be shared or bookmarked.
   const [destName, setDestName] = useQueryState("dest", Q_OPTIONS);
@@ -153,8 +168,9 @@ export function ParkingOverview({
       lez: lezFilter,
       type: typeFilter,
       bucket: bucketFilter,
+      features: featureFilter,
     }),
-    [statusFilter, lezFilter, typeFilter, bucketFilter],
+    [statusFilter, lezFilter, typeFilter, bucketFilter, featureFilter],
   );
 
   const typeOptions = uniqueTypes(parkings).map((option) => ({
@@ -166,7 +182,11 @@ export function ParkingOverview({
   // page is showing old counts, however recently we asked.
   const dataUpdatedAt = useMemo(() => newestUpdate(parkings), [parkings]);
   const feedAgeMs = dataUpdatedAt === null ? null : Math.max(0, now - dataUpdatedAt);
-  const feedIsStale = feedAgeMs !== null && feedAgeMs > FEED_STALE_AFTER_MS;
+  // On a copy saved for offline use the counts are old because the page is,
+  // not because the city's feed stopped: the offline notice says so already.
+  const isSavedCopy = useSavedCopyAt() !== null;
+  const feedIsStale =
+    !isSavedCopy && feedAgeMs !== null && feedAgeMs > FEED_STALE_AFTER_MS;
 
   // A forecast "in 30 min" anchored on an out-of-date count would mislead, so
   // garages with stale counts get no trend or forecast.
@@ -217,14 +237,35 @@ export function ParkingOverview({
   const distances = useMemo(() => {
     const out: Record<string, number | null> = {};
     for (const p of parkings) out[p.id] = distanceTo(p, origin);
+    for (const entry of extras) out[entry.id] = origin ? distanceKm(origin, entry) : null;
     return out;
-  }, [parkings, origin]);
+  }, [parkings, extras, origin]);
+
+  // The short answer for wherever distances are measured from: a destination
+  // or the visitor's own location. It looks at every live garage, whatever
+  // the search and filters below are set to.
+  const advice = useMemo(() => {
+    if (!origin) return null;
+    const suggestion = suggestGarage(parkings, origin, trendsById, now);
+    const ride = nearestParkAndRide(parkings, extras, origin, now);
+    return {
+      suggestion,
+      // Not worth a second line when the suggestion is that Park & Ride.
+      parkAndRide: ride && ride.id !== suggestion?.best.id ? ride : null,
+    };
+  }, [parkings, extras, origin, trendsById, now]);
+
+  const filteredExtras = useMemo(
+    () => sortExtras(filterExtras(extras, filters), origin),
+    [extras, filters, origin],
+  );
 
   const updateFilters = (next: Partial<ParkingFiltersValue>) => {
     if (next.status !== undefined) setStatusFilter(next.status.length ? next.status : null);
     if (next.lez !== undefined) setLezFilter(next.lez.length ? next.lez : null);
     if (next.type !== undefined) setTypeFilter(next.type.length ? next.type : null);
     if (next.bucket !== undefined) setBucketFilter(next.bucket.length ? next.bucket : null);
+    if (next.features !== undefined) setFeatureFilter(next.features.length ? next.features : null);
   };
 
   const clearFilters = () => {
@@ -232,6 +273,7 @@ export function ParkingOverview({
     setLezFilter(null);
     setTypeFilter(null);
     setBucketFilter(null);
+    setFeatureFilter(null);
   };
 
   const clearSearchAndFilters = () => {
@@ -262,7 +304,10 @@ export function ParkingOverview({
     if (geo.status !== "locating") geo.request();
   };
 
-  const isEmpty = view === "map" ? filteredAll.length === 0 : filteredRest.length === 0;
+  // Nothing at all to show for this search: no live garage and no other car
+  // park. (Favorites sit in their own section above and don't count here.)
+  const liveIsEmpty = view === "map" ? filteredAll.length === 0 : filteredRest.length === 0;
+  const isEmpty = liveIsEmpty && filteredExtras.length === 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
@@ -282,6 +327,18 @@ export function ParkingOverview({
               {tDestination("sortedNote", { place: destination.name })}
             </p>
           ) : null}
+          {advice ? (
+            <DestinationAdvice
+              place={destination?.name ?? null}
+              destination={destination}
+              suggestion={advice.suggestion}
+              parkAndRide={advice.parkAndRide}
+            >
+              {destination ? (
+                <StreetZoneNote place={destination.name} at={destination} />
+              ) : null}
+            </DestinationAdvice>
+          ) : null}
         </div>
         <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <SummaryStat label={t("stats.openNow")} value={`${summary.open} / ${parkings.length}`} />
@@ -299,12 +356,14 @@ export function ParkingOverview({
         </dl>
       </header>
 
+      <ParkedBanner />
+
       {feedIsStale ? (
         <div
           role="status"
-          className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"
+          className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200"
         >
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden />
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-700 dark:text-amber-400" aria-hidden />
           <p>
             <span className="font-semibold">
               {t("feedStopped", { age: formatAge(feedAgeMs) })}
@@ -466,12 +525,15 @@ export function ParkingOverview({
       ) : view === "map" ? (
         <ParkingMap
           parkings={filteredAll}
+          extras={filteredExtras}
           trendsById={trendsById}
           userLocation={geo.location}
           destination={destination}
           now={now}
+          showChargers={showChargers}
+          onToggleChargers={(show) => setShowChargers(show ? true : null)}
         />
-      ) : view === "list" ? (
+      ) : liveIsEmpty ? null : view === "list" ? (
         <ParkingListView
           parkings={filteredRest}
           trendsById={trendsById}
@@ -495,6 +557,25 @@ export function ParkingOverview({
           ))}
         </div>
       )}
+
+      {view !== "map" && filteredExtras.length > 0 ? (
+        <section className="mt-10" aria-labelledby="extras-heading">
+          <h2 id="extras-heading" className="font-heading text-lg font-semibold tracking-tight">
+            {tExtras("title")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{tExtras("intro")}</p>
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredExtras.map((entry) => (
+              <ExtraParkingCard
+                key={entry.id}
+                entry={entry}
+                distanceKm={distances[entry.id]}
+                walking={hasDestination}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <p className="mt-8 text-xs text-muted-foreground">{t("forecastNote")}</p>
     </div>

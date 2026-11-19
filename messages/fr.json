@@ -4,7 +4,8 @@
     "description": "Disponibilité des parkings de Gand en direct — voyez où vous garer avant de partir.",
     "garageTitle": "Parking {name}",
     "garageFallbackTitle": "Parking",
-    "garageDescription": "Places libres en direct et prévision à court terme pour le parking {name} à Gand."
+    "garageDescription": "Places libres en direct et prévision à court terme pour le parking {name} à Gand.",
+    "extraDescription": "Emplacement, capacité et itinéraire pour {name} à Gand. Aucun comptage en direct n’est disponible pour ce parking."
   },
   "common": {
     "open": "Ouvert",
@@ -21,15 +22,17 @@
   "header": {
     "home": "Ghent Parking — accueil",
     "liveData": "Données en direct · Stad Gent",
-    "language": "Langue"
+    "language": "Langue",
+    "parked": "Où suis-je garé ?"
   },
   "footer": {
     "builtBy": "Réalisé par",
-    "dataSource": "Données : portail open data stad.gent"
+    "dataSource": "Données : portail open data stad.gent",
+    "mcp": "Pour les assistants IA (MCP)"
   },
   "overview": {
     "title": "Où se garer à Gand",
-    "intro": "Places libres en direct dans les parkings de la ville, avec une prévision à court terme pour savoir à quoi vous attendre à votre arrivée.",
+    "intro": "Places libres en direct dans les parkings de la ville, avec une prévision à court terme, ainsi que tous les Park & Ride et autres parkings de Gand.",
     "stats": {
       "openNow": "Ouverts",
       "withSpace": "Avec places",
@@ -72,7 +75,10 @@
     "sortedNote": "Parkings triés par distance à pied jusqu’à {place}.",
     "walk": "~{minutes} min à pied",
     "nearestToDestination": "Le plus proche de la destination",
-    "marker": "Votre destination"
+    "marker": "Votre destination",
+    "recentAndPopular": "Destinations récentes et populaires",
+    "recent": "récent",
+    "forgetRecent": "Oublier les destinations récentes"
   },
   "sort": {
     "spaces-desc": "Le plus de places libres",
@@ -92,7 +98,8 @@
     "availability": "Disponibilité",
     "available": "Disponible",
     "almostFull": "Presque complet",
-    "full": "Complet"
+    "full": "Complet",
+    "facilities": "Équipements"
   },
   "garage": {
     "favorite": "Favori",
@@ -170,7 +177,9 @@
     "type": "Type",
     "lez": "Zone de basses émissions",
     "website": "Visiter le site web",
-    "mapTitle": "Plan de {name}"
+    "mapTitle": "Plan de {name}",
+    "routesTitle": "Itinéraires d’accès",
+    "routesNote": "Les lignes bleues sont les itinéraires recommandés par la ville entre le ring (R40) et ce parking. Le plan de circulation de Gand ferme beaucoup d’autres rues au trafic de transit."
   },
   "list": {
     "favorite": "Favori",
@@ -217,7 +226,17 @@
     "googleNote": "Charge le plan depuis Google, qui peut alors voir que vous avez consulté la page.",
     "switchToGoogle": "Utiliser plutôt Google Maps",
     "switchToOsm": "Utiliser plutôt OpenStreetMap",
-    "changeHint": "Vous pouvez changer de plan à tout moment dans les paramètres."
+    "changeHint": "Vous pouvez changer de plan à tout moment dans les paramètres.",
+    "appTitle": "Application",
+    "install": "Installer sur cet appareil",
+    "installNote": "S’ouvre dans sa propre fenêtre. Les pages déjà consultées s’ouvrent aussi sans connexion.",
+    "installIos": "Sur iPhone ou iPad : touchez Partager, puis « Sur l’écran d’accueil ».",
+    "themeTitle": "Apparence",
+    "theme": {
+      "dark": "Sombre",
+      "light": "Clair",
+      "system": "Appareil"
+    }
   },
   "errors": {
     "title": "Une erreur s’est produite",
@@ -231,5 +250,203 @@
   },
   "share": {
     "features": "Disponibilité en direct|Prévision à 30 min|Plan|Près de moi"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Gratuit",
+    "freeParking": "Stationnement gratuit",
+    "paid": "Payant",
+    "evCharging": "Recharge pour voitures électriques",
+    "evShort": "{count} bornes",
+    "chargePoints": "{count, plural, one {# point de recharge} other {# points de recharge}}",
+    "chargePointsKw": "{count, plural, one {# point de recharge} other {# points de recharge}}, jusqu’à {kw} kW",
+    "chargingLabel": "Recharge électrique",
+    "priceLabel": "Tarif",
+    "parkAndRideDetail": "Garez-vous ici et rejoignez le centre en tram, en bus ou à vélo.",
+    "cityNote": "Bon à savoir",
+    "cityNoteSource": "Remarque de la Ville de Gand."
+  },
+  "extras": {
+    "title": "Park & Ride et autres parkings",
+    "intro": "Ces parkings ne communiquent pas le nombre de places libres : il n’y a donc pas de comptage en direct.",
+    "noLiveCount": "Pas de comptage en direct",
+    "spaces": "{count, plural, one {# place} other {# places}}",
+    "capacity": "Capacité",
+    "detailLead": "Ce parking ne publie pas de comptage en direct. Nous pouvons indiquer où il se trouve et sa taille, pas son occupation actuelle.",
+    "moreInfo": "Plus d’informations",
+    "shareText": "Parking à Gand, sans comptage en direct"
+  },
+  "advice": {
+    "titleFor": "Meilleur choix pour {place}",
+    "titleNearYou": "Meilleur choix près de vous",
+    "free": "{count, plural, one {# place libre} other {# places libres}}",
+    "nearestToo": "C’est aussi le parking le plus proche.",
+    "passed": {
+      "closed": "{name} est plus proche, mais il est fermé.",
+      "noData": "{name} est plus proche, mais n’a pas de comptage fiable pour le moment.",
+      "full": "{name} est plus proche, mais il est complet.",
+      "almostFull": "{name} est plus proche, mais il ne reste que {count, plural, one {# place} other {# places}}.",
+      "fillingUp": "{name} est plus proche, mais sera probablement complet dans environ {minutes} min."
+    },
+    "none": "Aucun parking avec comptage en direct n’a assez de places pour le moment. Consultez la liste ci-dessous ou choisissez un Park & Ride.",
+    "parkAndRide": "Vous préférez ne pas entrer en voiture dans le centre ? Park & Ride le plus proche :",
+    "details": "Détails",
+    "walkRoute": "Itinéraire à pied depuis ce parking",
+    "walkRouteLabel": "Itinéraire à pied de {garage} à {place}"
+  },
+  "alternatives": {
+    "title": "Parkings à proximité",
+    "titleNoSpace": "Pas de place ici ? Essayez à proximité",
+    "intro": "Autres parkings avec des places libres, du plus proche au plus éloigné. Distances à vol d’oiseau depuis ce parking."
+  },
+  "parked": {
+    "button": "Je suis garé ici",
+    "saved": "Enregistré. {name} est mémorisé sur cet appareil.",
+    "bannerTitle": "Vous êtes garé à {name}",
+    "here": "Vous êtes garé ici",
+    "since": "Depuis {time} ({age})",
+    "noteLabel": "Niveau ou emplacement (facultatif)",
+    "notePlaceholder": "p. ex. niveau -2, rangée C",
+    "walkBack": "Y retourner à pied",
+    "walkBackLabel": "Itinéraire à pied vers {name}",
+    "clear": "Je suis parti",
+    "clearLabel": "Oublier où je suis garé",
+    "privacy": "Enregistré uniquement dans ce navigateur.",
+    "pageTitle": "Où suis-je garé ?",
+    "pageIntro": "Enregistrez l’endroit où se trouve votre voiture et retrouvez le chemin. Enregistré uniquement sur cet appareil.",
+    "none": "Aucun emplacement enregistré pour l’instant.",
+    "saveHere": "Enregistrer ma position actuelle",
+    "saveHereHint": "Garé dans la rue ? Placez-vous à côté de votre voiture et appuyez sur le bouton. Votre navigateur demandera à utiliser votre position.",
+    "garageHint": "Dans un parking ? Ouvrez la page de ce parking et appuyez sur « Je suis garé ici ».",
+    "toOverview": "Voir tous les parkings",
+    "locating": "Recherche de votre position…",
+    "denied": "L’accès à votre position a été refusé. Autorisez-le dans les paramètres de votre navigateur et réessayez.",
+    "unavailable": "Votre position n’a pas pu être déterminée. Réessayez, de préférence à l’extérieur.",
+    "streetSaved": "Enregistré, avec une précision d’environ {metres} m.",
+    "streetTitle": "Vous êtes garé dans la rue",
+    "streetCar": "votre voiture",
+    "streetNoteLabel": "Note (facultatif)",
+    "streetNotePlaceholder": "p. ex. en face du numéro 12",
+    "update": "Remplacer par ma position actuelle",
+    "zoneLabel": "Zone de stationnement ici :",
+    "lookupNote": "L’emplacement lui-même reste dans ce navigateur. Pour afficher la zone de stationnement, les interdictions et l’horodateur le plus proche, seules ses coordonnées sont recherchées : auprès de ce site et du portail de données ouvertes de la ville.",
+    "garagePage": "Page du parking",
+    "untilLabel": "Ticket ou disque valable jusqu’à (facultatif)",
+    "untilRunning": "Expire à {time}, {left}",
+    "untilPassed": "Expiré à {time}, {age}",
+    "inMinutes": "dans {count} min",
+    "inHours": "dans {hours} h {minutes} min",
+    "clearUntil": "Effacer l’heure",
+    "addReminder": "Ajouter un rappel à mon agenda",
+    "reminderNote": "Télécharge un événement d’agenda avec une alerte 10 minutes avant. C’est l’agenda de votre téléphone qui vous le rappelle.",
+    "reminderTitle": "Fin du stationnement",
+    "reminderBody": "De retour à la voiture pour {time}.",
+    "shareSpot": "Partager cet emplacement",
+    "shareSpotText": "La voiture est garée ici.",
+    "sharedTitle": "Un emplacement partagé avec vous",
+    "sharedIntro": "Quelqu’un vous a envoyé l’endroit où se trouve la voiture.",
+    "walkThere": "Y aller à pied",
+    "saveShared": "Enregistrer comme mon emplacement",
+    "sharedSaved": "Enregistré comme votre emplacement.",
+    "backToMine": "Retour à mon emplacement",
+    "payMachine": "Horodateur le plus proche : {address}, à environ {metres} m",
+    "payNoCash": "n’accepte pas les espèces",
+    "payCash": "accepte les espèces"
+  },
+  "street": {
+    "label": "Stationnement en rue à {place} :",
+    "zones": {
+      "red": "zone rouge (payante)",
+      "orange": "zone orange (payante)",
+      "yellow": "zone jaune (payante)",
+      "green": "zone verte (payante)",
+      "blue": "zone bleue (disque de stationnement)"
+    },
+    "none": "hors des zones de stationnement de la ville",
+    "rates": "Tarifs et durée maximale"
+  },
+  "lez": {
+    "inside": "Ce parking se trouve dans la zone de basses émissions de Gand. Vérifiez avant d’y entrer si votre véhicule est autorisé. Un véhicule immatriculé à l’étranger doit généralement être enregistré au préalable.",
+    "link": "Règles et vérification du véhicule (Ville de Gand)"
+  },
+  "offline": {
+    "savedCopy": "Copie hors ligne : cette page a été enregistrée {age}. Les comptages ont pu changer depuis.",
+    "noConnection": "Vous êtes hors ligne. Les comptages de cette page ne sont peut-être plus à jour.",
+    "reload": "Recharger"
+  },
+  "chargers": {
+    "toggle": "Bornes de recharge",
+    "toggleLabel": "Afficher les bornes de recharge pour voitures électriques sur la carte",
+    "fast": "Recharge rapide",
+    "error": "Impossible de charger les bornes de recharge."
+  },
+  "onward": {
+    "title": "Poursuivre d’ici",
+    "toCentre": "Vers le centre-ville :",
+    "transit": "Transports en commun",
+    "bike": "À vélo",
+    "routeNote": "Ouvre l’itinéraire dans Google Maps.",
+    "bikesTitle": "Vélos partagés à moins de 400 m, en ce moment",
+    "bikesNone": "Aucun vélo partagé à moins de 400 m pour le moment.",
+    "bikesLoading": "Recherche de vélos partagés…",
+    "bikesSource": "En direct des données ouvertes de la ville, récupérées directement par votre navigateur.",
+    "stopsTitle": "Arrêts de bus et de tram à moins de 400 m",
+    "bus": "bus",
+    "tram": "tram",
+    "busAndTram": "bus et tram"
+  },
+  "bans": {
+    "title": "Interdictions temporaires de stationner à proximité",
+    "none": "Aucune interdiction temporaire connue dans un rayon de {metres} m pour les {days} prochains jours.",
+    "kinds": {
+      "loading": "Chargement et déchargement",
+      "construction": "Véhicule de chantier",
+      "noParking": "Arrêt et stationnement interdits"
+    },
+    "active": "en vigueur maintenant",
+    "range": "du {from} au {until}",
+    "away": "à environ {metres} m",
+    "here": "tout près de cet endroit",
+    "caveat": "D’après les autorisations accordées par la ville. Les panneaux dans la rue font toujours foi : vérifiez-les là où vous vous garez."
+  },
+  "typical": {
+    "title": "Un {weekday} type",
+    "pickDay": "Jour de la semaine",
+    "noDay": "Pas encore de mesures pour ce jour.",
+    "aroundNow": "Vers {time}, il y a généralement environ {free} places libres",
+    "basedOn": "{days, plural, one {mesuré sur # jour jusqu’ici} other {mesuré sur # jours}}",
+    "quietest": "Le plus de place : vers {time} (environ {free} libres).",
+    "busiest": "Le plus chargé : vers {time} (environ {free} libres).",
+    "bar": "{time} : environ {free} libres",
+    "source": "D’après les mesures de ce site, toutes les 10 minutes depuis le {since}. Une tendance, pas une promesse."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking pour les assistants IA",
+    "intro": "Ce site dispose d’un serveur MCP. Connectez-le à un assistant comme Claude et demandez simplement où vous garer à Gand : l’assistant lit les mêmes données en direct et suit les mêmes règles que ce site.",
+    "urlLabel": "Adresse du serveur",
+    "copy": "Copier",
+    "copied": "Copié",
+    "connectTitle": "Comment le connecter",
+    "step1": "Dans Claude, ouvrez les paramètres et allez dans Connecteurs.",
+    "step2": "Choisissez « Ajouter un connecteur personnalisé » et collez l’adresse ci-dessus.",
+    "step3": "Aucune clé ni aucun compte n’est nécessaire. Posez votre question.",
+    "otherClients": "Les noms des menus peuvent différer dans votre version. Les autres assistants qui prennent en charge MCP via HTTP (« Streamable HTTP ») fonctionnent de la même manière.",
+    "toolsTitle": "Ce que l’assistant peut consulter",
+    "tools": {
+      "list_garages": "Tous les parkings avec leurs places libres en ce moment, la prévision pour l’heure à venir et des caractéristiques comme Park & Ride, gratuité et bornes de recharge.",
+      "find_parking": "Le meilleur parking pour une destination, avec la raison, d’autres parkings avec de la place, le temps de marche et le Park & Ride le plus proche.",
+      "get_garage": "Un parking en détail : places libres, prévision, ce qui est habituel à cette heure, heures d’ouverture, position et remarque de la ville.",
+      "typical_availability": "Pour prévoir : la place dont dispose habituellement chaque parking à une heure de la semaine, par exemple le samedi à 14 h."
+    },
+    "examplesTitle": "Questions que vous pouvez poser",
+    "example1": "Où me garer ce soir pour le Vooruit ?",
+    "example2": "Quels parkings à Gand ont de la place en ce moment ?",
+    "example3": "À quel point le Vrijdagmarkt est-il rempli le samedi après-midi ?",
+    "notesTitle": "Bon à savoir",
+    "note1": "Lecture seule : l’assistant peut consulter des données, rien d’autre.",
+    "note2": "Données ouvertes de la Ville de Gand et mesures propres à ce site. Aucune donnée personnelle.",
+    "note3": "Les lieux connus fonctionnent par leur nom. Pour une adresse, l’assistant transmet lui-même des coordonnées.",
+    "note4": "Les noms et descriptions des outils sont en anglais ; l’assistant répond dans votre langue."
   }
 }

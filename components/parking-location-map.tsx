@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMapProvider } from "@/lib/map-provider";
+import type { RouteLine } from "@/lib/approach-routes";
 import type { Parking } from "@/lib/parkings.schema";
 
 const MAP_HEIGHT = "h-[360px]";
@@ -20,7 +21,17 @@ const ParkingLocationLeaflet = dynamic(
 // The map on a garage page: OpenStreetMap by default, or an embedded Google
 // map for visitors who chose that in settings. Nothing is requested from
 // Google unless they did.
-export function ParkingLocationMap({ parking }: { parking: Parking }) {
+export function ParkingLocationMap({
+  parking,
+  plainMarker,
+  routes = [],
+}: {
+  parking: Pick<Parking, "name" | "lat" | "lng"> | Parking;
+  // For a car park without a live count: what the marker says instead.
+  plainMarker?: { parkAndRide: boolean };
+  // The city's recommended streets between the ring road and this car park.
+  routes?: RouteLine[];
+}) {
   const t = useTranslations("settings");
   const tDetail = useTranslations("detail");
   const tCommon = useTranslations("common");
@@ -47,12 +58,19 @@ export function ParkingLocationMap({ parking }: { parking: Parking }) {
         />
       ) : (
         <ParkingLocationLeaflet
-          parking={parking}
+          marker={plainMarker ? { name: parking.name, ...plainMarker } : (parking as Parking)}
           position={[parking.lat, parking.lng]}
           closedLabel={tCommon("closed")}
           label={label}
+          routes={routes}
         />
       )}
+      {routes.length > 0 && ready && provider !== "google" ? (
+        <p className="border-t border-border/60 px-4 py-2.5 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">{tDetail("routesTitle")}.</span>{" "}
+          {tDetail("routesNote")}
+        </p>
+      ) : null}
       <p className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border/60 px-4 py-2.5 text-xs text-muted-foreground">
         <span>{t("changeHint")}</span>
         {ready ? (

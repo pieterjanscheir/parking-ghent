@@ -12,6 +12,7 @@
 		"test:watch": "vitest"
 	},
 	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.32.2",
 		"@tanstack/react-table": "^8.21.3",
 		"@vercel/blob": "^2.9.0",
 		"class-variance-authority": "^0.7.1",

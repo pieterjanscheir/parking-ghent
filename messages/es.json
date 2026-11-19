@@ -4,7 +4,8 @@
     "description": "Disponibilidad de aparcamiento en Gante en tiempo real: mira dónde aparcar antes de salir.",
     "garageTitle": "Aparcamiento {name}",
     "garageFallbackTitle": "Aparcamiento",
-    "garageDescription": "Plazas libres en tiempo real y una previsión a corto plazo para el aparcamiento {name} en Gante."
+    "garageDescription": "Plazas libres en tiempo real y una previsión a corto plazo para el aparcamiento {name} en Gante.",
+    "extraDescription": "Ubicación, capacidad y cómo llegar a {name} en Gante. No hay recuento en directo para este aparcamiento."
   },
   "common": {
     "open": "Abierto",
@@ -21,15 +22,17 @@
   "header": {
     "home": "Ghent Parking — inicio",
     "liveData": "Datos en directo · Stad Gent",
-    "language": "Idioma"
+    "language": "Idioma",
+    "parked": "¿Dónde he aparcado?"
   },
   "footer": {
     "builtBy": "Creado por",
-    "dataSource": "Datos: portal de datos abiertos stad.gent"
+    "dataSource": "Datos: portal de datos abiertos stad.gent",
+    "mcp": "Para asistentes de IA (MCP)"
   },
   "overview": {
     "title": "Dónde aparcar en Gante",
-    "intro": "Plazas libres en tiempo real en los aparcamientos de la ciudad, con una previsión a corto plazo para saber qué te espera al llegar.",
+    "intro": "Plazas libres en tiempo real en los aparcamientos de la ciudad, con una previsión a corto plazo, además de todos los Park & Ride y otros aparcamientos de Gante.",
     "stats": {
       "openNow": "Abiertos ahora",
       "withSpace": "Con plazas",
@@ -72,7 +75,10 @@
     "sortedNote": "Aparcamientos ordenados por distancia a pie hasta {place}.",
     "walk": "~{minutes} min a pie",
     "nearestToDestination": "Más cerca del destino",
-    "marker": "Tu destino"
+    "marker": "Tu destino",
+    "recentAndPopular": "Destinos recientes y populares",
+    "recent": "reciente",
+    "forgetRecent": "Olvidar destinos recientes"
   },
   "sort": {
     "spaces-desc": "Más plazas libres",
@@ -92,7 +98,8 @@
     "availability": "Disponibilidad",
     "available": "Disponible",
     "almostFull": "Casi lleno",
-    "full": "Lleno"
+    "full": "Lleno",
+    "facilities": "Servicios"
   },
   "garage": {
     "favorite": "Favorito",
@@ -170,7 +177,9 @@
     "type": "Tipo",
     "lez": "Zona de bajas emisiones",
     "website": "Visitar sitio web",
-    "mapTitle": "Mapa de {name}"
+    "mapTitle": "Mapa de {name}",
+    "routesTitle": "Rutas de acceso",
+    "routesNote": "Las líneas azules son las rutas recomendadas por la ciudad entre la circunvalación (R40) y este aparcamiento. El plan de circulación de Gante cierra muchas otras calles al tráfico de paso."
   },
   "list": {
     "favorite": "Favorito",
@@ -217,7 +226,17 @@
     "googleNote": "Carga el mapa desde Google, que entonces puede ver que has visitado la página.",
     "switchToGoogle": "Usar Google Maps en su lugar",
     "switchToOsm": "Usar OpenStreetMap en su lugar",
-    "changeHint": "Puedes cambiar el mapa en cualquier momento en los ajustes."
+    "changeHint": "Puedes cambiar el mapa en cualquier momento en los ajustes.",
+    "appTitle": "Aplicación",
+    "install": "Instalar en este dispositivo",
+    "installNote": "Se abre en su propia ventana. Las páginas que ya has visto también se abren sin conexión.",
+    "installIos": "En iPhone o iPad: toca Compartir y luego «Añadir a pantalla de inicio».",
+    "themeTitle": "Apariencia",
+    "theme": {
+      "dark": "Oscuro",
+      "light": "Claro",
+      "system": "Dispositivo"
+    }
   },
   "errors": {
     "title": "Algo ha salido mal",
@@ -231,5 +250,203 @@
   },
   "share": {
     "features": "Disponibilidad en directo|Previsión a 30 min|Mapa|Cerca de mí"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Gratis",
+    "freeParking": "Aparcamiento gratuito",
+    "paid": "De pago",
+    "evCharging": "Recarga de coches eléctricos",
+    "evShort": "{count} cargadores",
+    "chargePoints": "{count, plural, one {# punto de recarga} other {# puntos de recarga}}",
+    "chargePointsKw": "{count, plural, one {# punto de recarga} other {# puntos de recarga}}, hasta {kw} kW",
+    "chargingLabel": "Recarga eléctrica",
+    "priceLabel": "Precio",
+    "parkAndRideDetail": "Aparca aquí y continúa hasta el centro en tranvía, autobús o bicicleta.",
+    "cityNote": "Conviene saber",
+    "cityNoteSource": "Nota del Ayuntamiento de Gante."
+  },
+  "extras": {
+    "title": "Park & Ride y otros aparcamientos",
+    "intro": "Estos aparcamientos no publican cuántas plazas quedan libres, así que no hay recuento en directo.",
+    "noLiveCount": "Sin recuento en directo",
+    "spaces": "{count, plural, one {# plaza} other {# plazas}}",
+    "capacity": "Capacidad",
+    "detailLead": "Este aparcamiento no publica recuentos en directo. Podemos mostrarte dónde está y su tamaño, pero no cuánto se ha llenado ahora.",
+    "moreInfo": "Más información",
+    "shareText": "Aparcamiento en Gante, sin recuento en directo"
+  },
+  "advice": {
+    "titleFor": "Mejor opción para {place}",
+    "titleNearYou": "Mejor opción cerca de ti",
+    "free": "{count, plural, one {# plaza libre} other {# plazas libres}}",
+    "nearestToo": "También es el aparcamiento más cercano.",
+    "passed": {
+      "closed": "{name} está más cerca, pero está cerrado.",
+      "noData": "{name} está más cerca, pero ahora no tiene un recuento fiable.",
+      "full": "{name} está más cerca, pero está completo.",
+      "almostFull": "{name} está más cerca, pero solo le {count, plural, one {queda # plaza} other {quedan # plazas}}.",
+      "fillingUp": "{name} está más cerca, pero probablemente se llene en unos {minutes} min."
+    },
+    "none": "Ahora mismo ningún aparcamiento con recuento en directo tiene plazas suficientes. Consulta la lista de abajo o elige un Park & Ride.",
+    "parkAndRide": "¿Prefieres no entrar al centro en coche? Park & Ride más cercano:",
+    "details": "Detalles",
+    "walkRoute": "Ruta a pie desde este aparcamiento",
+    "walkRouteLabel": "Ruta a pie de {garage} a {place}"
+  },
+  "alternatives": {
+    "title": "Aparcamientos cercanos",
+    "titleNoSpace": "¿Sin sitio aquí? Prueba cerca",
+    "intro": "Otros aparcamientos con plazas libres, del más cercano al más lejano. Distancias en línea recta desde este aparcamiento."
+  },
+  "parked": {
+    "button": "He aparcado aquí",
+    "saved": "Guardado. {name} se recuerda en este dispositivo.",
+    "bannerTitle": "Has aparcado en {name}",
+    "here": "Has aparcado aquí",
+    "since": "Desde las {time} ({age})",
+    "noteLabel": "Planta o plaza (opcional)",
+    "notePlaceholder": "p. ej. planta -2, fila C",
+    "walkBack": "Volver a pie",
+    "walkBackLabel": "Ruta a pie hasta {name}",
+    "clear": "Ya me he ido",
+    "clearLabel": "Olvidar dónde he aparcado",
+    "privacy": "Solo se guarda en este navegador.",
+    "pageTitle": "¿Dónde he aparcado?",
+    "pageIntro": "Guarda dónde has dejado el coche y encuentra el camino de vuelta. Solo se guarda en este dispositivo.",
+    "none": "Aún no hay ninguna plaza guardada.",
+    "saveHere": "Guardar dónde estoy ahora",
+    "saveHereHint": "¿Has aparcado en la calle? Ponte junto al coche y pulsa el botón. El navegador pedirá usar tu ubicación.",
+    "garageHint": "¿En un aparcamiento? Abre la página de ese aparcamiento y pulsa «He aparcado aquí».",
+    "toOverview": "Ver todos los aparcamientos",
+    "locating": "Buscando tu ubicación…",
+    "denied": "Se ha denegado el acceso a tu ubicación. Permítelo en los ajustes del navegador e inténtalo de nuevo.",
+    "unavailable": "No se ha podido determinar tu ubicación. Inténtalo de nuevo, mejor al aire libre.",
+    "streetSaved": "Guardado, con una precisión de unos {metres} m.",
+    "streetTitle": "Has aparcado en la calle",
+    "streetCar": "tu coche",
+    "streetNoteLabel": "Nota (opcional)",
+    "streetNotePlaceholder": "p. ej., frente al número 12",
+    "update": "Cambiar a donde estoy ahora",
+    "zoneLabel": "Zona de aparcamiento aquí:",
+    "lookupNote": "El lugar en sí se queda en este navegador. Para mostrar la zona de aparcamiento, las prohibiciones y el parquímetro más cercano, solo se consultan sus coordenadas: en este sitio y en el portal de datos abiertos de la ciudad.",
+    "garagePage": "Página del aparcamiento",
+    "untilLabel": "El tique o el disco vale hasta (opcional)",
+    "untilRunning": "Termina a las {time}, {left}",
+    "untilPassed": "Terminó a las {time}, {age}",
+    "inMinutes": "en {count} min",
+    "inHours": "en {hours} h {minutes} min",
+    "clearUntil": "Quitar la hora",
+    "addReminder": "Añadir un recordatorio a mi calendario",
+    "reminderNote": "Descarga un evento de calendario con un aviso 10 minutos antes. El calendario de tu teléfono te lo recuerda.",
+    "reminderTitle": "Se acaba el aparcamiento",
+    "reminderBody": "De vuelta al coche antes de las {time}.",
+    "shareSpot": "Compartir este lugar",
+    "shareSpotText": "Aquí está aparcado el coche.",
+    "sharedTitle": "Un lugar de aparcamiento compartido contigo",
+    "sharedIntro": "Alguien te ha enviado dónde está el coche.",
+    "walkThere": "Ir andando",
+    "saveShared": "Guardar como mi lugar",
+    "sharedSaved": "Guardado como tu lugar.",
+    "backToMine": "Volver a mi lugar",
+    "payMachine": "Parquímetro más cercano: {address}, a unos {metres} m",
+    "payNoCash": "no acepta efectivo",
+    "payCash": "acepta efectivo"
+  },
+  "street": {
+    "label": "Aparcar en la calle en {place}:",
+    "zones": {
+      "red": "zona roja (de pago)",
+      "orange": "zona naranja (de pago)",
+      "yellow": "zona amarilla (de pago)",
+      "green": "zona verde (de pago)",
+      "blue": "zona azul (disco de estacionamiento)"
+    },
+    "none": "fuera de las zonas de aparcamiento de la ciudad",
+    "rates": "Tarifas y tiempo máximo"
+  },
+  "lez": {
+    "inside": "Este aparcamiento está dentro de la zona de bajas emisiones de Gante. Comprueba antes de entrar si tu vehículo está permitido. Un vehículo con matrícula extranjera normalmente debe registrarse antes.",
+    "link": "Normas y comprobación del vehículo (Ayuntamiento de Gante)"
+  },
+  "offline": {
+    "savedCopy": "Copia sin conexión: esta página se guardó {age}. Los recuentos pueden haber cambiado desde entonces.",
+    "noConnection": "Estás sin conexión. Los recuentos de esta página pueden estar desactualizados.",
+    "reload": "Recargar"
+  },
+  "chargers": {
+    "toggle": "Puntos de recarga",
+    "toggleLabel": "Mostrar en el mapa los puntos de recarga para coches eléctricos",
+    "fast": "Carga rápida",
+    "error": "No se pudieron cargar los puntos de recarga."
+  },
+  "onward": {
+    "title": "Continuar desde aquí",
+    "toCentre": "Al centro de la ciudad:",
+    "transit": "Transporte público",
+    "bike": "En bicicleta",
+    "routeNote": "Abre la ruta en Google Maps.",
+    "bikesTitle": "Bicicletas compartidas a menos de 400 m, ahora",
+    "bikesNone": "Ahora no hay bicicletas compartidas a menos de 400 m.",
+    "bikesLoading": "Buscando bicicletas compartidas…",
+    "bikesSource": "En directo desde los datos abiertos de la ciudad, obtenidos directamente por tu navegador.",
+    "stopsTitle": "Paradas de autobús y tranvía a menos de 400 m",
+    "bus": "autobús",
+    "tram": "tranvía",
+    "busAndTram": "autobús y tranvía"
+  },
+  "bans": {
+    "title": "Prohibiciones temporales de aparcar cerca",
+    "none": "No se conocen prohibiciones temporales a menos de {metres} m para los próximos {days} días.",
+    "kinds": {
+      "loading": "Carga y descarga",
+      "construction": "Vehículo de obra",
+      "noParking": "Prohibido parar y aparcar"
+    },
+    "active": "en vigor ahora",
+    "range": "del {from} al {until}",
+    "away": "a unos {metres} m",
+    "here": "justo en este lugar",
+    "caveat": "Según los permisos concedidos por la ciudad. Las señales de la calle siempre mandan: compruébalas donde aparques."
+  },
+  "typical": {
+    "title": "Un {weekday} normal",
+    "pickDay": "Día de la semana",
+    "noDay": "Aún no hay mediciones para este día.",
+    "aroundNow": "Hacia las {time} suele haber unas {free} plazas libres",
+    "basedOn": "{days, plural, one {medido # día hasta ahora} other {medido # días}}",
+    "quietest": "Más sitio: hacia las {time} (unas {free} libres).",
+    "busiest": "Más lleno: hacia las {time} (unas {free} libres).",
+    "bar": "{time}: unas {free} libres",
+    "source": "Según las mediciones propias de este sitio, cada 10 minutos desde el {since}. Un patrón, no una promesa."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking para asistentes de IA",
+    "intro": "Este sitio tiene un servidor MCP. Conéctalo a un asistente como Claude y pregunta sin más dónde aparcar en Gante: el asistente lee los mismos datos en directo y sigue las mismas reglas que este sitio.",
+    "urlLabel": "Dirección del servidor",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "connectTitle": "Cómo conectarlo",
+    "step1": "En Claude, abre Ajustes y ve a Conectores.",
+    "step2": "Elige «Añadir conector personalizado» y pega la dirección de arriba.",
+    "step3": "No hace falta clave ni cuenta. Haz tu pregunta.",
+    "otherClients": "Los nombres de los menús pueden variar en tu versión. Otros asistentes compatibles con MCP por HTTP («Streamable HTTP») funcionan igual.",
+    "toolsTitle": "Lo que el asistente puede consultar",
+    "tools": {
+      "list_garages": "Todos los aparcamientos con sus plazas libres ahora mismo, la previsión para la próxima hora y datos como Park & Ride, gratuito y puntos de recarga.",
+      "find_parking": "El mejor aparcamiento para un destino, con el motivo, otros aparcamientos con sitio, el tiempo a pie y el Park & Ride más cercano.",
+      "get_garage": "Un aparcamiento en detalle: plazas libres, previsión, lo habitual a esta hora, horario, posición y la observación de la ciudad.",
+      "typical_availability": "Para planificar: cuánto sitio suele tener cada aparcamiento a una hora de la semana, por ejemplo el sábado a las 14:00."
+    },
+    "examplesTitle": "Preguntas que puedes hacer",
+    "example1": "¿Dónde aparco esta noche para ir al Vooruit?",
+    "example2": "¿Qué aparcamientos de Gante tienen sitio ahora?",
+    "example3": "¿Cómo de lleno suele estar Vrijdagmarkt un sábado por la tarde?",
+    "notesTitle": "Conviene saber",
+    "note1": "Solo lectura: el asistente puede consultar datos, nada más.",
+    "note2": "Datos abiertos de la ciudad de Gante y mediciones propias de este sitio. Sin datos personales.",
+    "note3": "Los lugares conocidos funcionan por su nombre. Para una dirección, el asistente pasa él mismo las coordenadas.",
+    "note4": "Los nombres y descripciones de las herramientas están en inglés; el asistente responde en tu idioma."
   }
 }

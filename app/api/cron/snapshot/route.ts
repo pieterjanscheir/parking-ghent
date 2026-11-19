@@ -1,6 +1,7 @@
 import { getArchiveStore } from "@/lib/archive-store";
 import { isAuthorizedCron } from "@/lib/cron-auth";
 import { recordSnapshot } from "@/lib/history-archive";
+import { isProfileRun, rebuildProfile } from "@/lib/history-profile-store";
 import { fetchParkings } from "@/lib/parkings";
 
 // Saves the current count of every garage to our own history archive
@@ -8,7 +9,13 @@ import { fetchParkings } from "@/lib/parkings";
 // schedule in vercel.json — and safe to call more often: a second call in the
 // same 10 minutes changes nothing.
 
-// One feed request (4 s timeout, one retry) plus a read and a write.
+//
+// Once a night the same call also works out the weekly pattern from the last
+// four weeks (lib/history-profile-store.ts). `?profile=1` does that right
+// away, for the first time or after a change to how it is calculated.
+
+// One feed request (4 s timeout, one retry) plus a read and a write; at
+// night also four weeks of day files.
 export const maxDuration = 30;
 
 const message = (err: unknown) => (err instanceof Error ? err.message : String(err));
@@ -37,13 +44,27 @@ export async function GET(request: Request) {
     );
   }
 
+  const now = Date.now();
+  let saved;
   try {
-    return Response.json(await recordSnapshot(store, parkings, Date.now()));
+    saved = await recordSnapshot(store, parkings, now);
   } catch (err) {
     console.error("History snapshot failed", err);
     return Response.json(
       { error: "The snapshot could not be saved", detail: message(err) },
       { status: 500 },
     );
+  }
+
+  const asked = new URL(request.url).searchParams.get("profile") === "1";
+  if (!asked && !isProfileRun(now)) return Response.json(saved);
+  try {
+    return Response.json({ ...saved, profile: await rebuildProfile(store, now) });
+  } catch (err) {
+    // The snapshot is saved. The pattern is next tried at the 03:00 UTC run
+    // (or the following midnight), or right away with ?profile=1; until then
+    // pages keep the previous one.
+    console.error("Weekly pattern failed", err);
+    return Response.json({ ...saved, profile: { error: message(err) } });
   }
 }

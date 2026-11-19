@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 export function SiteFooter() {
   const t = useTranslations("footer");
@@ -16,7 +17,13 @@ export function SiteFooter() {
             Pieter-Jan Scheir | scheir.eu
           </a>
         </p>
-        <p className="text-xs text-muted-foreground">{t("dataSource")}</p>
+        <p className="text-xs text-muted-foreground">
+          {t("dataSource")}
+          {" · "}
+          <Link href="/mcp" className="underline-offset-4 hover:text-foreground hover:underline">
+            {t("mcp")}
+          </Link>
+        </p>
       </div>
     </footer>
   );

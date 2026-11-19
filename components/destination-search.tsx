@@ -1,11 +1,12 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { Loader2, MapPin, Search, X } from "lucide-react";
+import { History, Loader2, MapPin, Search, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { searchKnownPlaces, type Place } from "@/lib/destinations";
 import { MIN_QUERY_LENGTH, geocodeInGhent } from "@/lib/geocode";
+import { useRecentDestinations } from "@/lib/recent-destinations";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -23,7 +24,8 @@ type Remote =
   | { status: "error"; query: string };
 
 type Row =
-  | { kind: "place"; place: Place }
+  // `recent`: one the visitor picked before, offered again.
+  | { kind: "place"; place: Place; recent?: boolean }
   // "Search all of Ghent for …": runs the OpenStreetMap search.
   | { kind: "search" };
 
@@ -43,6 +45,7 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [remote, setRemote] = useState<Remote>({ status: "idle" });
+  const { recent, remember, forget } = useRecentDestinations();
 
   // Follow a destination that changes from outside (a shared link, the back
   // button, "Near me"). Done here rather than by remounting the component,
@@ -73,8 +76,13 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
     query.length >= MIN_QUERY_LENGTH &&
     (!remoteForQuery || remoteForQuery.status === "error");
 
+  // With an empty box: what they picked before, then the popular places.
+  const recentRows = query ? [] : recent;
   const rows: Row[] = [
-    ...known.map((place): Row => ({ kind: "place", place })),
+    ...recentRows.map((place): Row => ({ kind: "place", place, recent: true })),
+    ...known
+      .filter((place) => !recentRows.some((r) => r.name === place.name))
+      .map((place): Row => ({ kind: "place", place })),
     ...remotePlaces.map((place): Row => ({ kind: "place", place })),
     ...(canSearch ? [{ kind: "search" } as const] : []),
   ];
@@ -94,6 +102,7 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
     setText(place.name);
     setOpen(false);
     setRemote({ status: "idle" });
+    remember(place);
     onSelect(place);
     inputRef.current?.blur();
   }
@@ -233,7 +242,7 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
         <div className="absolute inset-x-0 top-full z-20 mt-1.5 overflow-hidden rounded-lg border border-border/70 bg-popover text-popover-foreground shadow-lg">
           {!query && known.length > 0 ? (
             <p className="px-3 pt-2.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-              {t("popular")}
+              {recentRows.length > 0 ? t("recentAndPopular") : t("popular")}
             </p>
           ) : null}
           <ul id={listId} role="listbox" aria-label={t("label")} className="max-h-72 overflow-y-auto p-1.5">
@@ -255,9 +264,16 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
               >
                 {row.kind === "place" ? (
                   <>
-                    <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                    {row.recent ? (
+                      <History className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                    ) : (
+                      <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                    )}
                     <span className="min-w-0">
-                      <span className="block truncate font-medium">{row.place.name}</span>
+                      <span className="block truncate font-medium">
+                        {row.place.name}
+                        {row.recent ? <span className="sr-only"> ({t("recent")})</span> : null}
+                      </span>
                       {row.place.detail ? (
                         <span className="block truncate text-xs text-muted-foreground">
                           {row.place.detail}
@@ -274,6 +290,19 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
               </li>
             ))}
           </ul>
+          {recentRows.length > 0 ? (
+            <p className="border-t border-border/60 px-3 py-1.5 text-right">
+              <button
+                type="button"
+                // Keep focus in the text box, so the list stays open.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={forget}
+                className="text-[11px] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                {t("forgetRecent")}
+              </button>
+            </p>
+          ) : null}
           {status ? (
             <p
               role="status"

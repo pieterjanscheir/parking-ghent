@@ -4,7 +4,8 @@
     "description": "Live parking availability for Ghent — see where to park before you drive.",
     "garageTitle": "Parking {name}",
     "garageFallbackTitle": "Parking",
-    "garageDescription": "Live free spaces and a short-term forecast for parking {name} in Ghent."
+    "garageDescription": "Live free spaces and a short-term forecast for parking {name} in Ghent.",
+    "extraDescription": "Location, capacity and directions for {name} in Ghent. No live count is available for this car park."
   },
   "common": {
     "open": "Open",
@@ -21,15 +22,17 @@
   "header": {
     "home": "Ghent Parking — home",
     "liveData": "Live data · Stad Gent",
-    "language": "Language"
+    "language": "Language",
+    "parked": "Where did I park?"
   },
   "footer": {
     "builtBy": "Built by",
-    "dataSource": "Data: stad.gent open data portal"
+    "dataSource": "Data: stad.gent open data portal",
+    "mcp": "For AI assistants (MCP)"
   },
   "overview": {
     "title": "Where to park in Ghent",
-    "intro": "Live free spaces in the city's parking garages, with a short-term forecast so you know what to expect when you arrive.",
+    "intro": "Live free spaces in the city's parking garages, with a short-term forecast, plus every Park & Ride and other car park in Ghent.",
     "stats": {
       "openNow": "Open now",
       "withSpace": "With space",
@@ -72,7 +75,10 @@
     "sortedNote": "Garages sorted by walking distance to {place}.",
     "walk": "~{minutes} min walk",
     "nearestToDestination": "Nearest to destination",
-    "marker": "Your destination"
+    "marker": "Your destination",
+    "recentAndPopular": "Recent and popular destinations",
+    "recent": "recent",
+    "forgetRecent": "Forget recent destinations"
   },
   "sort": {
     "spaces-desc": "Most free spaces",
@@ -92,7 +98,8 @@
     "availability": "Availability",
     "available": "Available",
     "almostFull": "Almost full",
-    "full": "Full"
+    "full": "Full",
+    "facilities": "Facilities"
   },
   "garage": {
     "favorite": "Favorite",
@@ -170,7 +177,9 @@
     "type": "Type",
     "lez": "Low emission zone",
     "website": "Visit website",
-    "mapTitle": "Map of {name}"
+    "mapTitle": "Map of {name}",
+    "routesTitle": "Driving in",
+    "routesNote": "The blue lines are the city's recommended routes between the ring road (R40) and this car park. Ghent's circulation plan closes many other streets to through traffic."
   },
   "list": {
     "favorite": "Favorite",
@@ -217,7 +226,17 @@
     "googleNote": "Loads the map from Google, which can then see that you viewed the page.",
     "switchToGoogle": "Use Google Maps instead",
     "switchToOsm": "Use OpenStreetMap instead",
-    "changeHint": "You can change the map any time in settings."
+    "changeHint": "You can change the map any time in settings.",
+    "appTitle": "App",
+    "install": "Install on this device",
+    "installNote": "Opens in its own window. Pages you have seen before also open without a connection.",
+    "installIos": "On iPhone or iPad: tap Share, then “Add to Home Screen”.",
+    "themeTitle": "Appearance",
+    "theme": {
+      "dark": "Dark",
+      "light": "Light",
+      "system": "Device"
+    }
   },
   "errors": {
     "title": "Something went wrong",
@@ -231,5 +250,203 @@
   },
   "share": {
     "features": "Live availability|30-minute forecast|Map|Near me"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Free",
+    "freeParking": "Free parking",
+    "paid": "Paid",
+    "evCharging": "EV charging",
+    "evShort": "{count} chargers",
+    "chargePoints": "{count, plural, one {# charge point} other {# charge points}}",
+    "chargePointsKw": "{count, plural, one {# charge point} other {# charge points}}, up to {kw} kW",
+    "chargingLabel": "EV charging",
+    "priceLabel": "Price",
+    "parkAndRideDetail": "Park here and continue to the centre by tram, bus or bike.",
+    "cityNote": "Good to know",
+    "cityNoteSource": "Note from the City of Ghent."
+  },
+  "extras": {
+    "title": "Park & Ride and other car parks",
+    "intro": "These car parks don't publish how many spaces are free, so there is no live count.",
+    "noLiveCount": "No live count",
+    "spaces": "{count, plural, one {# space} other {# spaces}}",
+    "capacity": "Capacity",
+    "detailLead": "This car park doesn't publish live counts. We can show where it is and how big it is, not how full it is right now.",
+    "moreInfo": "More information",
+    "shareText": "Car park in Ghent, no live count"
+  },
+  "advice": {
+    "titleFor": "Best choice for {place}",
+    "titleNearYou": "Best choice near you",
+    "free": "{count, plural, one {# space free} other {# spaces free}}",
+    "nearestToo": "It is also the nearest garage.",
+    "passed": {
+      "closed": "{name} is closer, but it is closed.",
+      "noData": "{name} is closer, but has no reliable count right now.",
+      "full": "{name} is closer, but it is full.",
+      "almostFull": "{name} is closer, but has only {count, plural, one {# space} other {# spaces}} left.",
+      "fillingUp": "{name} is closer, but is likely full in about {minutes} min."
+    },
+    "none": "No garage with a live count has comfortable space right now. Check the list below or pick a Park & Ride.",
+    "parkAndRide": "Rather not drive into the centre? Nearest Park & Ride:",
+    "details": "Details",
+    "walkRoute": "Walking route from this garage",
+    "walkRouteLabel": "Walking route from {garage} to {place}"
+  },
+  "alternatives": {
+    "title": "Nearby garages",
+    "titleNoSpace": "No space here? Try nearby",
+    "intro": "Other garages with free spaces, nearest first. Distances are in a straight line from this garage."
+  },
+  "parked": {
+    "button": "I parked here",
+    "saved": "Saved. {name} is remembered on this device.",
+    "bannerTitle": "You parked at {name}",
+    "here": "You parked here",
+    "since": "Since {time} ({age})",
+    "noteLabel": "Level or spot (optional)",
+    "notePlaceholder": "e.g. level -2, row C",
+    "walkBack": "Walk back",
+    "walkBackLabel": "Walking route to {name}",
+    "clear": "I've left",
+    "clearLabel": "Forget where I parked",
+    "privacy": "Only stored in this browser.",
+    "pageTitle": "Where did I park?",
+    "pageIntro": "Save where you left your car and find your way back. Stored on this device only.",
+    "none": "No parking spot saved yet.",
+    "saveHere": "Save where I am now",
+    "saveHereHint": "Parked on the street? Stand next to your car and tap the button. Your browser will ask to use your location.",
+    "garageHint": "In a car park? Open that car park's page and tap “I parked here”.",
+    "toOverview": "See all car parks",
+    "locating": "Finding your location…",
+    "denied": "Access to your location was refused. Allow it in your browser's settings and try again.",
+    "unavailable": "Your location couldn't be determined. Try again, preferably outdoors.",
+    "streetSaved": "Saved, accurate to about {metres} m.",
+    "streetTitle": "You parked on the street",
+    "streetCar": "your car",
+    "streetNoteLabel": "Note (optional)",
+    "streetNotePlaceholder": "e.g. opposite number 12",
+    "update": "Update to where I am now",
+    "zoneLabel": "Parking zone here:",
+    "lookupNote": "The spot itself stays in this browser. To show the parking zone, parking bans and the nearest pay machine, only its coordinates are looked up: with this site and with the city's open data portal.",
+    "garagePage": "Car park page",
+    "untilLabel": "Ticket or parking disc runs until (optional)",
+    "untilRunning": "Runs out at {time}, {left}",
+    "untilPassed": "Ran out at {time}, {age}",
+    "inMinutes": "in {count} min",
+    "inHours": "in {hours} h {minutes} min",
+    "clearUntil": "Remove time",
+    "addReminder": "Add a reminder to my calendar",
+    "reminderNote": "Downloads a calendar event with an alert 10 minutes before. Your phone's calendar does the reminding.",
+    "reminderTitle": "Parking runs out",
+    "reminderBody": "Back at the car by {time}.",
+    "shareSpot": "Share this spot",
+    "shareSpotText": "This is where the car is parked.",
+    "sharedTitle": "A parking spot shared with you",
+    "sharedIntro": "Someone sent you where the car is.",
+    "walkThere": "Walk there",
+    "saveShared": "Save as my spot",
+    "sharedSaved": "Saved as your spot.",
+    "backToMine": "Back to my own spot",
+    "payMachine": "Nearest pay machine: {address}, about {metres} m away",
+    "payNoCash": "does not take cash",
+    "payCash": "takes cash"
+  },
+  "street": {
+    "label": "Street parking at {place}:",
+    "zones": {
+      "red": "red zone (paid)",
+      "orange": "orange zone (paid)",
+      "yellow": "yellow zone (paid)",
+      "green": "green zone (paid)",
+      "blue": "blue zone (parking disc)"
+    },
+    "none": "outside the city's street-parking zones",
+    "rates": "Rates and time limits"
+  },
+  "lez": {
+    "inside": "This garage is inside Ghent's low-emission zone. Check before you drive in whether your vehicle is allowed. A vehicle with a foreign number plate usually has to be registered first.",
+    "link": "Rules and vehicle check (City of Ghent)"
+  },
+  "offline": {
+    "savedCopy": "Offline copy: this page was saved {age}. The counts may have changed since.",
+    "noConnection": "You're offline. The counts on this page may be out of date.",
+    "reload": "Reload"
+  },
+  "chargers": {
+    "toggle": "Charge points",
+    "toggleLabel": "Show charge points for electric cars on the map",
+    "fast": "Fast charger",
+    "error": "Couldn't load the charge points."
+  },
+  "onward": {
+    "title": "Continue from here",
+    "toCentre": "To the city centre:",
+    "transit": "Public transport",
+    "bike": "By bike",
+    "routeNote": "Opens the route in Google Maps.",
+    "bikesTitle": "Shared bikes within 400 m, right now",
+    "bikesNone": "No shared bikes within 400 m right now.",
+    "bikesLoading": "Looking for shared bikes…",
+    "bikesSource": "Live from the city's open data, fetched directly by your browser.",
+    "stopsTitle": "Bus and tram stops within 400 m",
+    "bus": "bus",
+    "tram": "tram",
+    "busAndTram": "bus and tram"
+  },
+  "bans": {
+    "title": "Temporary parking bans nearby",
+    "none": "No temporary parking bans known within {metres} m for the next {days} days.",
+    "kinds": {
+      "loading": "Loading and unloading",
+      "construction": "Construction vehicle",
+      "noParking": "No stopping or parking"
+    },
+    "active": "in force now",
+    "range": "{from} to {until}",
+    "away": "about {metres} m away",
+    "here": "right by this spot",
+    "caveat": "From the permits the city has granted. The signs in the street always decide: check them where you park."
+  },
+  "typical": {
+    "title": "A typical {weekday}",
+    "pickDay": "Day of the week",
+    "noDay": "No measurements for this day yet.",
+    "aroundNow": "Around {time} there are usually about {free} spaces free",
+    "basedOn": "{days, plural, one {measured on # day so far} other {measured on # days}}",
+    "quietest": "Most room: around {time} (about {free} free).",
+    "busiest": "Busiest: around {time} (about {free} free).",
+    "bar": "{time}: about {free} free",
+    "source": "From this site's own measurements, every 10 minutes since {since}. A pattern, not a promise."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking for AI assistants",
+    "intro": "This site has an MCP server. Connect it to an assistant such as Claude and simply ask where to park in Ghent: the assistant reads the same live data and follows the same rules as this site.",
+    "urlLabel": "Server address",
+    "copy": "Copy",
+    "copied": "Copied",
+    "connectTitle": "How to connect",
+    "step1": "In Claude, open Settings and go to Connectors.",
+    "step2": "Choose “Add custom connector” and paste the address above.",
+    "step3": "No key or account is needed. Ask your question.",
+    "otherClients": "The menu names may differ in your version. Other assistants that support MCP over HTTP (“Streamable HTTP”) work the same way.",
+    "toolsTitle": "What the assistant can look up",
+    "tools": {
+      "list_garages": "Every car park with its free spaces right now, the forecast for the next hour and facts such as Park & Ride, free of charge and charge points.",
+      "find_parking": "The best garage for a destination, with the reason, other garages with space, the walking time and the nearest Park & Ride.",
+      "get_garage": "One car park in detail: free spaces, forecast, what is usual at this hour, opening hours, position and the city's remark.",
+      "typical_availability": "Planning ahead: how much room each garage usually has at an hour of the week, for example Saturday at 14:00."
+    },
+    "examplesTitle": "Things you can ask",
+    "example1": "Where should I park for Vooruit tonight?",
+    "example2": "Which garages in Ghent have space right now?",
+    "example3": "How full is Vrijdagmarkt usually on a Saturday afternoon?",
+    "notesTitle": "Good to know",
+    "note1": "Read-only: the assistant can look things up, nothing else.",
+    "note2": "Open data from the City of Ghent and this site's own measurements. No personal data.",
+    "note3": "Well-known places work by name. For a street address the assistant passes coordinates itself.",
+    "note4": "The tools' own names and descriptions are in English; the assistant answers in your language."
   }
 }

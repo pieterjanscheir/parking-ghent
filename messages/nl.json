@@ -4,7 +4,8 @@
     "description": "Live parkeerbezetting voor Gent — zie waar je kunt parkeren voor je vertrekt.",
     "garageTitle": "Parking {name}",
     "garageFallbackTitle": "Parking",
-    "garageDescription": "Live vrije plaatsen en een kortetermijnvoorspelling voor parking {name} in Gent."
+    "garageDescription": "Live vrije plaatsen en een kortetermijnvoorspelling voor parking {name} in Gent.",
+    "extraDescription": "Ligging, capaciteit en route voor {name} in Gent. Voor deze parking is geen live telling beschikbaar."
   },
   "common": {
     "open": "Open",
@@ -21,15 +22,17 @@
   "header": {
     "home": "Ghent Parking — startpagina",
     "liveData": "Live data · Stad Gent",
-    "language": "Taal"
+    "language": "Taal",
+    "parked": "Waar staat mijn auto?"
   },
   "footer": {
     "builtBy": "Gemaakt door",
-    "dataSource": "Data: open data portaal stad.gent"
+    "dataSource": "Data: open data portaal stad.gent",
+    "mcp": "Voor AI-assistenten (MCP)"
   },
   "overview": {
     "title": "Waar parkeren in Gent",
-    "intro": "Live vrije plaatsen in de parkings van de stad, met een kortetermijnvoorspelling zodat je weet wat je kunt verwachten als je aankomt.",
+    "intro": "Live vrije plaatsen in de parkings van de stad, met een kortetermijnvoorspelling, plus elke Park & Ride en andere parking in Gent.",
     "stats": {
       "openNow": "Nu open",
       "withSpace": "Met plaats",
@@ -72,7 +75,10 @@
     "sortedNote": "Parkings gesorteerd op wandelafstand tot {place}.",
     "walk": "~{minutes} min wandelen",
     "nearestToDestination": "Dichtst bij bestemming",
-    "marker": "Je bestemming"
+    "marker": "Je bestemming",
+    "recentAndPopular": "Recente en populaire bestemmingen",
+    "recent": "recent",
+    "forgetRecent": "Recente bestemmingen wissen"
   },
   "sort": {
     "spaces-desc": "Meeste vrije plaatsen",
@@ -92,7 +98,8 @@
     "availability": "Beschikbaarheid",
     "available": "Beschikbaar",
     "almostFull": "Bijna volzet",
-    "full": "Volzet"
+    "full": "Volzet",
+    "facilities": "Voorzieningen"
   },
   "garage": {
     "favorite": "Favoriet",
@@ -170,7 +177,9 @@
     "type": "Type",
     "lez": "Lage-emissiezone",
     "website": "Website bezoeken",
-    "mapTitle": "Kaart van {name}"
+    "mapTitle": "Kaart van {name}",
+    "routesTitle": "Aanrijroutes",
+    "routesNote": "De blauwe lijnen zijn de door de stad aanbevolen routes tussen de stadsring (R40) en deze parking. Door het circulatieplan zijn veel andere straten afgesloten voor doorgaand verkeer."
   },
   "list": {
     "favorite": "Favoriet",
@@ -217,7 +226,17 @@
     "googleNote": "Laadt de kaart bij Google, dat dan kan zien dat je de pagina bekeek.",
     "switchToGoogle": "Liever Google Maps gebruiken",
     "switchToOsm": "Liever OpenStreetMap gebruiken",
-    "changeHint": "Je kunt de kaart altijd aanpassen bij de instellingen."
+    "changeHint": "Je kunt de kaart altijd aanpassen bij de instellingen.",
+    "appTitle": "App",
+    "install": "Installeren op dit toestel",
+    "installNote": "Opent in een eigen venster. Pagina's die je al bekeken hebt, openen ook zonder verbinding.",
+    "installIos": "Op iPhone of iPad: tik op Delen en kies ‘Zet op beginscherm’.",
+    "themeTitle": "Weergave",
+    "theme": {
+      "dark": "Donker",
+      "light": "Licht",
+      "system": "Toestel"
+    }
   },
   "errors": {
     "title": "Er ging iets mis",
@@ -231,5 +250,203 @@
   },
   "share": {
     "features": "Live beschikbaarheid|Voorspelling 30 min|Kaart|In mijn buurt"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Gratis",
+    "freeParking": "Gratis parkeren",
+    "paid": "Betalend",
+    "evCharging": "Laadpunten voor elektrische wagens",
+    "evShort": "{count} laadpunten",
+    "chargePoints": "{count, plural, one {# laadpunt} other {# laadpunten}}",
+    "chargePointsKw": "{count, plural, one {# laadpunt} other {# laadpunten}}, tot {kw} kW",
+    "chargingLabel": "Elektrisch laden",
+    "priceLabel": "Prijs",
+    "parkAndRideDetail": "Parkeer hier en ga verder naar het centrum met tram, bus of fiets.",
+    "cityNote": "Goed om te weten",
+    "cityNoteSource": "Opmerking van Stad Gent."
+  },
+  "extras": {
+    "title": "Park & Ride en andere parkings",
+    "intro": "Deze parkings geven niet door hoeveel plaatsen er vrij zijn, dus er is geen live telling.",
+    "noLiveCount": "Geen live telling",
+    "spaces": "{count, plural, one {# plaats} other {# plaatsen}}",
+    "capacity": "Capaciteit",
+    "detailLead": "Deze parking publiceert geen live tellingen. We kunnen tonen waar ze ligt en hoe groot ze is, niet hoe vol ze nu is.",
+    "moreInfo": "Meer informatie",
+    "shareText": "Parking in Gent, geen live telling"
+  },
+  "advice": {
+    "titleFor": "Beste keuze voor {place}",
+    "titleNearYou": "Beste keuze in je buurt",
+    "free": "{count, plural, one {# plaats vrij} other {# plaatsen vrij}}",
+    "nearestToo": "Dit is ook de dichtste garage.",
+    "passed": {
+      "closed": "{name} ligt dichter, maar is gesloten.",
+      "noData": "{name} ligt dichter, maar heeft nu geen betrouwbare telling.",
+      "full": "{name} ligt dichter, maar is volzet.",
+      "almostFull": "{name} ligt dichter, maar heeft nog maar {count, plural, one {# plaats} other {# plaatsen}} vrij.",
+      "fillingUp": "{name} ligt dichter, maar is wellicht volzet binnen ongeveer {minutes} min."
+    },
+    "none": "Geen enkele garage met een live telling heeft nu comfortabel plaats. Bekijk de lijst hieronder of kies een Park & Ride.",
+    "parkAndRide": "Liever niet tot in het centrum rijden? Dichtste Park & Ride:",
+    "details": "Details",
+    "walkRoute": "Wandelroute vanaf deze parking",
+    "walkRouteLabel": "Wandelroute van {garage} naar {place}"
+  },
+  "alternatives": {
+    "title": "Garages in de buurt",
+    "titleNoSpace": "Geen plaats hier? Probeer in de buurt",
+    "intro": "Andere garages met vrije plaatsen, de dichtste eerst. Afstand in vogelvlucht vanaf deze garage."
+  },
+  "parked": {
+    "button": "Ik sta hier geparkeerd",
+    "saved": "Opgeslagen. {name} wordt op dit toestel onthouden.",
+    "bannerTitle": "Je staat geparkeerd in {name}",
+    "here": "Je staat hier geparkeerd",
+    "since": "Sinds {time} ({age})",
+    "noteLabel": "Verdieping of plaats (optioneel)",
+    "notePlaceholder": "bv. verdieping -2, rij C",
+    "walkBack": "Wandel terug",
+    "walkBackLabel": "Wandelroute naar {name}",
+    "clear": "Ik ben vertrokken",
+    "clearLabel": "Vergeet waar ik geparkeerd sta",
+    "privacy": "Alleen in deze browser bewaard.",
+    "pageTitle": "Waar staat mijn auto?",
+    "pageIntro": "Bewaar waar je auto staat en vind de weg terug. Alleen op dit toestel opgeslagen.",
+    "none": "Nog geen parkeerplek bewaard.",
+    "saveHere": "Bewaar waar ik nu sta",
+    "saveHereHint": "Op straat geparkeerd? Ga naast je auto staan en tik op de knop. Je browser vraagt om je locatie te gebruiken.",
+    "garageHint": "In een parking? Open de pagina van die parking en tik op ‘Ik sta hier geparkeerd’.",
+    "toOverview": "Alle parkings bekijken",
+    "locating": "Je locatie zoeken…",
+    "denied": "De toegang tot je locatie is geweigerd. Sta die toe in de instellingen van je browser en probeer opnieuw.",
+    "unavailable": "Je locatie kon niet bepaald worden. Probeer opnieuw, liefst buiten.",
+    "streetSaved": "Bewaard, tot op ongeveer {metres} m nauwkeurig.",
+    "streetTitle": "Je staat op straat geparkeerd",
+    "streetCar": "je auto",
+    "streetNoteLabel": "Notitie (optioneel)",
+    "streetNotePlaceholder": "bv. tegenover nummer 12",
+    "update": "Aanpassen naar waar ik nu sta",
+    "zoneLabel": "Parkeerzone hier:",
+    "lookupNote": "De plek zelf blijft in deze browser. Om de parkeerzone, parkeerverboden en de dichtstbijzijnde parkeerautomaat te tonen, worden alleen de coördinaten opgezocht: bij deze site en bij het open data portaal van de stad.",
+    "garagePage": "Pagina van de parking",
+    "untilLabel": "Ticket of parkeerschijf loopt tot (optioneel)",
+    "untilRunning": "Loopt af om {time}, {left}",
+    "untilPassed": "Afgelopen om {time}, {age}",
+    "inMinutes": "over {count} min",
+    "inHours": "over {hours} u {minutes} min",
+    "clearUntil": "Tijd wissen",
+    "addReminder": "Herinnering in mijn agenda zetten",
+    "reminderNote": "Downloadt een agenda-afspraak met een melding 10 minuten vooraf. De agenda van je telefoon herinnert je eraan.",
+    "reminderTitle": "Parkeertijd loopt af",
+    "reminderBody": "Terug bij de auto tegen {time}.",
+    "shareSpot": "Deze plek delen",
+    "shareSpotText": "Hier staat de auto geparkeerd.",
+    "sharedTitle": "Een parkeerplek die met je gedeeld is",
+    "sharedIntro": "Iemand stuurde je waar de auto staat.",
+    "walkThere": "Wandel ernaartoe",
+    "saveShared": "Bewaren als mijn plek",
+    "sharedSaved": "Bewaard als jouw plek.",
+    "backToMine": "Terug naar mijn eigen plek",
+    "payMachine": "Dichtstbijzijnde parkeerautomaat: {address}, ongeveer {metres} m verderop",
+    "payNoCash": "neemt geen cash aan",
+    "payCash": "neemt cash aan"
+  },
+  "street": {
+    "label": "Parkeren op straat bij {place}:",
+    "zones": {
+      "red": "rode zone (betalend)",
+      "orange": "oranje zone (betalend)",
+      "yellow": "gele zone (betalend)",
+      "green": "groene zone (betalend)",
+      "blue": "blauwe zone (parkeerschijf)"
+    },
+    "none": "buiten de parkeerzones van de stad",
+    "rates": "Tarieven en maximale parkeertijd"
+  },
+  "lez": {
+    "inside": "Deze garage ligt in de lage-emissiezone van Gent. Controleer vóór je binnenrijdt of je voertuig toegelaten is. Een voertuig met een buitenlandse nummerplaat moet meestal eerst geregistreerd worden.",
+    "link": "Regels en voertuigcheck (Stad Gent)"
+  },
+  "offline": {
+    "savedCopy": "Offline kopie: deze pagina is {age} opgeslagen. De tellingen kunnen intussen veranderd zijn.",
+    "noConnection": "Je bent offline. De tellingen op deze pagina kunnen verouderd zijn.",
+    "reload": "Opnieuw laden"
+  },
+  "chargers": {
+    "toggle": "Laadpunten",
+    "toggleLabel": "Toon laadpunten voor elektrische wagens op de kaart",
+    "fast": "Snellader",
+    "error": "De laadpunten konden niet geladen worden."
+  },
+  "onward": {
+    "title": "Verder vanaf hier",
+    "toCentre": "Naar het stadscentrum:",
+    "transit": "Openbaar vervoer",
+    "bike": "Met de fiets",
+    "routeNote": "Opent de route in Google Maps.",
+    "bikesTitle": "Deelfietsen binnen 400 m, nu",
+    "bikesNone": "Nu geen deelfietsen binnen 400 m.",
+    "bikesLoading": "Deelfietsen zoeken…",
+    "bikesSource": "Live uit de open data van de stad, rechtstreeks opgehaald door je browser.",
+    "stopsTitle": "Bus- en tramhaltes binnen 400 m",
+    "bus": "bus",
+    "tram": "tram",
+    "busAndTram": "bus en tram"
+  },
+  "bans": {
+    "title": "Tijdelijke parkeerverboden in de buurt",
+    "none": "Geen tijdelijke parkeerverboden bekend binnen {metres} m voor de komende {days} dagen.",
+    "kinds": {
+      "loading": "Laden en lossen",
+      "construction": "Werfwagen",
+      "noParking": "Stilstaan- en parkeerverbod"
+    },
+    "active": "nu van kracht",
+    "range": "{from} tot {until}",
+    "away": "ongeveer {metres} m verderop",
+    "here": "vlak bij deze plek",
+    "caveat": "Uit de vergunningen van de stad. De borden in de straat beslissen altijd: kijk ze na waar je parkeert."
+  },
+  "typical": {
+    "title": "Een gewone {weekday}",
+    "pickDay": "Dag van de week",
+    "noDay": "Voor deze dag zijn er nog geen metingen.",
+    "aroundNow": "Rond {time} zijn er meestal ongeveer {free} plaatsen vrij",
+    "basedOn": "{days, plural, one {tot nu toe op # dag gemeten} other {gemeten op # dagen}}",
+    "quietest": "Meeste plaats: rond {time} (ongeveer {free} vrij).",
+    "busiest": "Drukst: rond {time} (ongeveer {free} vrij).",
+    "bar": "{time}: ongeveer {free} vrij",
+    "source": "Uit de eigen metingen van deze site, om de 10 minuten sinds {since}. Een patroon, geen belofte."
+  },
+  "mcpPage": {
+    "title": "Ghent Parking voor AI-assistenten",
+    "intro": "Deze site heeft een MCP-server. Koppel die aan een assistent zoals Claude en vraag gewoon waar je in Gent kunt parkeren: de assistent leest dezelfde live gegevens en volgt dezelfde regels als deze site.",
+    "urlLabel": "Adres van de server",
+    "copy": "Kopiëren",
+    "copied": "Gekopieerd",
+    "connectTitle": "Zo koppel je het",
+    "step1": "Open in Claude de instellingen en ga naar Connectors.",
+    "step2": "Kies ‘Aangepaste connector toevoegen’ en plak het adres hierboven.",
+    "step3": "Je hebt geen sleutel of account nodig. Stel je vraag.",
+    "otherClients": "De namen in de menu's kunnen bij jou anders zijn. Andere assistenten die MCP over HTTP ondersteunen (‘Streamable HTTP’) werken op dezelfde manier.",
+    "toolsTitle": "Wat de assistent kan opvragen",
+    "tools": {
+      "list_garages": "Alle parkings met hun vrije plaatsen van dit moment, de verwachting voor het komende uur en kenmerken zoals Park & Ride, gratis en laadpunten.",
+      "find_parking": "De beste parking voor een bestemming, met de reden, alternatieven met plaats, de wandeltijd en de dichtstbijzijnde Park & Ride.",
+      "get_garage": "Eén parking in detail: vrije plaatsen, verwachting, wat gewoon is op dit uur, openingsuren, ligging en de opmerking van de stad.",
+      "typical_availability": "Vooruit plannen: hoeveel plaats elke parking meestal heeft op een uur van de week, bijvoorbeeld zaterdag om 14 uur."
+    },
+    "examplesTitle": "Vragen die je kunt stellen",
+    "example1": "Waar parkeer ik vanavond het best voor Vooruit?",
+    "example2": "Welke parkings in Gent hebben nu plaats?",
+    "example3": "Hoe vol is de Vrijdagmarkt meestal op zaterdagnamiddag?",
+    "notesTitle": "Goed om te weten",
+    "note1": "Alleen lezen: de assistent kan gegevens opvragen, verder niets.",
+    "note2": "Open data van de stad Gent en de eigen metingen van deze site. Geen persoonsgegevens.",
+    "note3": "Bekende plaatsen werken op naam. Voor een straatadres geeft de assistent zelf coördinaten door.",
+    "note4": "De namen en beschrijvingen van de tools zelf zijn in het Engels; de assistent antwoordt in jouw taal."
   }
 }

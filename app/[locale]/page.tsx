@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
-import { fetchParkings, serverClock } from "@/lib/parkings";
+import { fetchAllParkings, serverClock } from "@/lib/parkings";
 import { fetchAllTrends } from "@/lib/parking-history";
 import { languageAlternates } from "@/lib/site";
 import { ParkingOverview } from "@/components/parking-overview";
@@ -24,13 +24,14 @@ export default async function Home({ params }: Props) {
   setRequestLocale(locale);
   // Fire both calls in parallel — the trend feeds are independent of the
   // live snapshot and shouldn't lengthen page TTFB sequentially.
-  const [parkings, trendsById] = await Promise.all([
-    fetchParkings(),
+  const [{ parkings, extras }, trendsById] = await Promise.all([
+    fetchAllParkings(),
     fetchAllTrends(),
   ]);
   return (
     <ParkingOverview
       parkings={parkings}
+      extras={extras}
       trendsById={trendsById}
       serverNow={serverClock()}
     />

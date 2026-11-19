@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { LocalizedNote } from "./directory";
 
 const LocationAndDimensionSchema = z
   .object({
@@ -80,6 +81,16 @@ export type Parking = {
   // When the feed last updated this garage's count (epoch ms), or null when
   // the feed gave no parseable timestamp.
   lastUpdatedAt: number | null;
+  // Free of charge, according to the feed.
+  isFree: boolean;
+  // Park & Ride: park at the edge, continue by tram, bus or bike.
+  parkAndRide: boolean;
+  // Charge points for electric cars inside the garage (0 when none are known).
+  evChargers: number;
+  // The fastest of them, in kW.
+  evMaxKw: number | null;
+  // The city's own remark about this garage ("Only accessible via …").
+  note: LocalizedNote | null;
 };
 
 function parseLocation(raw: string): {
@@ -189,7 +200,13 @@ export function normalizeParking(record: {
   // it to 0 so the numeric UI doesn't break, and surface the unknown state
   // separately via `hasLiveData`.
   const hasLiveData = rawAvailable >= 0 && totalSpaces > 0;
-  const freeSpaces = Math.max(0, rawAvailable);
+  // The feed also sometimes counts more free spaces than the car park has
+  // (93 of 90). Cap the count at the capacity, as the history chart does, so
+  // no page says "103% free".
+  const freeSpaces =
+    totalSpaces > 0
+      ? Math.min(Math.max(0, rawAvailable), totalSpaces)
+      : Math.max(0, rawAvailable);
   const freePercent =
     totalSpaces > 0 ? (freeSpaces / totalSpaces) * 100 : 0;
   // Derive occupied from free so the two always sum to 100. The API's
@@ -227,5 +244,11 @@ export function normalizeParking(record: {
     lng,
     phone,
     lastUpdatedAt: parseTimestamp(f.lastupdate ?? ""),
+    isFree: f.freeparking === 1,
+    // The directory and the charge-point list fill these in (lib/parkings.ts).
+    parkAndRide: /^p\+r\b/i.test(f.name),
+    evChargers: 0,
+    evMaxKw: null,
+    note: null,
   };
 }
