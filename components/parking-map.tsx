@@ -22,6 +22,7 @@ import {
   DARK_TILE_FILTER,
   OSM_ATTRIBUTION,
   OSM_TILE_URL,
+  destinationIcon,
   markerIcon,
 } from "./leaflet-shared";
 import { forecastHint } from "./forecast-hint";
@@ -31,6 +32,8 @@ type Props = {
   parkings: Parking[];
   trendsById: Record<string, Trend>;
   userLocation: LatLng | null;
+  // Where the visitor is heading, if they searched for a destination.
+  destination: (LatLng & { name: string }) | null;
   // Current time, for judging how old each garage's count is.
   now: number;
 };
@@ -80,20 +83,30 @@ function MapSetup({ points }: { points: [number, number][] }) {
   return null;
 }
 
+// How many of the closest garages the map frames around a destination.
+const NEAREST_TO_SHOW = 4;
+
 function fit(map: L.Map, points: [number, number][]) {
   if (points.length === 0) return;
   map.fitBounds(L.latLngBounds(points), {
-    padding: [40, 40],
-    maxZoom: 15,
+    padding: [56, 56],
+    maxZoom: 16,
     animate: false,
   });
 }
 
-export default function ParkingMap({ parkings, trendsById, userLocation, now }: Props) {
+export default function ParkingMap({
+  parkings,
+  trendsById,
+  userLocation,
+  destination,
+  now,
+}: Props) {
   const t = useTranslations("map");
   const tCommon = useTranslations("common");
   const tForecast = useTranslations("forecast");
   const tFresh = useTranslations("freshness");
+  const tDestination = useTranslations("destination");
   const formatAge = useFormatAge();
   const formatDistance = useFormatDistance();
   const closedLabel = tCommon("closed");
@@ -107,11 +120,29 @@ export default function ParkingMap({ parkings, trendsById, userLocation, now }: 
     () => new Map(located.map((p) => [p.id, markerIcon(p, closedLabel)])),
     [located, closedLabel],
   );
+  const destinationPin = useMemo(() => destinationIcon(), []);
   const bounds = useMemo(() => {
+    // With a destination, zoom in on it and the few garages closest to it:
+    // that is the choice being made. Otherwise show every garage.
+    if (destination) {
+      const nearest = [...located]
+        .sort(
+          (a, b) =>
+            (distanceTo(a, destination) ?? Infinity) -
+            (distanceTo(b, destination) ?? Infinity),
+        )
+        .slice(0, NEAREST_TO_SHOW);
+      return [
+        ...nearest.map((p): [number, number] => [p.lat!, p.lng!]),
+        [destination.lat, destination.lng] as [number, number],
+      ];
+    }
     const pts: [number, number][] = located.map((p) => [p.lat!, p.lng!]);
     if (userLocation) pts.push([userLocation.lat, userLocation.lng]);
     return pts;
-  }, [located, userLocation]);
+  }, [located, userLocation, destination]);
+  // Distances are measured from the destination when there is one.
+  const origin = destination ?? userLocation;
 
   return (
     <div className="surface-card overflow-hidden rounded-xl border border-border/70">
@@ -127,7 +158,24 @@ export default function ParkingMap({ parkings, trendsById, userLocation, now }: 
           maxZoom={19}
         />
         <MapSetup points={bounds} />
-        {userLocation ? (
+        {destination ? (
+          // Above the garage pills, so a garage right next to the
+          // destination can't hide it.
+          <Marker
+            position={[destination.lat, destination.lng]}
+            icon={destinationPin}
+            zIndexOffset={1000}
+            title={destination.name}
+          >
+            <Popup>
+              <div className="text-sm">
+                <p className="font-semibold">{destination.name}</p>
+                <p className="opacity-80">{tDestination("marker")}</p>
+              </div>
+            </Popup>
+          </Marker>
+        ) : null}
+        {userLocation && !destination ? (
           <CircleMarker
             center={[userLocation.lat, userLocation.lng]}
             radius={7}
@@ -143,7 +191,7 @@ export default function ParkingMap({ parkings, trendsById, userLocation, now }: 
         ) : null}
         {located.map((p) => {
           const hint = forecastHint(p, trendsById[p.id] ?? null);
-          const dist = distanceTo(p, userLocation);
+          const dist = distanceTo(p, origin);
           return (
             <Marker key={p.id} position={[p.lat!, p.lng!]} icon={icons.get(p.id)!}>
               <Popup>
@@ -156,7 +204,11 @@ export default function ParkingMap({ parkings, trendsById, userLocation, now }: 
                         ? t("freeOf", { free: p.freeSpaces, total: p.totalSpaces })
                         : t("unavailable")}
                     {dist !== null
-                      ? ` · ${t("away", { distance: formatDistance(dist) })}`
+                      ? ` · ${
+                          destination
+                            ? formatDistance(dist, true)
+                            : t("away", { distance: formatDistance(dist) })
+                        }`
                       : ""}
                   </p>
                   {isStale(p, now) ? (

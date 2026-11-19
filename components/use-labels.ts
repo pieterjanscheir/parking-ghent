@@ -1,6 +1,6 @@
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { ageParts } from "@/lib/freshness";
-import { formatDistance } from "@/lib/geo";
+import { formatDistance, walkingMinutes } from "@/lib/geo";
 import type { Parking } from "@/lib/parkings.schema";
 
 // Small translation helpers shared by several components. They work in both
@@ -36,9 +36,17 @@ export function useFormatTime(): (timestamp: number) => string {
     });
 }
 
-export function useFormatDistance(): (km: number) => string {
+// "350 m", or with `walking` (the distance is to where the visitor is
+// heading, so they will cover it on foot) "350 m · ~6 min walk".
+export function useFormatDistance(): (km: number, walking?: boolean) => string {
   const locale = useLocale();
-  return (km) => formatDistance(km, locale);
+  const t = useTranslations("destination");
+  return (km, walking = false) => {
+    const distance = formatDistance(km, locale);
+    return walking
+      ? `${distance} · ${t("walk", { minutes: walkingMinutes(km) })}`
+      : distance;
+  };
 }
 
 // The feed describes a garage's type and low-emission-zone status with raw

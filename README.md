@@ -8,6 +8,7 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 
 - **Overview built for "where can I park?"** — headline stats (open garages, garages with space, total free spaces, the emptiest garage), sorted by most free spaces by default, with closed or no-data garages pushed to the bottom ([components/parking-overview.tsx](components/parking-overview.tsx), sorting in [lib/parkings.ts](lib/parkings.ts)).
 - **Map view** — every garage on one map with its live free-space count, coloured by availability ([components/parking-map.tsx](components/parking-map.tsx), Leaflet + OpenStreetMap).
+- **Search by destination** — "Where are you going?" sorts the garages by walking distance to a place, with an estimated walking time on every card ("340 m · ~6 min walk") and the destination pinned on the map. About 40 well-known Ghent places (Gravensteen, Vooruit, the hospitals, the stations …) are suggested instantly while typing, also by their English, French and older names; anything else, such as a street address, is looked up on OpenStreetMap when asked. The result is part of the URL, so "parking near Vooruit" can be shared — see [Destination search](#destination-search).
 - **Near me** — optional browser geolocation to sort by distance and show how far each garage is. The location stays in memory, is never stored, and is never sent anywhere ([lib/use-geolocation.ts](lib/use-geolocation.ts)).
 - **Open with space** quick filter, plus search by name or street and status / LEZ / type / availability filters, all synced to the URL so any view is shareable.
 - **Short-term forecast** on cards ("~120 free in 30 min", "Likely full in ~20 min") and a 60-minute forecast with ranges on detail pages — see [Forecasting](#forecasting).
@@ -17,7 +18,8 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh; the spinner runs for as long as the request actually takes.
 - **Honest data age** — "City data updated 2 min ago" comes from the feed's own timestamps, not from when the page last asked. A garage whose count is more than 30 minutes old gets a warning and loses its forecast, and if no garage has updated for 15 minutes a banner says the feed has stopped ([lib/freshness.ts](lib/freshness.ts)).
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
-- **Dutch, English and French** — every page exists under `/nl`, `/en` and `/fr`. A first visit picks the browser's language (Dutch if it's none of the three), the choice is remembered, and the `NL · EN · FR` switcher in the header keeps your search, sort and filters — see [Languages](#languages).
+- **Its own history** — a scheduled job saves every garage's count every 10 minutes, because the city only publishes the last few hours. Collecting only, for now — see [Our own history archive](#our-own-history-archive).
+- **Five languages** — Dutch, English, French, German and Spanish; every page exists under `/nl`, `/en`, `/fr`, `/de` and `/es`. A first visit picks the browser's language (Dutch if it's none of the five), the choice is remembered, and the language menu in the header keeps your search, sort, filters and destination — see [Languages](#languages).
 - **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space* and *Map* ([app/manifest.ts](app/manifest.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
 
 ## Forecasting
@@ -43,14 +45,26 @@ Forecasts exist only for the city-run garages that publish history (see `HISTORY
 
 Translations use [next-intl](https://next-intl.dev).
 
-- **Where the text lives:** [messages/nl.json](messages/nl.json), [messages/en.json](messages/en.json) and [messages/fr.json](messages/fr.json). Components never contain user-facing text; they look it up with `useTranslations("namespace")`.
+- **Where the text lives:** one file per language in [messages/](messages) (`nl.json`, `en.json`, `fr.json`, `de.json`, `es.json`). Components never contain user-facing text; they look it up with `useTranslations("namespace")`.
 - **Routing:** [i18n/routing.ts](i18n/routing.ts) lists the languages and the default (Dutch). [proxy.ts](proxy.ts) redirects URLs without a language prefix, so old links such as `/parkings/parking-reep` keep working.
 - **Links:** use `Link` and `useRouter` from [i18n/navigation.ts](i18n/navigation.ts), not from `next/link`, so navigation stays in the visitor's language.
 - **Numbers, times and distances** follow the language too (`4.974` vs `4,974`, `1,3 km` vs `1.3 km`). Times are always Ghent time.
-- **Search engines** get `hreflang` links between the three versions of each page, in the page head and in the sitemap, and one share image per language.
+- **Search engines** get `hreflang` links between the language versions of each page, in the page head and in the sitemap, and one share image per language.
 - **Not translated:** garage names, addresses, opening hours and descriptions come straight from the city's feed, in Dutch. The web manifest (install name and shortcuts) has a single language and uses Dutch.
 
-**Adding a language:** add its code to `locales` in `i18n/routing.ts` (plus its name in `LOCALE_LABELS` and its Open Graph code in `OG_LOCALES` in `lib/site.ts`), then copy `messages/en.json` to `messages/<code>.json` and translate it. `pnpm test` fails if a language file is missing a key or uses different `{placeholders}` than the English one.
+**Adding a language** takes two steps, both checked by `pnpm test`:
+
+1. In [i18n/routing.ts](i18n/routing.ts), add its code to `locales` and a row to `LOCALE_INFO` (its own name for the menu, and its code for share previews).
+2. Copy `messages/en.json` to `messages/<code>.json` and translate it. The test fails if the file is missing, lacks a message, or uses different `{placeholders}` than the English one.
+
+Optionally add the language's names for well-known places as aliases in [lib/destinations.ts](lib/destinations.ts) ("Rathaus", "ayuntamiento"), so the destination search finds them.
+
+## Destination search
+
+- **Well-known places** live in [lib/destinations.ts](lib/destinations.ts), with coordinates from OpenStreetMap. Matching ignores case and accents and also checks aliases ("castle of the counts", "ghelamco", "ziekenhuis"). These searches never leave the browser.
+- **Everything else** goes to OpenStreetMap's [Nominatim](https://nominatim.org) search ([lib/geocode.ts](lib/geocode.ts)), limited to Ghent. It is called straight from the visitor's browser and only on request (Enter, or "Search all of Ghent for …") — never while typing, which Nominatim's [usage policy](https://operations.osmfoundation.org/policies/nominatim/) forbids. So it costs nothing to run, and each visitor has their own rate limit. If the service is down or refuses, the list of well-known places still works.
+- **Walking time** is an estimate, not a route: straight-line distance plus 30% for real streets, at 4.8 km/h ([lib/geo.ts](lib/geo.ts)).
+- **Privacy:** a free-text search sends the typed text, and the visitor's IP address, to the OpenStreetMap Foundation — the same party that already serves the map tiles. Nothing is sent for the well-known places.
 
 ## Talking to the city's feeds
 
@@ -67,6 +81,54 @@ Every visitor used to trigger a fresh round of ~20 upstream requests on each pag
 - Each upstream call times out after 4 s and is retried once ([lib/upstream.ts](lib/upstream.ts)); a failure is remembered for 5 s so an outage isn't hammered.
 - The cache lives in the server instance's memory, so each running instance keeps its own copy. That's enough at this scale and needs no extra service.
 
+## Our own history archive
+
+The city publishes only the last ~3 hours of occupancy, and only for nine garages. That is enough for a short-term trend, not for "how full is this garage usually on a Saturday afternoon?". History can't be collected afterwards, so the app keeps its own record ([lib/history-archive.ts](lib/history-archive.ts)):
+
+- **Every 10 minutes** a scheduled job ([vercel.json](vercel.json) → [app/api/cron/snapshot/route.ts](app/api/cron/snapshot/route.ts)) saves the live count of every garage.
+- **One text file per UTC day**, one snapshot per line: `history/v1/2026/2026-11-19.jsonl`. About 130 KB a day, under 50 MB a year.
+- **Nothing is made up.** If the city feed can't be read, that slot is skipped. A garage without a live count is stored as `null`, not as zero.
+- **No lost or duplicate lines.** A second run in the same 10 minutes changes nothing, and a file is only replaced if it is still the version that was read.
+
+One line of a day's file:
+
+```json
+{"t":1795089535,"g":{"parking-reep":{"f":212,"c":455,"u":1795089383,"o":1}}}
+```
+
+| Key | Meaning |
+| --- | --- |
+| `t` | When the snapshot was taken (Unix time, seconds) |
+| `g` | Readings by garage id, the same id as in `/parkings/<id>` |
+| `f` | Free spaces, or `null` when the feed had no live count |
+| `c` | Capacity (total spaces) |
+| `u` | When the feed last updated this count (Unix time, seconds), or `null` |
+| `o` | `1` open, `0` closed |
+
+The archive only collects for now. Showing "usually busy at this hour" and a better forecast come once there are a few weeks of data.
+
+### Switching it on
+
+The archive is off until storage is configured; the rest of the app is unaffected.
+
+| Variable | Set by | Purpose |
+| --- | --- | --- |
+| `BLOB_READ_WRITE_TOKEN` | Vercel, when a (private) Blob store is connected to the project | Where the files are kept |
+| `CRON_SECRET` | You, in the project's environment variables | Vercel sends it with every scheduled call; the route refuses anything else |
+| `HISTORY_ARCHIVE_DIR` | You, optional | Keep the files in a local folder instead (development, self-hosting) |
+
+On Vercel, scheduled jobs only run on the production deployment. To try it locally:
+
+```bash
+HISTORY_ARCHIVE_DIR=.data CRON_SECRET=dev pnpm dev
+```
+
+```bash
+curl -H "Authorization: Bearer dev" http://localhost:3000/api/cron/snapshot
+```
+
+Usage on Vercel, per month: about 4,300 scheduled calls, 4,300 file writes, 4,300 file reads and roughly 300 MB read back from storage. That is small next to what a Pro plan includes for Blob, but check Vercel's current Blob pricing before relying on that.
+
 ## Stack
 
 - **Next.js 16.2** (App Router) on **React 19**
@@ -79,6 +141,7 @@ Every visitor used to trigger a fresh round of ~20 upstream requests on each pag
 - **Leaflet** + **react-leaflet** for the overview map (OpenStreetMap tiles)
 - **sonner** for toasts
 - **lucide-react** for icons
+- **Vercel Blob** + a Vercel cron job for the history archive
 - **Vitest** for unit tests
 - Fonts: **Geist** (headings + mono), **Raleway** (body) via `next/font/google`
 
@@ -103,8 +166,11 @@ Open [http://localhost:3000](http://localhost:3000).
 | `pnpm build`       | Production build                      |
 | `pnpm start`       | Serve the production build            |
 | `pnpm lint`        | Run ESLint                            |
+| `pnpm typecheck`   | Check the TypeScript types            |
 | `pnpm test`        | Run the Vitest suite once             |
 | `pnpm test:watch`  | Run Vitest in watch mode              |
+
+Every pull request, and every push to `master`, runs lint, the type check, the tests and a production build on GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 
 ## Project layout
 
@@ -116,17 +182,21 @@ app/                          App Router routes
     parkings/[id]/            Detail page (server) + loading / error / not-found
     opengraph-image.tsx       Share preview card, one per language
     [...rest]/page.tsx        Translated "page not found" for unknown paths
+  api/cron/snapshot/route.ts  Scheduled job: save the current counts to the archive
   manifest.ts                 Web app manifest (name, icons, shortcuts)
   icon.svg, apple-icon.png    App icon (source artwork: icon.svg)
   sitemap.ts, robots.ts       For search engines (previews are not indexed)
 i18n/                         Language list, language-aware links, request setup
-messages/                     Translations: nl.json, en.json, fr.json
+messages/                     Translations: one JSON file per language
 proxy.ts                      Language detection and redirects
+vercel.json                   Schedule for the history snapshot (every 10 minutes)
+.github/workflows/ci.yml      Checks run on every pull request
 components/                   UI building blocks
   parking-overview.tsx        Overview client shell (summary / search / sort / filter / view)
   parking-map.tsx             Leaflet map of all parkings (client-only)
   forecast-hint.tsx           One-line forecast for cards / list / map
-  language-switcher.tsx       NL · EN · FR links in the header
+  destination-search.tsx      "Where are you going?" box with suggestions
+  language-switcher.tsx       Language menu in the header
   settings-menu.tsx           Gear menu in the header (map choice)
   parking-location-map.tsx    Garage-page map: OpenStreetMap or Google, per the setting
   leaflet-shared.ts           Tiles, dark filter and marker shared by both maps
@@ -152,12 +222,17 @@ lib/
   parkings.ts                 Server fetchers + sort / filter helpers
   parkings.schema.ts          Zod schema + Parking type + normaliser
   parking-history.ts          History fetcher
+  history-archive.ts          Our own history: snapshot format, day files, append
+  archive-store.ts            Where the archive lives: Vercel Blob, a folder, or memory
+  cron-auth.ts                Checks that a scheduled call really comes from Vercel
   ttl-cache.ts                In-memory cache with a strict time-to-live
   upstream.ts                 Portal fetch with timeout + one retry
   freshness.ts                Data-age and staleness helpers
   use-now.ts                  Shared ticking clock for "x min ago" labels
   forecast.ts                 Forecast model + per-parking backtest
-  geo.ts                      Distance helpers
+  geo.ts                      Distance and walking-time helpers
+  destinations.ts             Well-known Ghent places + matching
+  geocode.ts                  OpenStreetMap place search (browser-side)
   use-geolocation.ts          Opt-in browser location
   map-provider.ts             The visitor's map choice (localStorage)
   favorites.tsx               FavoritesProvider (localStorage, max 3)

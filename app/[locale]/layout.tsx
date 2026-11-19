@@ -11,9 +11,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { routing } from "@/i18n/routing";
 import {
   BACKGROUND_COLOR,
-  OG_LOCALES,
   SITE_NAME,
   SITE_URL,
+  openGraphLocale,
 } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import "../globals.css";
@@ -50,7 +50,7 @@ export async function generateMetadata({
     openGraph: {
       type: "website",
       siteName: SITE_NAME,
-      locale: OG_LOCALES[locale],
+      locale: openGraphLocale(locale),
       title,
       description: t("description"),
     },

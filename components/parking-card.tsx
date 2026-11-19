@@ -17,16 +17,21 @@ export function ParkingCard({
   trend,
   now,
   distanceKm = null,
+  walking = false,
 }: {
   parking: Parking;
   trend: Trend | null;
   // Current time, for judging how old this garage's count is.
   now: number;
   distanceKm?: number | null;
+  // The distance is to the visitor's destination: show walking time too.
+  walking?: boolean;
 }) {
   const t = useTranslations("garage");
   const labels = useParkingLabels();
   const formatDistance = useFormatDistance();
+  // Shown even for a garage the feed gives no address for.
+  const hasDistance = distanceKm !== null && distanceKm !== undefined;
   return (
     <Link
       href={`/parkings/${encodeURIComponent(parking.id)}`}
@@ -41,12 +46,17 @@ export function ParkingCard({
           <h3 className="font-heading text-base font-semibold leading-tight tracking-tight">
             {parking.name}
           </h3>
-          {parking.address ? (
+          {parking.address || hasDistance ? (
             <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
               <MapPin className="size-3" />
-              <span className="truncate">{parking.address}</span>
-              {distanceKm !== null && distanceKm !== undefined ? (
-                <span className="shrink-0 text-foreground/80">· {formatDistance(distanceKm)}</span>
+              {parking.address ? (
+                <span className="truncate">{parking.address}</span>
+              ) : null}
+              {hasDistance ? (
+                <span className="shrink-0 text-foreground/80">
+                  {parking.address ? "· " : null}
+                  {formatDistance(distanceKm, walking)}
+                </span>
               ) : null}
             </p>
           ) : null}

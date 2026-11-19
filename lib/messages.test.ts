@@ -1,10 +1,22 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import en from "../messages/en.json";
-import fr from "../messages/fr.json";
-import nl from "../messages/nl.json";
-import { routing } from "../i18n/routing";
+import { LOCALE_INFO, routing } from "../i18n/routing";
 
-const catalogs: Record<string, unknown> = { en, fr, nl };
+const MESSAGES_DIR = join(__dirname, "..", "messages");
+
+function load(locale: string): unknown {
+  return JSON.parse(readFileSync(join(MESSAGES_DIR, `${locale}.json`), "utf8"));
+}
+
+// One catalog per language the site offers, so a newly added language is
+// checked without touching this file.
+const catalogs: Record<string, unknown> = Object.fromEntries(
+  routing.locales
+    .filter((locale) => existsSync(join(MESSAGES_DIR, `${locale}.json`)))
+    .map((locale) => [locale, load(locale)]),
+);
+const en = catalogs.en;
 
 // "overview.stats.openNow" → "Open now"
 function flatten(node: unknown, prefix = ""): Record<string, string> {
@@ -31,6 +43,13 @@ const reference = flatten(en);
 describe("message catalogs", () => {
   it("exist for every language the site offers", () => {
     expect(Object.keys(catalogs).sort()).toEqual([...routing.locales].sort());
+  });
+
+  it("has a name for the language menu for every language", () => {
+    for (const locale of routing.locales) {
+      expect(LOCALE_INFO[locale].name, locale).toBeTruthy();
+      expect(LOCALE_INFO[locale].openGraph, locale).toMatch(/^[a-z]{2}_[A-Z]{2}$/);
+    }
   });
 
   describe.each(Object.keys(catalogs).filter((l) => l !== "en"))("%s", (locale) => {

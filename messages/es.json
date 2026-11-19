@@ -1,0 +1,235 @@
+{
+  "meta": {
+    "tagline": "Plazas libres en tiempo real en los aparcamientos de Gante",
+    "description": "Disponibilidad de aparcamiento en Gante en tiempo real: mira dónde aparcar antes de salir.",
+    "garageTitle": "Aparcamiento {name}",
+    "garageFallbackTitle": "Aparcamiento",
+    "garageDescription": "Plazas libres en tiempo real y una previsión a corto plazo para el aparcamiento {name} en Gante."
+  },
+  "common": {
+    "open": "Abierto",
+    "closed": "Cerrado",
+    "insideLez": "Dentro de la LEZ",
+    "outsideLez": "Fuera de la LEZ",
+    "types": {
+      "carPark": "Aparcamiento cubierto",
+      "offStreetParkingGround": "Aparcamiento al aire libre"
+    },
+    "backToOverview": "Volver al listado",
+    "tryAgain": "Reintentar"
+  },
+  "header": {
+    "home": "Ghent Parking — inicio",
+    "liveData": "Datos en directo · Stad Gent",
+    "language": "Idioma"
+  },
+  "footer": {
+    "builtBy": "Creado por",
+    "dataSource": "Datos: portal de datos abiertos stad.gent"
+  },
+  "overview": {
+    "title": "Dónde aparcar en Gante",
+    "intro": "Plazas libres en tiempo real en los aparcamientos de la ciudad, con una previsión a corto plazo para saber qué te espera al llegar.",
+    "stats": {
+      "openNow": "Abiertos ahora",
+      "withSpace": "Con plazas",
+      "freeSpaces": "Plazas libres",
+      "mostSpace": "Más plazas",
+      "mostSpaceDetail": "{count} libres"
+    },
+    "feedStopped": "Los datos de aparcamiento de la ciudad se actualizaron por última vez {age}.",
+    "feedStoppedDetail": "Las cifras de abajo son de ese momento y puede que ya no sean correctas.",
+    "favorites": "Aparcamientos favoritos",
+    "searchPlaceholder": "Buscar por nombre o calle…",
+    "searchLabel": "Buscar aparcamientos por nombre o calle",
+    "openWithSpace": "Abiertos con plazas",
+    "nearMe": "Cerca de mí",
+    "locating": "Localizando…",
+    "sortBy": "Ordenar por",
+    "viewMode": "Vista",
+    "viewCards": "Vista de tarjetas",
+    "viewList": "Vista de lista",
+    "viewMap": "Vista de mapa",
+    "noDataTitle": "Los datos en directo no están disponibles temporalmente",
+    "noDataBody": "Los datos de la ciudad no incluían ningún aparcamiento. Suele resolverse en un minuto.",
+    "noMatchesTitle": "Sin resultados",
+    "noMatchesBody": "Prueba a borrar la búsqueda o los filtros.",
+    "clearSearchAndFilters": "Borrar búsqueda y filtros",
+    "forecastNote": "Hay previsiones para los aparcamientos municipales que publican un historial reciente. Prolongan los últimos 20 minutos y se comprueban con las últimas horas de cada aparcamiento; tómalas como una indicación, no como una garantía.",
+    "locationDenied": "Acceso a la ubicación denegado: se muestran primero los que tienen más plazas libres.",
+    "locationUnavailable": "No se pudo determinar tu ubicación."
+  },
+  "destination": {
+    "label": "¿Adónde vas?",
+    "placeholder": "p. ej. Gravensteen, Vooruit, una calle…",
+    "popular": "Destinos populares",
+    "searchAll": "Buscar «{query}» en todo Gante",
+    "searching": "Buscando…",
+    "noResults": "No se encontró nada en Gante para «{query}».",
+    "error": "La búsqueda no está disponible ahora mismo. Elige un lugar de la lista.",
+    "clear": "Borrar destino",
+    "attribution": "Búsqueda con OpenStreetMap",
+    "sortedNote": "Aparcamientos ordenados por distancia a pie hasta {place}.",
+    "walk": "~{minutes} min a pie",
+    "nearestToDestination": "Más cerca del destino",
+    "marker": "Tu destino"
+  },
+  "sort": {
+    "spaces-desc": "Más plazas libres",
+    "distance": "Más cerca de mí",
+    "percent-desc": "Más vacío (% libre)",
+    "name-asc": "Nombre (A → Z)",
+    "name-desc": "Nombre (Z → A)",
+    "spaces-asc": "Menos plazas libres",
+    "percent-asc": "Más lleno (% libre)"
+  },
+  "filters": {
+    "title": "Filtros",
+    "clearAll": "Borrar todo",
+    "status": "Estado",
+    "lez": "Zona de bajas emisiones",
+    "type": "Tipo",
+    "availability": "Disponibilidad",
+    "available": "Disponible",
+    "almostFull": "Casi lleno",
+    "full": "Lleno"
+  },
+  "garage": {
+    "favorite": "Favorito",
+    "viewDetails": "Ver detalles",
+    "ofFree": "libres de {total}",
+    "freeOf": "libres de {total}"
+  },
+  "freshness": {
+    "ageNow": "ahora mismo",
+    "ageMinutes": "hace {count} min",
+    "ageHours": "hace {count} h",
+    "ageDays": "{count, plural, one {hace # día} other {hace # días}}",
+    "cityDataUpdated": "Datos de la ciudad actualizados {age} ({time})",
+    "updated": "Actualizado {age}",
+    "noLiveData": "Sin datos en directo",
+    "noLiveDataDetail": "La disponibilidad en directo no está disponible ahora mismo.",
+    "staleDetail": "Esta cifra se actualizó por última vez {age}; puede que ya no sea correcta.",
+    "countLastUpdated": "Cifra actualizada {age}"
+  },
+  "refresh": {
+    "auto": "Actualización automática",
+    "every30s": "Cada 30 s",
+    "every1min": "Cada minuto",
+    "every5min": "Cada 5 min",
+    "off": "Desactivada",
+    "refresh": "Actualizar",
+    "refreshNow": "Actualizar ahora"
+  },
+  "forecast": {
+    "fullIn": "Probablemente lleno en ~{minutes} min",
+    "hardToPredict": "Difícil de prever ahora mismo",
+    "stable": "Estable durante los próximos {minutes} min",
+    "freeIn": "~{count} libres en {minutes} min",
+    "rising": "Se está llenando",
+    "falling": "Se está vaciando",
+    "steady": "Se mantiene estable",
+    "tipUnpredictable": "Demasiado imprevisible ahora mismo para prever un cambio",
+    "tipFullIn": "Probablemente lleno en unos {minutes} min",
+    "tipNoChange": "Sin cambios claros en los próximos {minutes} min",
+    "tipFewer": "Unas {count, plural, one {# plaza} other {# plazas}} menos en los próximos {minutes} min",
+    "tipMore": "Unas {count, plural, one {# plaza} other {# plazas}} más en los próximos {minutes} min",
+    "confidenceHigh": "Fiabilidad alta",
+    "confidenceMedium": "Fiabilidad media",
+    "confidenceLow": "Fiabilidad baja",
+    "badgeErratic": "Demasiado irregular para prever · probablemente {lo}–{hi} libres en {minutes} min",
+    "badgeSteady": "En {minutes} min: sin cambios claros · probablemente {lo}–{hi} libres",
+    "badgeFewer": "En {minutes} min: ~{count} libres · {delta} menos que ahora",
+    "badgeMore": "En {minutes} min: ~{count} libres · {delta} más que ahora",
+    "accuracyTrend": "Se desvió de media ~{spaces} plazas a {minutes} min en las últimas horas ({percent} % mejor que suponer que nada cambia)",
+    "accuracyPersistence": "Seguir la tendencia ha funcionado peor aquí últimamente que suponer que nada cambia",
+    "accuracyNone": "Aún no hay historial suficiente para medir la precisión"
+  },
+  "history": {
+    "title": "Ocupación reciente",
+    "summary": "{samples} mediciones · últimos {minutes} min · {from} → {to}",
+    "forecastSuffix": "previsión para los próximos 60 min",
+    "now": "ahora",
+    "inMinutes": "En {minutes} min",
+    "minFree": "Mín. libres",
+    "maxFree": "Máx. libres",
+    "capacity": "Capacidad",
+    "empty": "Todavía no hay historial disponible.",
+    "none": "No hay historial reciente disponible para este aparcamiento.",
+    "tooltipForecast": "{time} · previsión",
+    "tooltipForecastValue": "≈ {count} libres (probablemente {lo}–{hi}) de {total}",
+    "tooltipValue": "{free} / {total} libres · {percent} % ocupado",
+    "noForecast": "Sin previsión por ahora: la cifra de este aparcamiento lleva un rato sin actualizarse, así que una previsión se basaría en datos antiguos."
+  },
+  "detail": {
+    "spacesFree": "plazas libres de {total}",
+    "occupied": "{percent} % ocupado actualmente",
+    "unavailable": "La ocupación en directo no está disponible ahora mismo.",
+    "openingHours": "Horario de apertura",
+    "operator": "Operador",
+    "type": "Tipo",
+    "lez": "Zona de bajas emisiones",
+    "website": "Visitar sitio web",
+    "mapTitle": "Mapa de {name}"
+  },
+  "list": {
+    "favorite": "Favorito",
+    "name": "Nombre",
+    "status": "Estado",
+    "free": "Libres",
+    "trend": "Tendencia",
+    "percentFree": "% libre",
+    "lez": "LEZ",
+    "type": "Tipo",
+    "address": "Dirección"
+  },
+  "map": {
+    "freeOf": "{free} libres de {total}",
+    "unavailable": "Cifra en directo no disponible",
+    "away": "a {distance}",
+    "youAreHere": "Estás aquí",
+    "viewDetails": "Ver detalles →"
+  },
+  "actions": {
+    "navigateWith": "Navegar con {app}",
+    "call": "Llamar",
+    "callNumber": "Llamar al {phone}",
+    "share": "Compartir",
+    "shareThis": "Compartir este aparcamiento",
+    "shareText": "{free} plazas libres de {total}",
+    "shareTextUnavailable": "Disponibilidad en directo no disponible ({total} plazas en total)",
+    "copied": "Enlace copiado al portapapeles",
+    "shareFailed": "No se pudo compartir ni copiar el enlace"
+  },
+  "favorites": {
+    "add": "Añadir a favoritos",
+    "remove": "Quitar de favoritos",
+    "full": "La lista de favoritos está llena (máx. {max})",
+    "limit": "Máximo {max} favoritos: quita uno primero"
+  },
+  "settings": {
+    "open": "Ajustes",
+    "title": "Ajustes",
+    "mapTitle": "Mapa en las páginas de los aparcamientos",
+    "osm": "OpenStreetMap",
+    "osmNote": "Por defecto. No carga nada de Google.",
+    "google": "Google Maps",
+    "googleNote": "Carga el mapa desde Google, que entonces puede ver que has visitado la página.",
+    "switchToGoogle": "Usar Google Maps en su lugar",
+    "switchToOsm": "Usar OpenStreetMap en su lugar",
+    "changeHint": "Puedes cambiar el mapa en cualquier momento en los ajustes."
+  },
+  "errors": {
+    "title": "Algo ha salido mal",
+    "body": "No se pudieron cargar los datos de aparcamiento. Inténtalo de nuevo.",
+    "garageTitle": "No se pudo cargar este aparcamiento",
+    "garageBody": "Inténtalo de nuevo: puede que la API de datos abiertos no esté disponible temporalmente.",
+    "notFoundTitle": "Página no encontrada",
+    "notFoundBody": "No hemos encontrado esa página.",
+    "garageNotFoundTitle": "Aparcamiento no encontrado",
+    "garageNotFoundBody": "No hemos encontrado ningún aparcamiento con ese identificador."
+  },
+  "share": {
+    "features": "Disponibilidad en directo|Previsión a 30 min|Mapa|Cerca de mí"
+  }
+}

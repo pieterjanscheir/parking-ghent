@@ -22,9 +22,9 @@ import {
 
 import { Link } from "@/i18n/navigation";
 import {
-  OG_LOCALES,
   SITE_NAME,
   languageAlternates,
+  openGraphLocale,
   shareImage,
 } from "@/lib/site";
 import { ParkingLabel } from "@/components/parking-label";
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: "website",
       siteName: SITE_NAME,
-      locale: OG_LOCALES[locale],
+      locale: openGraphLocale(locale),
       title: `${title} — ${SITE_NAME}`,
       description,
       url: `/${locale}${path}`,

@@ -36,6 +36,8 @@ type Props = {
   parkings: Parking[];
   trendsById: Record<string, Trend>;
   distances: Record<string, number | null>;
+  // Distances are to the visitor's destination: show walking time too.
+  walking: boolean;
   // Current time, for judging how old each garage's count is.
   now: number;
   sort: SortKey;
@@ -75,6 +77,7 @@ export function ParkingListView({
   parkings,
   trendsById,
   distances,
+  walking,
   now,
   sort,
   onSortChange,
@@ -208,7 +211,7 @@ export function ParkingListView({
           return (
             <span className="text-sm text-muted-foreground">
               {row.original.address}
-              {d !== null && d !== undefined ? ` · ${formatDistance(d)}` : ""}
+              {d !== null && d !== undefined ? ` · ${formatDistance(d, walking)}` : ""}
             </span>
           );
         },
@@ -217,7 +220,7 @@ export function ParkingListView({
     // `labels` and `formatDistance` are new functions on every render, but
     // only change with the language — which `t` already tracks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isFavorite, trendsById, distances, now, t],
+    [isFavorite, trendsById, distances, walking, now, t],
   );
 
   const sorting = useMemo(() => deriveSorting(sort), [sort]);

@@ -59,6 +59,21 @@
     "locationDenied": "Locatietoegang geweigerd — we tonen de meeste vrije plaatsen.",
     "locationUnavailable": "Je locatie kon niet worden bepaald."
   },
+  "destination": {
+    "label": "Waar moet je zijn?",
+    "placeholder": "bv. Gravensteen, Vooruit, een straat…",
+    "popular": "Populaire bestemmingen",
+    "searchAll": "Zoek in heel Gent naar “{query}”",
+    "searching": "Zoeken…",
+    "noResults": "Niets gevonden in Gent voor “{query}”.",
+    "error": "Zoeken lukt nu even niet. Kies een plaats uit de lijst.",
+    "clear": "Bestemming wissen",
+    "attribution": "Zoeken via OpenStreetMap",
+    "sortedNote": "Parkings gesorteerd op wandelafstand tot {place}.",
+    "walk": "~{minutes} min wandelen",
+    "nearestToDestination": "Dichtst bij bestemming",
+    "marker": "Je bestemming"
+  },
   "sort": {
     "spaces-desc": "Meeste vrije plaatsen",
     "distance": "Dichtst bij mij",

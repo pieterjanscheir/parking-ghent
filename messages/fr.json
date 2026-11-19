@@ -59,6 +59,21 @@
     "locationDenied": "Accès à la position refusé — affichage par nombre de places libres.",
     "locationUnavailable": "Impossible de déterminer votre position."
   },
+  "destination": {
+    "label": "Où allez-vous ?",
+    "placeholder": "p. ex. Gravensteen, Vooruit, une rue…",
+    "popular": "Destinations populaires",
+    "searchAll": "Chercher « {query} » dans tout Gand",
+    "searching": "Recherche…",
+    "noResults": "Rien trouvé à Gand pour « {query} ».",
+    "error": "La recherche est indisponible pour le moment. Choisissez un lieu dans la liste.",
+    "clear": "Effacer la destination",
+    "attribution": "Recherche par OpenStreetMap",
+    "sortedNote": "Parkings triés par distance à pied jusqu’à {place}.",
+    "walk": "~{minutes} min à pied",
+    "nearestToDestination": "Le plus proche de la destination",
+    "marker": "Votre destination"
+  },
   "sort": {
     "spaces-desc": "Le plus de places libres",
     "distance": "Le plus proche",

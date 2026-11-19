@@ -1,0 +1,57 @@
+name: CI
+
+# Lint, type-check, test and build: on every pull request, and on master so a
+# merge that only breaks in combination with another one still shows up.
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+# A newer push to the same branch makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# The checks only read the code.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Actions are pinned to the exact commit of a release, so a moved tag
+    # can't change what runs here. To update: look up the commit of the new
+    # release tag and replace both the hash and the version comment.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # No step pushes or fetches again, so don't leave the token on disk.
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: 10
+
+      # Same Node.js major as the Vercel project builds with.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type-check
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      # Needs no secrets and doesn't call the city feeds: every page that
+      # shows live data is rendered on request, not at build time.
+      - name: Build
+        run: pnpm build
