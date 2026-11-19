@@ -182,3 +182,13 @@
   background: var(--card);
   font-family: var(--font-sans);
 }
+
+/* Leaflet gives its panes and controls z-index 400–1000. Without a stacking
+   context of their own those compete with the whole page and paint over the
+   sticky header (z-30) and popovers like the settings menu (z-50). Keep them
+   inside the map. */
+.leaflet-container.leaflet-container {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
