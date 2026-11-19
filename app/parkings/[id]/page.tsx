@@ -1,5 +1,4 @@
 import { Suspense, cache } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -9,7 +8,11 @@ import {
   MapPin,
   Building2,
 } from "lucide-react";
-import { fetchParkingById, fetchParkingDetailById } from "@/lib/parkings";
+import {
+  fetchParkingById,
+  fetchParkingDetailById,
+  serverClock,
+} from "@/lib/parkings";
 import {
   computeTrend,
   fetchParkingHistory,
@@ -17,6 +20,7 @@ import {
 } from "@/lib/parking-history";
 
 import { AvailabilityGauge } from "@/components/availability-gauge";
+import { DataFreshness } from "@/components/data-freshness";
 import { FavoriteButton } from "@/components/favorite-button";
 import { LiveDataWarning } from "@/components/live-data-warning";
 import { ParkingActions } from "@/components/parking-actions";
@@ -86,80 +90,56 @@ export default async function ParkingDetailPage({
           <FavoriteButton parkingId={parking.id} size="md" />
         </div>
 
-        <div
-          className={
-            parking.photoUrl
-              ? "md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] md:items-start md:gap-10"
-              : ""
-          }
-        >
-          <div className="min-w-0">
-            <div className="mt-6 flex flex-wrap items-center gap-1.5">
-              <ParkingStatusBadge parking={parking} />
-              {parking.category ? (
-                <MetaBadge>{parking.categoryLabel}</MetaBadge>
-              ) : null}
-              {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
-            </div>
-
-            <div className="mt-8 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
-              <AvailabilityGauge
-                percent={parking.freePercent}
-                bucket={parking.bucket}
-                size="lg"
-              />
-              <div>
-                <div className="flex items-center gap-3">
-                  <p
-                    className={
-                      parking.hasLiveData
-                        ? "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums"
-                        : "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums text-muted-foreground"
-                    }
-                  >
-                    {parking.hasLiveData ? parking.freeSpaces : "—"}
-                  </p>
-                  {!parking.hasLiveData ? <LiveDataWarning size="md" /> : null}
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  of {parking.totalSpaces} spaces free
-                </p>
-                {parking.hasLiveData ? (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {Math.round(parking.occupiedPercent)}% currently occupied
-                  </p>
-                ) : (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Live occupancy is unavailable right now.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <ParkingActions parking={parking} variant="full" className="mt-8" />
-
-            {parking.description ? (
-              <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
-                {parking.description}
-              </p>
+        <div className="min-w-0">
+          <div className="mt-6 flex flex-wrap items-center gap-1.5">
+            <ParkingStatusBadge parking={parking} />
+            {parking.category ? (
+              <MetaBadge>{parking.categoryLabel}</MetaBadge>
             ) : null}
+            {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
           </div>
 
-          {parking.photoUrl ? (
-            // Right column on md+; top-aligned with the badges row of the
-            // left column. On mobile (no grid) it stacks at the end so live
-            // availability stays the focus.
-            <div className="mt-8 md:mt-6">
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border border-border/60 bg-muted">
-                <Image
-                  src={parking.photoUrl}
-                  alt={`Photo of ${parking.name} parking`}
-                  fill
-                  sizes="(min-width: 768px) 20rem, 100vw"
-                  className="object-cover"
-                />
+          <div className="mt-8 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
+            <AvailabilityGauge
+              percent={parking.freePercent}
+              bucket={parking.bucket}
+              size="lg"
+            />
+            <div>
+              <div className="flex items-center gap-3">
+                <p
+                  className={
+                    parking.hasLiveData
+                      ? "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums"
+                      : "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums text-muted-foreground"
+                  }
+                >
+                  {parking.hasLiveData ? parking.freeSpaces : "—"}
+                </p>
+                {!parking.hasLiveData ? <LiveDataWarning size="md" /> : null}
               </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                of {parking.totalSpaces} spaces free
+              </p>
+              {parking.hasLiveData ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {Math.round(parking.occupiedPercent)}% currently occupied
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Live occupancy is unavailable right now.
+                </p>
+              )}
+              <DataFreshness parking={parking} serverNow={serverClock()} />
             </div>
+          </div>
+
+          <ParkingActions parking={parking} variant="full" className="mt-8" />
+
+          {parking.description ? (
+            <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
+              {parking.description}
+            </p>
           ) : null}
         </div>
 

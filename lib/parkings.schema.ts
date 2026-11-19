@@ -37,9 +37,6 @@ const RawFieldsSchema = z
     id: z.string().optional().default(""),
     location: z.array(z.number()).optional(),
     locationanddimension: z.string().optional().default(""),
-    // Present only on records sourced from the mobi-parkings fallback feed
-    // (the three Interparking garages). The primary feed never sets it.
-    fotourl: z.string().optional().default(""),
   })
   .passthrough();
 
@@ -80,10 +77,9 @@ export type Parking = {
   lat: number | null;
   lng: number | null;
   phone: string | null;
-  lastUpdate: string;
-  // Optional photo URL — only populated for parkings from the secondary
-  // mobi-parkings feed (Kouter, Zuid, Center).
-  photoUrl: string | null;
+  // When the feed last updated this garage's count (epoch ms), or null when
+  // the feed gave no parseable timestamp.
+  lastUpdatedAt: number | null;
 };
 
 function parseLocation(raw: string): {
@@ -116,6 +112,13 @@ function parseLocation(raw: string): {
   } catch {
     return { address: "", lat: null, lng: null, phone: null };
   }
+}
+
+// The feed sends ISO-8601 with an offset ("2026-11-19T09:35:24+01:00").
+function parseTimestamp(raw: string): number | null {
+  if (!raw) return null;
+  const ms = Date.parse(raw);
+  return Number.isNaN(ms) ? null : ms;
 }
 
 function bucketFor(
@@ -223,7 +226,6 @@ export function normalizeParking(record: {
     lat,
     lng,
     phone,
-    lastUpdate: f.lastupdate ?? "",
-    photoUrl: (f.fotourl ?? "").trim() || null,
+    lastUpdatedAt: parseTimestamp(f.lastupdate ?? ""),
   };
 }

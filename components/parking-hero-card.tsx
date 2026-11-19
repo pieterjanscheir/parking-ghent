@@ -5,7 +5,7 @@ import type { Trend } from "@/lib/parking-history";
 import { cn } from "@/lib/utils";
 import { AvailabilityGauge } from "./availability-gauge";
 import { FavoriteButton } from "./favorite-button";
-import { LiveDataWarning } from "./live-data-warning";
+import { DataWarning } from "./live-data-warning";
 import { ParkingActions } from "./parking-actions";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
@@ -15,10 +15,13 @@ import { formatDistance } from "@/lib/geo";
 export function ParkingHeroCard({
   parking,
   trend,
+  now,
   distanceKm = null,
 }: {
   parking: Parking;
   trend: Trend | null;
+  // Current time, for judging how old this garage's count is.
+  now: number;
   distanceKm?: number | null;
 }) {
   return (
@@ -58,7 +61,7 @@ export function ParkingHeroCard({
           size="lg"
         />
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className={cn(
                 "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums",
@@ -74,7 +77,7 @@ export function ParkingHeroCard({
                 size="md"
               />
             ) : null}
-            {!parking.hasLiveData ? <LiveDataWarning size="md" /> : null}
+            <DataWarning parking={parking} now={now} size="md" />
           </div>
           <span className="mt-1 text-sm text-muted-foreground">
             free of {parking.totalSpaces}

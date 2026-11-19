@@ -33,8 +33,7 @@ function p(overrides: Partial<Parking> = {}): Parking {
     lat: null,
     lng: null,
     phone: null,
-    lastUpdate: "",
-    photoUrl: null,
+    lastUpdatedAt: null,
     ...overrides,
   };
 }

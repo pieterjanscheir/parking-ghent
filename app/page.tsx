@@ -1,4 +1,4 @@
-import { fetchParkings } from "@/lib/parkings";
+import { fetchParkings, serverClock } from "@/lib/parkings";
 import { fetchAllTrends } from "@/lib/parking-history";
 import { ParkingOverview } from "@/components/parking-overview";
 
@@ -10,6 +10,10 @@ export default async function Home() {
     fetchAllTrends(),
   ]);
   return (
-    <ParkingOverview parkings={parkings} trendsById={trendsById} />
+    <ParkingOverview
+      parkings={parkings}
+      trendsById={trendsById}
+      serverNow={serverClock()}
+    />
   );
 }

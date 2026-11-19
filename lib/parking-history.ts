@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { RawApiCall } from "./parkings";
 import { computeTrend, type Trend } from "./forecast";
+import { cached } from "./ttl-cache";
+import { fetchUpstream } from "./upstream";
 
 // The Opendatasoft v2.1 "Explore" API caps `limit` at 100 per request, but
 // each "recente-bezetting" dataset only holds a few hundred recent points,
@@ -10,6 +12,10 @@ import { computeTrend, type Trend } from "./forecast";
 const PAGE_LIMIT = 100;
 // Hard cap so a misbehaving dataset can't drag a request out forever.
 const MAX_PAGES = 20;
+// History gains one point roughly every minute, so refetching more often only
+// costs upstream calls. The whole (multi-page) series is cached as one unit so
+// the pages always belong to the same moment.
+export const HISTORY_TTL_MS = 60_000;
 
 const RecordSchema = z.object({
   datetime: z.string(),
@@ -72,12 +78,25 @@ export async function fetchParkingHistory(
   return result?.points ?? null;
 }
 
+type HistoryResult = { points: HistoryPoint[]; calls: RawApiCall[] };
+
+// Shared by the overview (trend badges for every garage) and the detail page
+// (chart), so opening a garage right after the overview costs no extra calls.
+// Callers must treat the result as read-only.
 export async function fetchParkingHistoryWithRaw(
   parkingId: string,
-): Promise<{ points: HistoryPoint[]; calls: RawApiCall[] } | null> {
+): Promise<HistoryResult | null> {
   const dataset = getHistoryDataset(parkingId);
   if (!dataset) return null;
+  return cached(`history:${dataset}`, { ttlMs: HISTORY_TTL_MS }, () =>
+    loadParkingHistory(parkingId, dataset),
+  );
+}
 
+async function loadParkingHistory(
+  parkingId: string,
+  dataset: string,
+): Promise<HistoryResult> {
   const all: z.infer<typeof RecordSchema>[] = [];
   const calls: RawApiCall[] = [];
   let offset = 0;
@@ -85,7 +104,7 @@ export async function fetchParkingHistoryWithRaw(
 
   for (let page = 0; page < MAX_PAGES && offset < total; page++) {
     const url = endpoint(dataset, offset);
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetchUpstream(url);
     const text = await res.text();
     let raw: unknown;
     try {

@@ -14,7 +14,7 @@ import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { AvailabilityGauge } from "./availability-gauge";
 import { FavoriteButton } from "./favorite-button";
-import { LiveDataWarning } from "./live-data-warning";
+import { DataWarning } from "./live-data-warning";
 import { ParkingStatusBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
 import { ForecastHint } from "./forecast-hint";
@@ -35,6 +35,8 @@ type Props = {
   parkings: Parking[];
   trendsById: Record<string, Trend>;
   distances: Record<string, number | null>;
+  // Current time, for judging how old each garage's count is.
+  now: number;
   sort: SortKey;
   onSortChange: (next: SortKey) => void;
 };
@@ -72,6 +74,7 @@ export function ParkingListView({
   parkings,
   trendsById,
   distances,
+  now,
   sort,
   onSortChange,
 }: Props) {
@@ -126,7 +129,7 @@ export function ParkingListView({
             >
               {row.original.hasLiveData ? row.original.freeSpaces : "—"}
             </span>
-            {!row.original.hasLiveData ? <LiveDataWarning /> : null}
+            <DataWarning parking={row.original} now={now} />
           </div>
         ),
         meta: { className: "text-right" },
@@ -207,7 +210,7 @@ export function ParkingListView({
         },
       },
     ],
-    [isFavorite, trendsById, distances],
+    [isFavorite, trendsById, distances, now],
   );
 
   const sorting = useMemo(() => deriveSorting(sort), [sort]);

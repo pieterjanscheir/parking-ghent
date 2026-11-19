@@ -16,6 +16,7 @@ import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import type { LatLng } from "@/lib/geo";
 import { distanceTo } from "@/lib/parkings";
+import { dataAgeMs, formatAge, isStale } from "@/lib/freshness";
 import { formatDistance } from "@/lib/geo";
 import { BUCKET_COLOR } from "./availability-gauge";
 import { forecastHint } from "./forecast-hint";
@@ -24,6 +25,8 @@ type Props = {
   parkings: Parking[];
   trendsById: Record<string, Trend>;
   userLocation: LatLng | null;
+  // Current time, for judging how old each garage's count is.
+  now: number;
 };
 
 const GHENT: [number, number] = [51.0543, 3.7174];
@@ -103,10 +106,16 @@ function fit(map: L.Map, points: [number, number][]) {
   });
 }
 
-export default function ParkingMap({ parkings, trendsById, userLocation }: Props) {
+export default function ParkingMap({ parkings, trendsById, userLocation, now }: Props) {
   const located = useMemo(
     () => parkings.filter((p) => p.lat !== null && p.lng !== null),
     [parkings],
+  );
+  // Built once per data refresh, not on every clock tick: handing Leaflet a
+  // new icon object makes it rebuild the marker's DOM.
+  const icons = useMemo(
+    () => new Map(located.map((p) => [p.id, markerIcon(p)])),
+    [located],
   );
   const bounds = useMemo(() => {
     const pts: [number, number][] = located.map((p) => [p.lat!, p.lng!]);
@@ -146,7 +155,7 @@ export default function ParkingMap({ parkings, trendsById, userLocation }: Props
           const hint = forecastHint(p, trendsById[p.id] ?? null);
           const dist = distanceTo(p, userLocation);
           return (
-            <Marker key={p.id} position={[p.lat!, p.lng!]} icon={markerIcon(p)}>
+            <Marker key={p.id} position={[p.lat!, p.lng!]} icon={icons.get(p.id)!}>
               <Popup>
                 <div className="space-y-1 text-sm">
                   <p className="font-semibold">{p.name}</p>
@@ -158,6 +167,11 @@ export default function ParkingMap({ parkings, trendsById, userLocation }: Props
                         : "Live count unavailable"}
                     {dist !== null ? ` · ${formatDistance(dist)} away` : ""}
                   </p>
+                  {isStale(p, now) ? (
+                    <p className="font-medium">
+                      ⚠ Count last updated {formatAge(dataAgeMs(p, now) ?? 0)}
+                    </p>
+                  ) : null}
                   {hint ? <p className="opacity-80">{hint.text}</p> : null}
                   <Link href={`/parkings/${encodeURIComponent(p.id)}`} className="font-medium">
                     View details →

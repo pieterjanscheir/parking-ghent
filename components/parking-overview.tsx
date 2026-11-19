@@ -12,6 +12,7 @@ import {
 } from "nuqs";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   CircleCheck,
   LayoutGrid,
   List,
@@ -32,6 +33,13 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useFavorites } from "@/lib/favorites";
 import { useAutoRefresh } from "@/lib/use-auto-refresh";
+import { useNow } from "@/lib/use-now";
+import {
+  FEED_STALE_AFTER_MS,
+  formatAge,
+  isStale,
+  newestUpdate,
+} from "@/lib/freshness";
 import { useGeolocation } from "@/lib/use-geolocation";
 import {
   DEFAULT_SORT,
@@ -65,6 +73,8 @@ const ParkingMap = dynamic(() => import("./parking-map"), {
 type Props = {
   parkings: Parking[];
   trendsById: Record<string, Trend>;
+  // The server's clock when this data was rendered.
+  serverNow: number;
 };
 
 const VIEW_VALUES = ["cards", "list", "map"] as const;
@@ -81,8 +91,13 @@ const Q_OPTIONS = { defaultValue: "", clearOnDefault: true } as const;
 
 const NUMBER_FMT = new Intl.NumberFormat("en-GB");
 
-export function ParkingOverview({ parkings, trendsById }: Props) {
+export function ParkingOverview({
+  parkings,
+  trendsById: allTrendsById,
+  serverNow,
+}: Props) {
   const router = useRouter();
+  const now = useNow(serverNow);
   const { ids: favoriteIds, ready: favReady } = useFavorites();
   const geo = useGeolocation();
 
@@ -123,6 +138,23 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
   );
 
   const typeOptions = useMemo(() => uniqueTypes(parkings), [parkings]);
+
+  // When the city's feed last moved at all. If that was a while ago the whole
+  // page is showing old counts, however recently we asked.
+  const dataUpdatedAt = useMemo(() => newestUpdate(parkings), [parkings]);
+  const feedAgeMs = dataUpdatedAt === null ? null : Math.max(0, now - dataUpdatedAt);
+  const feedIsStale = feedAgeMs !== null && feedAgeMs > FEED_STALE_AFTER_MS;
+
+  // A forecast "in 30 min" anchored on an out-of-date count would mislead, so
+  // garages with stale counts get no trend or forecast.
+  const trendsById = useMemo(() => {
+    const out: Record<string, Trend> = {};
+    for (const p of parkings) {
+      const trend = allTrendsById[p.id];
+      if (trend && !isStale(p, now)) out[p.id] = trend;
+    }
+    return out;
+  }, [parkings, allTrendsById, now]);
 
   const summary = useMemo(() => {
     const open = parkings.filter((p) => p.isOpen);
@@ -214,6 +246,21 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
         </dl>
       </header>
 
+      {feedIsStale ? (
+        <div
+          role="status"
+          className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden />
+          <p>
+            <span className="font-semibold">
+              The city&apos;s parking feed stopped updating {formatAge(feedAgeMs)}.
+            </span>{" "}
+            The counts below are from then and may no longer be right.
+          </p>
+        </div>
+      ) : null}
+
       {favReady && favorites.length > 0 ? (
         <section className="mb-8" aria-label="Favorite parkings">
           <div
@@ -230,6 +277,7 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
                 key={p.id}
                 parking={p}
                 trend={trendsById[p.id] ?? null}
+                now={now}
                 distanceKm={distances[p.id]}
               />
             ))}
@@ -324,8 +372,9 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
           intervalMs={refresh.intervalMs}
           setInterval={refresh.setInterval}
           refreshNow={refresh.refreshNow}
-          lastRefreshed={refresh.lastRefreshed}
           isRefreshing={refresh.isRefreshing}
+          dataUpdatedAt={dataUpdatedAt}
+          now={now}
         />
       </section>
 
@@ -362,12 +411,14 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
           parkings={filteredAll}
           trendsById={trendsById}
           userLocation={geo.location}
+          now={now}
         />
       ) : view === "list" ? (
         <ParkingListView
           parkings={filteredRest}
           trendsById={trendsById}
           distances={distances}
+          now={now}
           sort={sort}
           onSortChange={(s) => setSort(s === DEFAULT_SORT ? null : s)}
         />
@@ -378,6 +429,7 @@ export function ParkingOverview({ parkings, trendsById }: Props) {
               key={p.id}
               parking={p}
               trend={trendsById[p.id] ?? null}
+              now={now}
               distanceKm={distances[p.id]}
             />
           ))}

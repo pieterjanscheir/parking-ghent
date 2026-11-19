@@ -22,7 +22,6 @@ function record(fields: Partial<Fields> = {}, recordid = "r1") {
     lastupdate: "",
     id: "",
     locationanddimension: "",
-    fotourl: "",
   };
   return { recordid, fields: { ...defaults, ...fields } };
 }
@@ -151,19 +150,15 @@ describe("normalizeParking — id derivation", () => {
   });
 });
 
-describe("normalizeParking — photoUrl", () => {
-  it("returns null when fotourl is empty", () => {
-    expect(normalizeParking(record({ fotourl: "" })).photoUrl).toBeNull();
+describe("normalizeParking — lastUpdatedAt", () => {
+  it("parses the feed's ISO timestamp with offset to epoch ms", () => {
+    const p = normalizeParking(record({ lastupdate: "2026-11-19T09:35:24+01:00" }));
+    expect(p.lastUpdatedAt).toBe(Date.UTC(2026, 10, 19, 8, 35, 24));
   });
 
-  it("returns null when fotourl is just whitespace", () => {
-    expect(normalizeParking(record({ fotourl: "   " })).photoUrl).toBeNull();
-  });
-
-  it("returns the trimmed URL when present", () => {
-    expect(
-      normalizeParking(record({ fotourl: "  https://x/y.jpg  " })).photoUrl,
-    ).toBe("https://x/y.jpg");
+  it("returns null when the timestamp is missing or unparseable", () => {
+    expect(normalizeParking(record({ lastupdate: "" })).lastUpdatedAt).toBeNull();
+    expect(normalizeParking(record({ lastupdate: "?" })).lastUpdatedAt).toBeNull();
   });
 });
 

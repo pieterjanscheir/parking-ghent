@@ -13,8 +13,9 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Short-term forecast** on cards ("~120 free in 30 min", "Likely full in ~20 min") and a 60-minute forecast with ranges on detail pages — see [Forecasting](#forecasting).
 - **Favorites** — pin up to 3 garages to the top (stored only in the browser).
 - **Detail pages** — opening hours, operator, LEZ, embedded map, navigation via Google Maps / Waze / Apple Maps, call, share.
-- **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh.
-- **Live-data warning** when a feed entry looks stale or returns `-1` free spaces, and a clear message when the feed is down.
+- **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh; the spinner runs for as long as the request actually takes.
+- **Honest data age** — "City data updated 2 min ago" comes from the feed's own timestamps, not from when the page last asked. A garage whose count is more than 30 minutes old gets a warning and loses its forecast, and if no garage has updated for 15 minutes a banner says the feed has stopped ([lib/freshness.ts](lib/freshness.ts)).
+- **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
 
 ## Forecasting
 
@@ -34,6 +35,21 @@ predicted free(t + m) = now + K · slope · τ · (1 − e^(−m/τ))
 - a kill switch: if following the trend recently did worse than "nothing changes" for that garage, the app falls back to that and says so.
 
 Forecasts exist only for the city-run garages that publish history (see `HISTORY_DATASETS` in [lib/parking-history.ts](lib/parking-history.ts)).
+
+## Talking to the city's feeds
+
+Every visitor used to trigger a fresh round of ~20 upstream requests on each page view and each auto-refresh. Now the server keeps a small in-memory cache ([lib/ttl-cache.ts](lib/ttl-cache.ts)), so upstream load depends on time, not on how many people are looking:
+
+| Feed | Reused for |
+| --- | --- |
+| Live availability | 30 s |
+| Recent history (per garage) | 60 s |
+| Street addresses | 24 h, and the last good copy is kept if a refresh fails |
+
+- **Strict TTL, on purpose.** Next's built-in `fetch` cache is stale-while-revalidate: the first visitor after a quiet hour would get hour-old counts. This cache never returns anything older than its TTL.
+- Concurrent requests share one upstream call, and the overview, the detail page and its title all reuse the same data.
+- Each upstream call times out after 4 s and is retried once ([lib/upstream.ts](lib/upstream.ts)); a failure is remembered for 5 s so an outage isn't hammered.
+- The cache lives in the server instance's memory, so each running instance keeps its own copy. That's enough at this scale and needs no extra service.
 
 ## Stack
 
@@ -90,18 +106,23 @@ components/                   UI building blocks
   parking-filters.tsx         Filter controls
   parking-history-chart.tsx   Recharts occupancy-history chart
   parking-skeletons.tsx       Per-segment loading states
+  data-freshness.tsx          "Updated 2 min ago" on the detail page
   parking-status-badge.tsx    Status pill
   availability-gauge.tsx      SVG ring used in every card / row
   auto-refresh-control.tsx    Interval picker + manual refresh
   favorite-button.tsx         Favorite toggle
-  live-data-warning.tsx       Stale-feed banner
+  live-data-warning.tsx       "No live data" / "Updated 42 min ago" pills
   trend-indicator.tsx         Filling / emptying / stable badge
   site-header.tsx, site-footer.tsx
   ui/                         shadcn primitives
 lib/
-  parkings.ts                 Server fetchers + merge across feeds
+  parkings.ts                 Server fetchers + sort / filter helpers
   parkings.schema.ts          Zod schema + Parking type + normaliser
   parking-history.ts          History fetcher
+  ttl-cache.ts                In-memory cache with a strict time-to-live
+  upstream.ts                 Portal fetch with timeout + one retry
+  freshness.ts                Data-age and staleness helpers
+  use-now.ts                  Shared ticking clock for "x min ago" labels
   forecast.ts                 Forecast model + per-parking backtest
   geo.ts                      Distance helpers
   use-geolocation.ts          Opt-in browser location
@@ -115,10 +136,11 @@ lib/
 
 All from the City of Ghent open data portal:
 
-- [`bezetting-parkeergarages-real-time`](https://gent.opendatasoft.com/api/records/1.0/search/?dataset=bezetting-parkeergarages-real-time) — primary feed, current availability for most garages.
-- [`mobi-parkings`](https://data.stad.gent/explore/dataset/mobi-parkings/) — secondary feed for the three Interparking garages (Kouter, Zuid, Center) the primary feed omits. **As of November 2026 this dataset has been removed from the portal (404)**, so those garages don't show up; the app tolerates the failure.
+- [`bezetting-parkeergarages-real-time`](https://gent.opendatasoft.com/api/records/1.0/search/?dataset=bezetting-parkeergarages-real-time) — the live feed: current availability per garage.
 - [`locaties-openbare-parkings-gent`](https://gent.opendatasoft.com/explore/dataset/locaties-openbare-parkings-gent/) — static catalogue used to backfill missing addresses.
 - `recente-bezetting-parking-<name>-gent` — per-garage recent-occupancy series powering the detail-page history chart (only published for a subset of garages).
+
+The three Interparking garages (Kouter, Zuid, Center) are not listed. They used to come from a separate `mobi-parkings` dataset, which is no longer on the portal (checked November 2026), and the catalogue has no public replacement yet.
 
 ## Credits
 

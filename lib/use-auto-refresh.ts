@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useTransition } from "react";
 import { useLocalStorageJson } from "./local-storage-store";
 
 const STORAGE_KEY = "parking.refreshIntervalMs.v1";
@@ -31,8 +31,9 @@ export function useAutoRefresh(onTick: () => void) {
     parseInterval,
   );
   const intervalMs = storedInterval ?? DEFAULT_INTERVAL_MS;
-  const [lastRefreshed, setLastRefreshed] = useState<number>(() => Date.now());
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // The refresh runs as a transition, so `isRefreshing` stays true until the
+  // server has actually answered — not for a fixed, cosmetic delay.
+  const [isRefreshing, startRefresh] = useTransition();
   const onTickRef = useRef(onTick);
 
   useEffect(() => {
@@ -40,10 +41,9 @@ export function useAutoRefresh(onTick: () => void) {
   }, [onTick]);
 
   const fire = useCallback(() => {
-    setIsRefreshing(true);
-    onTickRef.current();
-    setLastRefreshed(Date.now());
-    window.setTimeout(() => setIsRefreshing(false), 400);
+    startRefresh(() => {
+      onTickRef.current();
+    });
   }, []);
 
   useEffect(() => {
@@ -93,7 +93,6 @@ export function useAutoRefresh(onTick: () => void) {
     intervalMs,
     setInterval,
     refreshNow,
-    lastRefreshed,
     isRefreshing,
   };
 }

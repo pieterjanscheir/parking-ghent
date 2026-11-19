@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatAge } from "@/lib/freshness";
 import { REFRESH_OPTIONS } from "@/lib/use-auto-refresh";
 import { cn } from "@/lib/utils";
 
@@ -17,34 +17,28 @@ type Props = {
   intervalMs: number;
   setInterval: (ms: number) => void;
   refreshNow: () => void;
-  lastRefreshed: number;
   isRefreshing: boolean;
+  // When the city's feed last changed (newest garage update), and the current
+  // time to measure it against. This is the age of the data itself — not of
+  // our last request, which says nothing if the feed has stopped updating.
+  dataUpdatedAt: number | null;
+  now: number;
 };
 
-function formatAgo(now: number, ts: number): string {
-  const secs = Math.max(0, Math.round((now - ts) / 1000));
-  if (secs < 5) return "just now";
-  if (secs < 60) return `${secs}s ago`;
-  const mins = Math.floor(secs / 60);
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  return `${hours}h ago`;
-}
+const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/Brussels",
+});
 
 export function AutoRefreshControl({
   intervalMs,
   setInterval,
   refreshNow,
-  lastRefreshed,
   isRefreshing,
+  dataUpdatedAt,
+  now,
 }: Props) {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-
   const isOn = intervalMs > 0;
 
   return (
@@ -83,13 +77,18 @@ export function AutoRefreshControl({
         className="gap-1.5"
       >
         <RefreshCw
-          className={cn("size-3.5", isRefreshing && "animate-spin")}
+          className={cn("size-3.5", isRefreshing && "motion-safe:animate-spin")}
         />
         <span>Refresh</span>
       </Button>
-      <span className="text-xs text-muted-foreground tabular-nums">
-        {formatAgo(now, lastRefreshed)}
-      </span>
+      {dataUpdatedAt !== null ? (
+        <span className="text-xs text-muted-foreground tabular-nums">
+          City data updated{" "}
+          <time dateTime={new Date(dataUpdatedAt).toISOString()}>
+            {formatAge(Math.max(0, now - dataUpdatedAt))} ({TIME_FMT.format(dataUpdatedAt)})
+          </time>
+        </span>
+      ) : null}
     </div>
   );
 }
