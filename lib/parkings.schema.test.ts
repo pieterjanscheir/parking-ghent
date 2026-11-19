@@ -56,6 +56,16 @@ describe("normalizeParking — capacity & live-data sentinel", () => {
     expect(p.freePercent + p.occupiedPercent).toBe(100);
     expect(p.hasLiveData).toBe(true);
   });
+
+  it("caps a count above the capacity, so nothing is more than 100% free", () => {
+    const p = normalizeParking(
+      record({ totalcapacity: 90, availablecapacity: 93, isopennow: 1 }),
+    );
+    expect(p.freeSpaces).toBe(90);
+    expect(p.freePercent).toBe(100);
+    expect(p.occupiedPercent).toBe(0);
+    expect(p.hasLiveData).toBe(true);
+  });
 });
 
 describe("normalizeParking — open/closed state", () => {
