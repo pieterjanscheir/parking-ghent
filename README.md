@@ -16,6 +16,7 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh; the spinner runs for as long as the request actually takes.
 - **Honest data age** — "City data updated 2 min ago" comes from the feed's own timestamps, not from when the page last asked. A garage whose count is more than 30 minutes old gets a warning and loses its forecast, and if no garage has updated for 15 minutes a banner says the feed has stopped ([lib/freshness.ts](lib/freshness.ts)).
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
+- **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space* and *Map* ([app/manifest.ts](app/manifest.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
 
 ## Forecasting
 
@@ -94,6 +95,10 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 app/                          App Router routes
   page.tsx                    Overview (server)
+  manifest.ts                 Web app manifest (name, icons, shortcuts)
+  icon.svg, apple-icon.png    App icon (source artwork: icon.svg)
+  opengraph-image.tsx         Share preview card, generated at build time
+  sitemap.ts, robots.ts       For search engines (previews are not indexed)
   parkings/[id]/              Detail page (server) + loading / error / not-found
 components/                   UI building blocks
   parking-overview.tsx        Overview client shell (summary / search / sort / filter / view)
@@ -116,6 +121,7 @@ components/                   UI building blocks
   site-header.tsx, site-footer.tsx
   ui/                         shadcn primitives
 lib/
+  site.ts                     Site name, URL and colours for metadata
   parkings.ts                 Server fetchers + sort / filter helpers
   parkings.schema.ts          Zod schema + Parking type + normaliser
   parking-history.ts          History fetcher
@@ -131,6 +137,12 @@ lib/
   use-auto-refresh.ts         Visibility-aware refresh hook
   *.test.ts                   Vitest unit tests
 ```
+
+### App icons
+
+The home-screen icons in `public/icons/` and `app/apple-icon.png` are PNG exports of [app/icon.svg](app/icon.svg). The `maskable` one is the same sign at 80% on a full blue square, so launchers that crop icons to a circle don't cut into the "P". If the artwork changes, re-export all four.
+
+The site URL used in share tags, `robots.txt` and the sitemap comes from Vercel's `VERCEL_PROJECT_PRODUCTION_URL`, so it follows the project's production domain without a code change.
 
 ## Data sources
 

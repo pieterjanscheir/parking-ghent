@@ -1,4 +1,5 @@
 import { Suspense, cache } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -19,6 +20,7 @@ import {
   getHistoryDataset,
 } from "@/lib/parking-history";
 
+import { SHARE_IMAGE, SITE_NAME } from "@/lib/site";
 import { AvailabilityGauge } from "@/components/availability-gauge";
 import { DataFreshness } from "@/components/data-freshness";
 import { FavoriteButton } from "@/components/favorite-button";
@@ -40,13 +42,30 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
-}) {
+}): Promise<Metadata> {
   const { id } = await params;
   const parking = await fetchParkingById(decodeURIComponent(id));
+  // The root layout's title template appends " — Ghent Parking".
+  if (!parking) return { title: "Parking" };
+
+  const title = `Parking ${parking.name}`;
+  // No live count here: share previews are cached for days, so a number
+  // would be wrong by the time anyone sees it.
+  const description = `Live free spaces and a short-term forecast for parking ${parking.name} in Ghent.`;
+  const path = `/parkings/${encodeURIComponent(parking.id)}`;
   return {
-    title: parking
-      ? `${parking.name} — Ghent Parking`
-      : "Parking — Ghent Parking",
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      locale: "en_BE",
+      title: `${title} — ${SITE_NAME}`,
+      description,
+      url: path,
+      images: [SHARE_IMAGE],
+    },
   };
 }
 
