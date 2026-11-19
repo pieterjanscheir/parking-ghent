@@ -5,6 +5,7 @@ import type { RouteLine } from "@/lib/approach-routes";
 import type { DirectoryEntry } from "@/lib/directory";
 import { Button } from "@/components/ui/button";
 import { FacilityBadges } from "./facility-badges";
+import { OnwardTravel } from "./onward-travel";
 import { ParkedHere } from "./parked-here";
 import { ParkingActions } from "./parking-actions";
 import { ParkingFacilities } from "./parking-facilities";
@@ -88,6 +89,8 @@ export function ExtraParkingDetail({
           evMaxKw={entry.evMaxKw}
           note={entry.note}
         />
+
+        {entry.parkAndRide ? <OnwardTravel lat={entry.lat} lng={entry.lng} /> : null}
 
         {entry.url ? (
           <div className="mt-8">

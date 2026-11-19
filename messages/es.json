@@ -323,5 +323,16 @@
     "toggleLabel": "Mostrar en el mapa los puntos de recarga para coches eléctricos",
     "fast": "Carga rápida",
     "error": "No se pudieron cargar los puntos de recarga."
+  },
+  "onward": {
+    "title": "Continuar desde aquí",
+    "toCentre": "Al centro de la ciudad:",
+    "transit": "Transporte público",
+    "bike": "En bicicleta",
+    "routeNote": "Abre la ruta en Google Maps.",
+    "bikesTitle": "Bicicletas compartidas a menos de 400 m, ahora",
+    "bikesNone": "Ahora no hay bicicletas compartidas a menos de 400 m.",
+    "bikesLoading": "Buscando bicicletas compartidas…",
+    "bikesSource": "En directo desde los datos abiertos de la ciudad, obtenidos directamente por tu navegador."
   }
 }

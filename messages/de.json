@@ -323,5 +323,16 @@
     "toggleLabel": "Ladepunkte für Elektroautos auf der Karte anzeigen",
     "fast": "Schnelllader",
     "error": "Die Ladepunkte konnten nicht geladen werden."
+  },
+  "onward": {
+    "title": "Von hier weiter",
+    "toCentre": "Ins Stadtzentrum:",
+    "transit": "Öffentliche Verkehrsmittel",
+    "bike": "Mit dem Fahrrad",
+    "routeNote": "Öffnet die Route in Google Maps.",
+    "bikesTitle": "Leihfahrräder im Umkreis von 400 m, jetzt",
+    "bikesNone": "Derzeit keine Leihfahrräder im Umkreis von 400 m.",
+    "bikesLoading": "Leihfahrräder werden gesucht…",
+    "bikesSource": "Live aus den offenen Daten der Stadt, direkt von Ihrem Browser abgerufen."
   }
 }

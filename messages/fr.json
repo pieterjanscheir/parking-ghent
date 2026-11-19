@@ -323,5 +323,16 @@
     "toggleLabel": "Afficher les bornes de recharge pour voitures électriques sur la carte",
     "fast": "Recharge rapide",
     "error": "Impossible de charger les bornes de recharge."
+  },
+  "onward": {
+    "title": "Poursuivre d’ici",
+    "toCentre": "Vers le centre-ville :",
+    "transit": "Transports en commun",
+    "bike": "À vélo",
+    "routeNote": "Ouvre l’itinéraire dans Google Maps.",
+    "bikesTitle": "Vélos partagés à moins de 400 m, en ce moment",
+    "bikesNone": "Aucun vélo partagé à moins de 400 m pour le moment.",
+    "bikesLoading": "Recherche de vélos partagés…",
+    "bikesSource": "En direct des données ouvertes de la ville, récupérées directement par votre navigateur."
   }
 }

@@ -323,5 +323,16 @@
     "toggleLabel": "Show charge points for electric cars on the map",
     "fast": "Fast charger",
     "error": "Couldn't load the charge points."
+  },
+  "onward": {
+    "title": "Continue from here",
+    "toCentre": "To the city centre:",
+    "transit": "Public transport",
+    "bike": "By bike",
+    "routeNote": "Opens the route in Google Maps.",
+    "bikesTitle": "Shared bikes within 400 m, right now",
+    "bikesNone": "No shared bikes within 400 m right now.",
+    "bikesLoading": "Looking for shared bikes…",
+    "bikesSource": "Live from the city's open data, fetched directly by your browser."
   }
 }

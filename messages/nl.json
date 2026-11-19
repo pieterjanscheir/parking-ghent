@@ -323,5 +323,16 @@
     "toggleLabel": "Toon laadpunten voor elektrische wagens op de kaart",
     "fast": "Snellader",
     "error": "De laadpunten konden niet geladen worden."
+  },
+  "onward": {
+    "title": "Verder vanaf hier",
+    "toCentre": "Naar het stadscentrum:",
+    "transit": "Openbaar vervoer",
+    "bike": "Met de fiets",
+    "routeNote": "Opent de route in Google Maps.",
+    "bikesTitle": "Deelfietsen binnen 400 m, nu",
+    "bikesNone": "Nu geen deelfietsen binnen 400 m.",
+    "bikesLoading": "Deelfietsen zoeken…",
+    "bikesSource": "Live uit de open data van de stad, rechtstreeks opgehaald door je browser."
   }
 }

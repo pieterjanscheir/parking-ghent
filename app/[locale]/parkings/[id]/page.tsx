@@ -40,6 +40,7 @@ import { ExtraParkingDetail } from "@/components/extra-parking-detail";
 import { FacilityBadges } from "@/components/facility-badges";
 import { FavoriteButton } from "@/components/favorite-button";
 import { LiveDataWarning } from "@/components/live-data-warning";
+import { OnwardTravel } from "@/components/onward-travel";
 import { ParkedHere } from "@/components/parked-here";
 import { ParkingActions } from "@/components/parking-actions";
 import { ParkingFacilities } from "@/components/parking-facilities";
@@ -282,6 +283,10 @@ export default async function ParkingDetailPage({ params }: Props) {
           evMaxKw={parking.evMaxKw}
           note={parking.note}
         />
+
+        {parking.parkAndRide && parking.lat !== null && parking.lng !== null ? (
+          <OnwardTravel lat={parking.lat} lng={parking.lng} />
+        ) : null}
 
         {parking.isInsideLez ? (
           <p className="mt-8 flex items-start gap-3 rounded-lg border border-border/70 bg-card/40 px-4 py-3 text-sm text-muted-foreground">
