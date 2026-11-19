@@ -74,7 +74,10 @@
     "sortedNote": "Parkings gesorteerd op wandelafstand tot {place}.",
     "walk": "~{minutes} min wandelen",
     "nearestToDestination": "Dichtst bij bestemming",
-    "marker": "Je bestemming"
+    "marker": "Je bestemming",
+    "recentAndPopular": "Recente en populaire bestemmingen",
+    "recent": "recent",
+    "forgetRecent": "Recente bestemmingen wissen"
   },
   "sort": {
     "spaces-desc": "Meeste vrije plaatsen",
@@ -222,7 +225,11 @@
     "googleNote": "Laadt de kaart bij Google, dat dan kan zien dat je de pagina bekeek.",
     "switchToGoogle": "Liever Google Maps gebruiken",
     "switchToOsm": "Liever OpenStreetMap gebruiken",
-    "changeHint": "Je kunt de kaart altijd aanpassen bij de instellingen."
+    "changeHint": "Je kunt de kaart altijd aanpassen bij de instellingen.",
+    "appTitle": "App",
+    "install": "Installeren op dit toestel",
+    "installNote": "Opent in een eigen venster. Pagina's die je al bekeken hebt, openen ook zonder verbinding.",
+    "installIos": "Op iPhone of iPad: tik op Delen en kies ‘Zet op beginscherm’."
   },
   "errors": {
     "title": "Er ging iets mis",
@@ -277,7 +284,9 @@
     },
     "none": "Geen enkele garage met een live telling heeft nu comfortabel plaats. Bekijk de lijst hieronder of kies een Park & Ride.",
     "parkAndRide": "Liever niet tot in het centrum rijden? Dichtste Park & Ride:",
-    "details": "Details"
+    "details": "Details",
+    "walkRoute": "Wandelroute vanaf deze parking",
+    "walkRouteLabel": "Wandelroute van {garage} naar {place}"
   },
   "alternatives": {
     "title": "Garages in de buurt",

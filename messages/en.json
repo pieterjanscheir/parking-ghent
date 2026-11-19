@@ -74,7 +74,10 @@
     "sortedNote": "Garages sorted by walking distance to {place}.",
     "walk": "~{minutes} min walk",
     "nearestToDestination": "Nearest to destination",
-    "marker": "Your destination"
+    "marker": "Your destination",
+    "recentAndPopular": "Recent and popular destinations",
+    "recent": "recent",
+    "forgetRecent": "Forget recent destinations"
   },
   "sort": {
     "spaces-desc": "Most free spaces",
@@ -222,7 +225,11 @@
     "googleNote": "Loads the map from Google, which can then see that you viewed the page.",
     "switchToGoogle": "Use Google Maps instead",
     "switchToOsm": "Use OpenStreetMap instead",
-    "changeHint": "You can change the map any time in settings."
+    "changeHint": "You can change the map any time in settings.",
+    "appTitle": "App",
+    "install": "Install on this device",
+    "installNote": "Opens in its own window. Pages you have seen before also open without a connection.",
+    "installIos": "On iPhone or iPad: tap Share, then “Add to Home Screen”."
   },
   "errors": {
     "title": "Something went wrong",
@@ -277,7 +284,9 @@
     },
     "none": "No garage with a live count has comfortable space right now. Check the list below or pick a Park & Ride.",
     "parkAndRide": "Rather not drive into the centre? Nearest Park & Ride:",
-    "details": "Details"
+    "details": "Details",
+    "walkRoute": "Walking route from this garage",
+    "walkRouteLabel": "Walking route from {garage} to {place}"
   },
   "alternatives": {
     "title": "Nearby garages",

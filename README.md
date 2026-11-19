@@ -9,7 +9,8 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Overview built for "where can I park?"** — headline stats (open garages, garages with space, total free spaces, the emptiest garage), sorted by most free spaces by default, with closed or no-data garages pushed to the bottom ([components/parking-overview.tsx](components/parking-overview.tsx), sorting in [lib/parkings.ts](lib/parkings.ts)).
 - **Map view** — every garage on one map with its live free-space count, coloured by availability ([components/parking-map.tsx](components/parking-map.tsx), Leaflet + OpenStreetMap).
 - **Search by destination** — "Where are you going?" sorts the garages by walking distance to a place, with an estimated walking time on every card ("340 m · ~6 min walk") and the destination pinned on the map. About 40 well-known Ghent places (Gravensteen, Vooruit, the hospitals, the stations …) are suggested instantly while typing, also by their English, French and older names; anything else, such as a street address, is looked up on OpenStreetMap when asked. The result is part of the URL, so "parking near Vooruit" can be shared — see [Destination search](#destination-search).
-- **A straight answer** — with a destination or "Near me", a "Best choice" panel names one garage: the nearest, unless it is closed, full, down to a few spaces, forecast to be full within half an hour, or without a reliable count. When it passes over the nearest garage it says which one and why. It also names the nearest Park & Ride, and which street-parking zone the destination is in ([lib/recommend.ts](lib/recommend.ts)).
+- **Recent destinations** — the last four destinations picked are offered first next time, with a link to forget them. Stored in the browser only ([lib/recent-destinations.ts](lib/recent-destinations.ts)).
+- **A straight answer** — with a destination or "Near me", a "Best choice" panel names one garage: the nearest, unless it is closed, full, down to a few spaces, forecast to be full within half an hour, or without a reliable count. When it passes over the nearest garage it says which one and why. It also names the nearest Park & Ride, links to the walking route from the suggested garage to the destination, and says which street-parking zone the destination is in ([lib/recommend.ts](lib/recommend.ts)).
 - **Every public car park, not only the ones with a count** — the 13 Park & Ride lots and five more garages (Kouter, Zuid, Center parking, Leopoldskazerne, Zuiderpoort) publish no live numbers. They are listed in their own section and on the map, clearly marked "no live count", each with its own page — see [More than the live feed](#more-than-the-live-feed).
 - **Park & Ride, free parking, EV charging** — badges on cards and garage pages, and filters for each. A garage page shows how many charge points it has and the city's own remark about the garage.
 - **Where did I park?** — "I parked here" on any car park page remembers the car park, the time and an optional note (level, row). The overview then opens with a reminder and a walking route back. Stored in the browser only, dropped after a week ([lib/parked.ts](lib/parked.ts)).
@@ -34,7 +35,7 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
 - **Its own history** — a scheduled job saves every garage's count every 10 minutes, because the city only publishes the last few hours. Collecting only, for now — see [Our own history archive](#our-own-history-archive).
 - **Five languages** — Dutch, English, French, German and Spanish; every page exists under `/nl`, `/en`, `/fr`, `/de` and `/es`. A first visit picks the browser's language (Dutch if it's none of the five), the choice is remembered, and the language menu in the header keeps your search, sort, filters and destination — see [Languages](#languages).
-- **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space*, *Map* and *Where did I park?* ([app/manifest.ts](app/manifest.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
+- **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space*, *Map* and *Where did I park?* ([app/manifest.ts](app/manifest.ts)). The settings menu offers "Install on this device" where the browser supports it, and explains the Share-menu route on iPhone and iPad ([lib/use-install-prompt.ts](lib/use-install-prompt.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
 
 ## Forecasting
 
@@ -299,6 +300,8 @@ lib/
   approach-routes.ts          Recommended driving routes between the ring road and a garage
   recommend.ts                Best garage for a point, nearest Park & Ride, nearby alternatives
   parked.ts                   Where the visitor parked (localStorage)
+  recent-destinations.ts      The last destinations picked (localStorage)
+  use-install-prompt.ts       "Install this app" where the browser offers it
   parking-bans.ts             The city's temporary parking bans near a spot
   pay-machines.ts             The nearest on-street pay machine
   transit-stops.ts            Bus and tram stops near a spot

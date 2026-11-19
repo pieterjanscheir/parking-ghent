@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings } from "lucide-react";
+import { Download, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useMapProvider, type MapProvider } from "@/lib/map-provider";
+import { useInstallPrompt } from "@/lib/use-install-prompt";
 import { cn } from "@/lib/utils";
 
 const PROVIDERS: { value: MapProvider; nameKey: string; noteKey: string }[] = [
@@ -20,6 +21,7 @@ const PROVIDERS: { value: MapProvider; nameKey: string; noteKey: string }[] = [
 export function SettingsMenu() {
   const t = useTranslations("settings");
   const { provider, setProvider } = useMapProvider();
+  const { state: installState, install } = useInstallPrompt();
 
   return (
     <Popover>
@@ -70,6 +72,22 @@ export function SettingsMenu() {
             );
           })}
         </fieldset>
+        {installState !== "none" ? (
+          <div className="border-t border-border/60 pt-3">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t("appTitle")}
+            </p>
+            {installState === "available" ? (
+              <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={install}>
+                <Download className="size-3.5" aria-hidden />
+                {t("install")}
+              </Button>
+            ) : (
+              <p className="text-sm">{t("installIos")}</p>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground">{t("installNote")}</p>
+          </div>
+        ) : null}
       </PopoverContent>
     </Popover>
   );

@@ -74,7 +74,10 @@
     "sortedNote": "Parkhäuser sortiert nach Fußweg bis {place}.",
     "walk": "~{minutes} Min. zu Fuß",
     "nearestToDestination": "Am nächsten zum Ziel",
-    "marker": "Ihr Ziel"
+    "marker": "Ihr Ziel",
+    "recentAndPopular": "Letzte und beliebte Ziele",
+    "recent": "zuletzt",
+    "forgetRecent": "Letzte Ziele vergessen"
   },
   "sort": {
     "spaces-desc": "Meiste freie Plätze",
@@ -222,7 +225,11 @@
     "googleNote": "Lädt die Karte von Google, das dann sehen kann, dass Sie die Seite aufgerufen haben.",
     "switchToGoogle": "Lieber Google Maps verwenden",
     "switchToOsm": "Lieber OpenStreetMap verwenden",
-    "changeHint": "Sie können die Karte jederzeit in den Einstellungen ändern."
+    "changeHint": "Sie können die Karte jederzeit in den Einstellungen ändern.",
+    "appTitle": "App",
+    "install": "Auf diesem Gerät installieren",
+    "installNote": "Öffnet sich in einem eigenen Fenster. Bereits besuchte Seiten öffnen sich auch ohne Verbindung.",
+    "installIos": "Auf iPhone oder iPad: auf „Teilen“ tippen, dann „Zum Home-Bildschirm“."
   },
   "errors": {
     "title": "Etwas ist schiefgelaufen",
@@ -277,7 +284,9 @@
     },
     "none": "Derzeit hat kein Parkhaus mit Live-Zählung ausreichend freie Plätze. Sehen Sie in der Liste unten nach oder wählen Sie einen Park & Ride.",
     "parkAndRide": "Lieber nicht ins Zentrum fahren? Nächster Park & Ride:",
-    "details": "Details"
+    "details": "Details",
+    "walkRoute": "Fußweg ab diesem Parkhaus",
+    "walkRouteLabel": "Fußweg von {garage} nach {place}"
   },
   "alternatives": {
     "title": "Parkhäuser in der Nähe",

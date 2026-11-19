@@ -74,7 +74,10 @@
     "sortedNote": "Parkings triés par distance à pied jusqu’à {place}.",
     "walk": "~{minutes} min à pied",
     "nearestToDestination": "Le plus proche de la destination",
-    "marker": "Votre destination"
+    "marker": "Votre destination",
+    "recentAndPopular": "Destinations récentes et populaires",
+    "recent": "récent",
+    "forgetRecent": "Oublier les destinations récentes"
   },
   "sort": {
     "spaces-desc": "Le plus de places libres",
@@ -222,7 +225,11 @@
     "googleNote": "Charge le plan depuis Google, qui peut alors voir que vous avez consulté la page.",
     "switchToGoogle": "Utiliser plutôt Google Maps",
     "switchToOsm": "Utiliser plutôt OpenStreetMap",
-    "changeHint": "Vous pouvez changer de plan à tout moment dans les paramètres."
+    "changeHint": "Vous pouvez changer de plan à tout moment dans les paramètres.",
+    "appTitle": "Application",
+    "install": "Installer sur cet appareil",
+    "installNote": "S’ouvre dans sa propre fenêtre. Les pages déjà consultées s’ouvrent aussi sans connexion.",
+    "installIos": "Sur iPhone ou iPad : touchez Partager, puis « Sur l’écran d’accueil »."
   },
   "errors": {
     "title": "Une erreur s’est produite",
@@ -277,7 +284,9 @@
     },
     "none": "Aucun parking avec comptage en direct n’a assez de places pour le moment. Consultez la liste ci-dessous ou choisissez un Park & Ride.",
     "parkAndRide": "Vous préférez ne pas entrer en voiture dans le centre ? Park & Ride le plus proche :",
-    "details": "Détails"
+    "details": "Détails",
+    "walkRoute": "Itinéraire à pied depuis ce parking",
+    "walkRouteLabel": "Itinéraire à pied de {garage} à {place}"
   },
   "alternatives": {
     "title": "Parkings à proximité",

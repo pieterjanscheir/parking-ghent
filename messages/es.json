@@ -74,7 +74,10 @@
     "sortedNote": "Aparcamientos ordenados por distancia a pie hasta {place}.",
     "walk": "~{minutes} min a pie",
     "nearestToDestination": "Más cerca del destino",
-    "marker": "Tu destino"
+    "marker": "Tu destino",
+    "recentAndPopular": "Destinos recientes y populares",
+    "recent": "reciente",
+    "forgetRecent": "Olvidar destinos recientes"
   },
   "sort": {
     "spaces-desc": "Más plazas libres",
@@ -222,7 +225,11 @@
     "googleNote": "Carga el mapa desde Google, que entonces puede ver que has visitado la página.",
     "switchToGoogle": "Usar Google Maps en su lugar",
     "switchToOsm": "Usar OpenStreetMap en su lugar",
-    "changeHint": "Puedes cambiar el mapa en cualquier momento en los ajustes."
+    "changeHint": "Puedes cambiar el mapa en cualquier momento en los ajustes.",
+    "appTitle": "Aplicación",
+    "install": "Instalar en este dispositivo",
+    "installNote": "Se abre en su propia ventana. Las páginas que ya has visto también se abren sin conexión.",
+    "installIos": "En iPhone o iPad: toca Compartir y luego «Añadir a pantalla de inicio»."
   },
   "errors": {
     "title": "Algo ha salido mal",
@@ -277,7 +284,9 @@
     },
     "none": "Ahora mismo ningún aparcamiento con recuento en directo tiene plazas suficientes. Consulta la lista de abajo o elige un Park & Ride.",
     "parkAndRide": "¿Prefieres no entrar al centro en coche? Park & Ride más cercano:",
-    "details": "Detalles"
+    "details": "Detalles",
+    "walkRoute": "Ruta a pie desde este aparcamiento",
+    "walkRouteLabel": "Ruta a pie de {garage} a {place}"
   },
   "alternatives": {
     "title": "Aparcamientos cercanos",

@@ -330,6 +330,7 @@ export function ParkingOverview({
           {advice ? (
             <DestinationAdvice
               place={destination?.name ?? null}
+              destination={destination}
               suggestion={advice.suggestion}
               parkAndRide={advice.parkAndRide}
             >
