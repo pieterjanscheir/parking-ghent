@@ -2,8 +2,8 @@
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useRef } from "react";
-import Link from "next/link";
 import L from "leaflet";
+import { useTranslations } from "next-intl";
 import {
   CircleMarker,
   MapContainer,
@@ -15,15 +15,19 @@ import {
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import type { LatLng } from "@/lib/geo";
+import { Link } from "@/i18n/navigation";
 import { distanceTo } from "@/lib/parkings";
-import { formatDistance } from "@/lib/geo";
+import { dataAgeMs, isStale } from "@/lib/freshness";
 import { BUCKET_COLOR } from "./availability-gauge";
 import { forecastHint } from "./forecast-hint";
+import { useFormatAge, useFormatDistance } from "./use-labels";
 
 type Props = {
   parkings: Parking[];
   trendsById: Record<string, Trend>;
   userLocation: LatLng | null;
+  // Current time, for judging how old each garage's count is.
+  now: number;
 };
 
 const GHENT: [number, number] = [51.0543, 3.7174];
@@ -34,9 +38,9 @@ function escapeHtml(s: string): string {
 
 // A pill with the live free-space count, coloured like the availability
 // gauge, so the map answers "where is there space?" without any clicks.
-function markerIcon(p: Parking): L.DivIcon {
+function markerIcon(p: Parking, closedLabel: string): L.DivIcon {
   const color = BUCKET_COLOR[p.bucket];
-  const label = !p.isOpen ? "Closed" : p.hasLiveData ? String(p.freeSpaces) : "?";
+  const label = !p.isOpen ? closedLabel : p.hasLiveData ? String(p.freeSpaces) : "?";
   return L.divIcon({
     className: "parking-marker",
     html: `<span style="--marker-color:${color}" title="${escapeHtml(p.name)}">${escapeHtml(label)}</span>`,
@@ -103,10 +107,23 @@ function fit(map: L.Map, points: [number, number][]) {
   });
 }
 
-export default function ParkingMap({ parkings, trendsById, userLocation }: Props) {
+export default function ParkingMap({ parkings, trendsById, userLocation, now }: Props) {
+  const t = useTranslations("map");
+  const tCommon = useTranslations("common");
+  const tForecast = useTranslations("forecast");
+  const tFresh = useTranslations("freshness");
+  const formatAge = useFormatAge();
+  const formatDistance = useFormatDistance();
+  const closedLabel = tCommon("closed");
   const located = useMemo(
     () => parkings.filter((p) => p.lat !== null && p.lng !== null),
     [parkings],
+  );
+  // Built once per data refresh, not on every clock tick: handing Leaflet a
+  // new icon object makes it rebuild the marker's DOM.
+  const icons = useMemo(
+    () => new Map(located.map((p) => [p.id, markerIcon(p, closedLabel)])),
+    [located, closedLabel],
   );
   const bounds = useMemo(() => {
     const pts: [number, number][] = located.map((p) => [p.lat!, p.lng!]);
@@ -139,28 +156,40 @@ export default function ParkingMap({ parkings, trendsById, userLocation }: Props
               fillOpacity: 1,
             }}
           >
-            <Popup>You are here</Popup>
+            <Popup>{t("youAreHere")}</Popup>
           </CircleMarker>
         ) : null}
         {located.map((p) => {
           const hint = forecastHint(p, trendsById[p.id] ?? null);
           const dist = distanceTo(p, userLocation);
           return (
-            <Marker key={p.id} position={[p.lat!, p.lng!]} icon={markerIcon(p)}>
+            <Marker key={p.id} position={[p.lat!, p.lng!]} icon={icons.get(p.id)!}>
               <Popup>
                 <div className="space-y-1 text-sm">
                   <p className="font-semibold">{p.name}</p>
                   <p>
                     {!p.isOpen
-                      ? "Closed"
+                      ? closedLabel
                       : p.hasLiveData
-                        ? `${p.freeSpaces} of ${p.totalSpaces} free`
-                        : "Live count unavailable"}
-                    {dist !== null ? ` · ${formatDistance(dist)} away` : ""}
+                        ? t("freeOf", { free: p.freeSpaces, total: p.totalSpaces })
+                        : t("unavailable")}
+                    {dist !== null
+                      ? ` · ${t("away", { distance: formatDistance(dist) })}`
+                      : ""}
                   </p>
-                  {hint ? <p className="opacity-80">{hint.text}</p> : null}
+                  {isStale(p, now) ? (
+                    <p className="font-medium">
+                      ⚠{" "}
+                      {tFresh("countLastUpdated", {
+                        age: formatAge(dataAgeMs(p, now) ?? 0),
+                      })}
+                    </p>
+                  ) : null}
+                  {hint ? (
+                    <p className="opacity-80">{tForecast(hint.key, hint.values)}</p>
+                  ) : null}
                   <Link href={`/parkings/${encodeURIComponent(p.id)}`} className="font-medium">
-                    View details →
+                    {t("viewDetails")}
                   </Link>
                 </div>
               </Popup>

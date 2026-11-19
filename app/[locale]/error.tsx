@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { CircleAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 export default function Error({
@@ -11,6 +12,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("errors");
+  const tCommon = useTranslations("common");
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -22,13 +25,13 @@ export default function Error({
           <CircleAlert className="size-5 text-destructive" />
         </div>
         <h1 className="font-heading text-xl font-semibold tracking-tight">
-          Something went wrong
+          {t("title")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          We couldn&apos;t load the parking data. Please try again.
+          {t("body")}
         </p>
         <Button className="mt-6" onClick={() => reset()}>
-          Try again
+          {tCommon("tryAgain")}
         </Button>
       </div>
     </div>

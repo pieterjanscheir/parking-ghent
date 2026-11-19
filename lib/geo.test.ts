@@ -19,4 +19,10 @@ describe("formatDistance", () => {
     expect(formatDistance(1.26)).toBe("1.3 km");
     expect(formatDistance(14.6)).toBe("15 km");
   });
+
+  it("uses the language's decimal separator", () => {
+    expect(formatDistance(1.26, "nl")).toBe("1,3 km");
+    expect(formatDistance(1.26, "fr")).toBe("1,3 km");
+    expect(formatDistance(0.234, "nl")).toBe("230 m");
+  });
 });

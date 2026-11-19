@@ -1,6 +1,7 @@
 "use client";
 
 import { Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useFavorites, MAX_FAVORITES } from "@/lib/favorites";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function FavoriteButton({ parkingId, size = "md", className }: Props) {
+  const t = useTranslations("favorites");
   const { isFavorite, canAdd, toggle } = useFavorites();
   const active = isFavorite(parkingId);
   const disabled = !active && !canAdd;
@@ -22,15 +24,13 @@ export function FavoriteButton({ parkingId, size = "md", className }: Props) {
       aria-pressed={active}
       aria-label={
         active
-          ? "Remove from favorites"
+          ? t("remove")
           : disabled
-            ? `Favorite list is full (max ${MAX_FAVORITES})`
-            : "Add to favorites"
+            ? t("full", { max: MAX_FAVORITES })
+            : t("add")
       }
       title={
-        disabled
-          ? `Up to ${MAX_FAVORITES} favorites — remove one first`
-          : undefined
+        disabled ? t("limit", { max: MAX_FAVORITES }) : undefined
       }
       className={cn(
         "inline-flex items-center justify-center rounded-full border border-border/60 bg-card/60 text-muted-foreground transition-all",
@@ -47,9 +47,7 @@ export function FavoriteButton({ parkingId, size = "md", className }: Props) {
         e.stopPropagation();
         const result = toggle(parkingId);
         if (!result.ok && result.reason === "at-capacity") {
-          toast.warning(
-            `Up to ${MAX_FAVORITES} favorites — remove one first.`,
-          );
+          toast.warning(t("limit", { max: MAX_FAVORITES }));
         }
       }}
     >

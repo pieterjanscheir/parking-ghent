@@ -4,9 +4,9 @@ import {
   fetchParkingDetailById,
   fetchParkings,
   fetchParkingsWithRaw,
-  MOBI_DATASET,
-  PRIMARY_DATASET,
+  LIVE_TTL_MS,
 } from "./parkings";
+import { clearCache } from "./ttl-cache";
 
 // ---- fixture builders -------------------------------------------------------
 
@@ -49,41 +49,6 @@ function primaryRecord(recordid: string, fields: PrimaryFieldOverrides) {
 }
 
 function primaryResponse(records: ReturnType<typeof primaryRecord>[]) {
-  return { nhits: records.length, records };
-}
-
-function mobiRecord(
-  recordid: string,
-  fields: {
-    id_parking: string;
-    totalcapacity?: number;
-    availablecapacity?: number;
-    parkingdatalink?: string;
-    binnenlez?: boolean;
-  },
-) {
-  return {
-    recordid,
-    fields: {
-      id_parking: fields.id_parking,
-      parkingdatalink: fields.parkingdatalink ?? "Interparking Kouter",
-      description: "",
-      urllinkaddress: "",
-      openingtimesdescription: "",
-      fotourl: "",
-      totalcapacity: fields.totalcapacity ?? 500,
-      availablecapacity: fields.availablecapacity ?? 250,
-      isopennow: 1,
-      temporaryclosed: 0,
-      binnenlez: fields.binnenlez ?? true,
-      type: "carPark",
-      locationanddimension: "",
-      lastupdate: "",
-    },
-  };
-}
-
-function mobiResponse(records: ReturnType<typeof mobiRecord>[]) {
   return { nhits: records.length, records };
 }
 
@@ -132,148 +97,194 @@ function fail(status = 500): Handler {
   return () => ({ status, body: { error: "boom" } });
 }
 
+function callsTo(pattern: string): number {
+  return vi
+    .mocked(fetch)
+    .mock.calls.filter(([input]) => String(input).includes(pattern)).length;
+}
+
 beforeEach(() => {
   routes = new Map();
+  clearCache();
   mockFetch();
 });
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
 // ---- tests ------------------------------------------------------------------
 
+const LIVE = "dataset=bezetting-parkeergarages-real-time";
+const LOCATIONS = "dataset=locaties-openbare-parkings-gent";
+
 describe("fetchParkings — happy path", () => {
-  it("merges primary feed with mobi fallback (Kouter/Zuid/Center) and sorts by name", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
+  it("returns the live feed's parkings sorted by name", async () => {
+    route(LIVE, ok(primaryResponse([
       primaryRecord("p1", { name: "Tolhuis", id: "https://example.com/parkings/parking-tolhuis" }),
       primaryRecord("p2", { name: "Dampoort", id: "https://example.com/parkings/parking-dampoort" }),
     ])));
-    route("dataset=mobi-parkings", ok(mobiResponse([
-      mobiRecord("m1", { id_parking: "P Kouter" }),
-      mobiRecord("m2", { id_parking: "P Zuid" }),
-      // An unrelated parking outside the allow-list — must be ignored.
-      mobiRecord("m3", { id_parking: "P Antwerpen" }),
-    ])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+    route(LOCATIONS, ok(locationsResponse([])));
 
     const parkings = await fetchParkings();
 
-    const ids = parkings.map((p) => p.id);
-    expect(ids).toContain("parking-tolhuis");
-    expect(ids).toContain("parking-dampoort");
-    expect(ids).toContain("parking-kouter");
-    expect(ids).toContain("parking-zuid");
-    // Outside the allow-list — never adopted.
-    expect(ids).not.toContain("p-antwerpen");
-    // Stable name sort.
-    expect(parkings.map((p) => p.name)).toEqual(
-      [...parkings.map((p) => p.name)].sort((a, b) => a.localeCompare(b)),
-    );
+    expect(parkings.map((p) => p.id)).toEqual(["parking-dampoort", "parking-tolhuis"]);
   });
 
-  it("uses stable Interparking ids regardless of operator string", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([])));
-    route("dataset=mobi-parkings", ok(mobiResponse([
-      mobiRecord("m1", { id_parking: "P Kouter", parkingdatalink: "Interparking Kouter" }),
-    ])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+  it("only calls the two feeds it needs", async () => {
+    route(LIVE, ok(primaryResponse([])));
+    route(LOCATIONS, ok(locationsResponse([])));
 
-    const parkings = await fetchParkings();
-    expect(parkings.map((p) => p.id)).toEqual(["parking-kouter"]);
-    expect(parkings[0].name).toBe("Kouter");
-    expect(parkings[0].operator).toBe("Interparking");
+    await fetchParkings();
+
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+    for (const [input] of vi.mocked(fetch).mock.calls) {
+      // No API keys in the URL, and nothing outside the open-data portal.
+      expect(String(input)).toMatch(/^https:\/\/gent\.opendatasoft\.com\//);
+      expect(String(input)).not.toMatch(/apikey/i);
+    }
   });
 });
 
 describe("fetchParkings — graceful degradation", () => {
-  it("still returns primary parkings when mobi feed fails", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
-      primaryRecord("p1", { name: "Tolhuis" }),
-    ])));
-    route("dataset=mobi-parkings", fail(503));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
-
-    const parkings = await fetchParkings();
-    expect(parkings.map((p) => p.name)).toEqual(["Tolhuis"]);
-  });
-
   it("still returns parkings (with empty addresses) when locations feed fails", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
+    route(LIVE, ok(primaryResponse([
       primaryRecord("p1", { name: "Tolhuis" }),
     ])));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
-    route("dataset=locaties-openbare-parkings-gent", fail());
+    route(LOCATIONS, fail());
 
     const parkings = await fetchParkings();
     expect(parkings).toHaveLength(1);
     expect(parkings[0].address).toBe("");
   });
 
-  it("survives both optional feeds failing simultaneously", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
-      primaryRecord("p1", { name: "Tolhuis" }),
-    ])));
-    route("dataset=mobi-parkings", fail());
-    route("dataset=locaties-openbare-parkings-gent", fail());
-
-    const parkings = await fetchParkings();
-    expect(parkings).toHaveLength(1);
-  });
-
-  it("throws when the primary feed fails — the page can't render without it", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", fail(502));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+  it("throws when the live feed fails — the page can't render without it", async () => {
+    route(LIVE, fail(502));
+    route(LOCATIONS, ok(locationsResponse([])));
 
     await expect(fetchParkings()).rejects.toThrow();
   });
 });
 
-describe("fetchParkings — mobi dedup", () => {
-  it("does not double-add a parking that already exists in the primary feed", async () => {
-    // Primary has a record that would normalize to id "parking-kouter".
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
-      primaryRecord("p1", {
-        name: "Kouter (primary)",
-        id: "https://example.com/parkings/parking-kouter",
-      }),
-    ])));
-    route("dataset=mobi-parkings", ok(mobiResponse([
-      mobiRecord("m1", { id_parking: "P Kouter" }),
-    ])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+describe("fetchParkings — caching", () => {
+  it("shares one upstream call between concurrent requests", async () => {
+    route(LIVE, ok(primaryResponse([primaryRecord("p1", { name: "Tolhuis" })])));
+    route(LOCATIONS, ok(locationsResponse([])));
 
-    const parkings = await fetchParkings();
-    const kouters = parkings.filter((p) => p.id === "parking-kouter");
-    expect(kouters).toHaveLength(1);
-    // Primary wins — confirms the dedup keeps the primary entry rather than
-    // overwriting with the mobi one.
-    expect(kouters[0].name).toBe("Kouter (primary)");
+    const results = await Promise.all([fetchParkings(), fetchParkings(), fetchParkings()]);
+
+    expect(results.every((r) => r.length === 1)).toBe(true);
+    expect(callsTo(LIVE)).toBe(1);
+    expect(callsTo(LOCATIONS)).toBe(1);
   });
 
-  it("drops mobi records with totalcapacity<=0", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([])));
-    route("dataset=mobi-parkings", ok(mobiResponse([
-      mobiRecord("m1", { id_parking: "P Kouter", totalcapacity: 0 }),
-    ])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+  it("reuses the live feed within its TTL and refetches once it expires", async () => {
+    vi.useFakeTimers();
+    let free = 10;
+    route(LIVE, () => ({
+      status: 200,
+      body: primaryResponse([primaryRecord("p1", { name: "Tolhuis", availablecapacity: free })]),
+    }));
+    route(LOCATIONS, ok(locationsResponse([])));
 
-    expect(await fetchParkings()).toEqual([]);
+    expect((await fetchParkings())[0].freeSpaces).toBe(10);
+
+    free = 7;
+    vi.advanceTimersByTime(LIVE_TTL_MS - 1);
+    expect((await fetchParkings())[0].freeSpaces).toBe(10);
+    expect(callsTo(LIVE)).toBe(1);
+
+    // Strict TTL: once expired, the caller waits for fresh data rather than
+    // being handed the old count.
+    vi.advanceTimersByTime(1);
+    expect((await fetchParkings())[0].freeSpaces).toBe(7);
+    expect(callsTo(LIVE)).toBe(2);
+  });
+
+  it("fetches the static address list once, not once per live refresh", async () => {
+    vi.useFakeTimers();
+    route(LIVE, ok(primaryResponse([primaryRecord("p1", { name: "Tolhuis" })])));
+    route(LOCATIONS, ok(locationsResponse([])));
+
+    await fetchParkings();
+    vi.advanceTimersByTime(LIVE_TTL_MS * 10);
+    await fetchParkings();
+
+    expect(callsTo(LIVE)).toBe(2);
+    expect(callsTo(LOCATIONS)).toBe(1);
+  });
+
+  it("keeps the last good address list when a later refresh of it fails", async () => {
+    vi.useFakeTimers();
+    route(LIVE, ok(primaryResponse([primaryRecord("p1", { name: "Dampoort" })])));
+    route(LOCATIONS, ok(locationsResponse([
+      locationRecord("l1", { naam: "Dampoort", straatnaam: "Koopvaardijlaan", huisnr: "5" }),
+    ])));
+    expect((await fetchParkings())[0].address).toBe("Koopvaardijlaan 5");
+
+    route(LOCATIONS, fail(503));
+    vi.advanceTimersByTime(25 * 60 * 60_000);
+
+    expect((await fetchParkings())[0].address).toBe("Koopvaardijlaan 5");
+    expect(callsTo(LOCATIONS)).toBe(2);
+  });
+
+  it("does not serve an old live count when the live feed goes down", async () => {
+    vi.useFakeTimers();
+    route(LIVE, ok(primaryResponse([primaryRecord("p1", { name: "Tolhuis" })])));
+    route(LOCATIONS, ok(locationsResponse([])));
+    await fetchParkings();
+
+    route(LIVE, fail(503));
+    vi.advanceTimersByTime(LIVE_TTL_MS);
+
+    await expect(fetchParkings()).rejects.toThrow();
+  });
+
+  it("treats a 200 with an unusable body as a failure, not as 30 s of cached success", async () => {
+    vi.useFakeTimers();
+    route(LIVE, ok({ error: "maintenance" }));
+    route(LOCATIONS, ok(locationsResponse([])));
+
+    await expect(fetchParkings()).rejects.toThrow();
+    await expect(fetchParkings()).rejects.toThrow();
+    expect(callsTo(LIVE)).toBe(1);
+
+    // The portal recovers: we notice after the short failure window, well
+    // before the live TTL would have expired.
+    route(LIVE, ok(primaryResponse([primaryRecord("p1", { name: "Tolhuis" })])));
+    vi.advanceTimersByTime(5_000);
+    expect(await fetchParkings()).toHaveLength(1);
+    expect(callsTo(LIVE)).toBe(2);
+  });
+
+  it("remembers a failure briefly instead of hammering a feed that is down", async () => {
+    vi.useFakeTimers();
+    route(LIVE, fail(503));
+    route(LOCATIONS, ok(locationsResponse([])));
+
+    await expect(fetchParkings()).rejects.toThrow();
+    await expect(fetchParkings()).rejects.toThrow();
+    expect(callsTo(LIVE)).toBe(1);
+
+    // …but recovers quickly once the feed is back.
+    route(LIVE, ok(primaryResponse([primaryRecord("p1", { name: "Tolhuis" })])));
+    vi.advanceTimersByTime(5_000);
+    expect(await fetchParkings()).toHaveLength(1);
   });
 });
 
 describe("fetchParkings — address enrichment", () => {
   it("fills empty addresses from the locations dataset using name-key matching", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
+    route(LIVE, ok(primaryResponse([
       // No locationanddimension → empty address from normalization.
       primaryRecord("p1", { name: "B-Park Dampoort" }),
       primaryRecord("p2", { name: "Het Getouw" }),
     ])));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
     // Locations dataset uses bare names — normalizeNameKey strips "b-park"
     // and "het" prefixes so they match.
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([
+    route(LOCATIONS, ok(locationsResponse([
       locationRecord("l1", { naam: "Dampoort", straatnaam: "Koopvaardijlaan", huisnr: "5" }),
       locationRecord("l2", { naam: "Getouw", straatnaam: "Wiedauwkaai" }),
     ])));
@@ -285,13 +296,12 @@ describe("fetchParkings — address enrichment", () => {
     expect(getouw.address).toBe("Wiedauwkaai");
   });
 
-  it("does not overwrite an address that the primary feed already provided", async () => {
+  it("does not overwrite an address that the live feed already provided", async () => {
     const loc = JSON.stringify({ roadName: "Original Street 9" });
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
+    route(LIVE, ok(primaryResponse([
       primaryRecord("p1", { name: "Dampoort", locationanddimension: loc }),
     ])));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([
+    route(LOCATIONS, ok(locationsResponse([
       locationRecord("l1", { naam: "Dampoort", straatnaam: "Other Street", huisnr: "1" }),
     ])));
 
@@ -300,12 +310,11 @@ describe("fetchParkings — address enrichment", () => {
   });
 
   it("uses ADDRESS_OVERRIDES (e.g. 'The Loop') ahead of the locations dataset", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
+    route(LIVE, ok(primaryResponse([
       primaryRecord("p1", { name: "The Loop" }),
     ])));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
     // Even if locations had a different address for "the loop", the override wins.
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([
+    route(LOCATIONS, ok(locationsResponse([
       locationRecord("l1", { naam: "The Loop", straatnaam: "Wrong Street" }),
     ])));
 
@@ -314,11 +323,10 @@ describe("fetchParkings — address enrichment", () => {
   });
 
   it("drops conflicting addresses in the locations dataset (multiple straatnamen for the same name-key)", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
+    route(LIVE, ok(primaryResponse([
       primaryRecord("p1", { name: "Ambiguous" }),
     ])));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([
+    route(LOCATIONS, ok(locationsResponse([
       locationRecord("l1", { naam: "Ambiguous", straatnaam: "Street A" }),
       locationRecord("l2", { naam: "Ambiguous", straatnaam: "Street B" }),
     ])));
@@ -331,89 +339,82 @@ describe("fetchParkings — address enrichment", () => {
 
 describe("fetchParkingsWithRaw", () => {
   it("includes one call record per feed and tags the successful ones", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([])));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+    route(LIVE, ok(primaryResponse([])));
+    route(LOCATIONS, ok(locationsResponse([])));
 
     const { calls } = await fetchParkingsWithRaw();
     expect(calls.map((c) => c.id).sort()).toEqual([
       "bezetting-parkeergarages-real-time",
       "locaties-openbare-parkings-gent",
-      "mobi-parkings",
     ]);
     expect(calls.every((c) => c.ok)).toBe(true);
   });
 
   it("records a failed call with ok=false instead of swallowing it", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([])));
-    route("dataset=mobi-parkings", fail(503));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+    route(LIVE, ok(primaryResponse([])));
+    route(LOCATIONS, fail(503));
 
     const { calls } = await fetchParkingsWithRaw();
-    const mobi = calls.find((c) => c.id === "mobi-parkings");
-    expect(mobi).toBeDefined();
-    expect(mobi!.ok).toBe(false);
+    const locations = calls.find((c) => c.id === "locaties-openbare-parkings-gent");
+    expect(locations).toBeDefined();
+    expect(locations!.ok).toBe(false);
   });
 });
 
 describe("fetchParkingById", () => {
   it("returns the matching parking", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
+    route(LIVE, ok(primaryResponse([
       primaryRecord("p1", { name: "Tolhuis", id: "https://example.com/parkings/parking-tolhuis" }),
     ])));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+    route(LOCATIONS, ok(locationsResponse([])));
 
     const found = await fetchParkingById("parking-tolhuis");
     expect(found?.name).toBe("Tolhuis");
   });
 
   it("returns null when no parking matches", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([])));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+    route(LIVE, ok(primaryResponse([])));
+    route(LOCATIONS, ok(locationsResponse([])));
 
     expect(await fetchParkingById("missing")).toBeNull();
   });
 });
 
 describe("fetchParkingDetailById", () => {
-  it("tags the source as the primary dataset when found there", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([
-      primaryRecord("p1", { name: "Tolhuis", id: "https://example.com/parkings/parking-tolhuis" }),
+  it("returns the parking with its raw record and enriched address", async () => {
+    route(LIVE, ok(primaryResponse([
+      primaryRecord("p1", { name: "Dampoort", id: "https://example.com/parkings/parking-dampoort" }),
+      primaryRecord("p2", { name: "Tolhuis", id: "https://example.com/parkings/parking-tolhuis" }),
     ])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+    route(LOCATIONS, ok(locationsResponse([
+      locationRecord("l1", { naam: "Tolhuis", straatnaam: "Vrijdagmarkt", huisnr: "1" }),
+    ])));
 
     const detail = await fetchParkingDetailById("parking-tolhuis");
-    expect(detail?.source).toBe(PRIMARY_DATASET);
     expect(detail?.parking.name).toBe("Tolhuis");
+    expect(detail?.parking.address).toBe("Vrijdagmarkt 1");
+    expect(detail?.raw.recordid).toBe("p2");
   });
 
-  it("falls through to the mobi feed when the parking is not in the primary one", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([])));
-    route("dataset=mobi-parkings", ok(mobiResponse([
-      mobiRecord("m1", { id_parking: "P Kouter" }),
+  it("returns null for an unknown id without any extra upstream call", async () => {
+    route(LIVE, ok(primaryResponse([])));
+    route(LOCATIONS, ok(locationsResponse([])));
+
+    expect(await fetchParkingDetailById("parking-kouter")).toBeNull();
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+  });
+
+  it("shares the overview's upstream calls (page title + page body + list)", async () => {
+    route(LIVE, ok(primaryResponse([
+      primaryRecord("p1", { name: "Tolhuis", id: "https://example.com/parkings/parking-tolhuis" }),
     ])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
+    route(LOCATIONS, ok(locationsResponse([])));
 
-    const detail = await fetchParkingDetailById("parking-kouter");
-    expect(detail?.source).toBe(MOBI_DATASET);
-    expect(detail?.parking.id).toBe("parking-kouter");
-  });
+    await fetchParkings();
+    await fetchParkingById("parking-tolhuis");
+    await fetchParkingDetailById("parking-tolhuis");
 
-  it("returns null when nowhere", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([])));
-    route("dataset=mobi-parkings", ok(mobiResponse([])));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
-
-    expect(await fetchParkingDetailById("nope")).toBeNull();
-  });
-
-  it("returns null (rather than throwing) when mobi-fallback lookup fails for an unknown id", async () => {
-    route("dataset=bezetting-parkeergarages-real-time", ok(primaryResponse([])));
-    route("dataset=mobi-parkings", fail(500));
-    route("dataset=locaties-openbare-parkings-gent", ok(locationsResponse([])));
-
-    expect(await fetchParkingDetailById("missing")).toBeNull();
+    expect(callsTo(LIVE)).toBe(1);
+    expect(callsTo(LOCATIONS)).toBe(1);
   });
 });

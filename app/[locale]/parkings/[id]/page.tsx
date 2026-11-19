@@ -1,7 +1,7 @@
 import { Suspense, cache } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
   ChevronLeft,
   Clock,
@@ -9,18 +9,31 @@ import {
   MapPin,
   Building2,
 } from "lucide-react";
-import { fetchParkingById, fetchParkingDetailById } from "@/lib/parkings";
+import {
+  fetchParkingById,
+  fetchParkingDetailById,
+  serverClock,
+} from "@/lib/parkings";
 import {
   computeTrend,
   fetchParkingHistory,
   getHistoryDataset,
 } from "@/lib/parking-history";
 
+import { Link } from "@/i18n/navigation";
+import {
+  OG_LOCALES,
+  SITE_NAME,
+  languageAlternates,
+  shareImage,
+} from "@/lib/site";
+import { ParkingLabel } from "@/components/parking-label";
 import { AvailabilityGauge } from "@/components/availability-gauge";
+import { DataFreshness } from "@/components/data-freshness";
 import { FavoriteButton } from "@/components/favorite-button";
 import { LiveDataWarning } from "@/components/live-data-warning";
 import { ParkingActions } from "@/components/parking-actions";
-import { ParkingHistoryChart } from "@/components/parking-history-chart";
+import { ParkingHistorySection } from "@/components/parking-history-section";
 import {
   ParkingStatusBadge,
   MetaBadge,
@@ -32,26 +45,44 @@ import { Skeleton } from "@/components/ui/skeleton";
 // more than once.
 const getHistory = cache(fetchParkingHistory);
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+type Props = { params: Promise<{ locale: string; id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, id } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
   const parking = await fetchParkingById(decodeURIComponent(id));
+  // The root layout's title template appends " — Ghent Parking".
+  if (!parking) return { title: t("garageFallbackTitle") };
+
+  const title = t("garageTitle", { name: parking.name });
+  // No live count here: share previews are cached for days, so a number
+  // would be wrong by the time anyone sees it.
+  const description = t("garageDescription", { name: parking.name });
+  const path = `/parkings/${encodeURIComponent(parking.id)}`;
   return {
-    title: parking
-      ? `${parking.name} — Ghent Parking`
-      : "Parking — Ghent Parking",
+    title,
+    description,
+    alternates: {
+      canonical: `/${locale}${path}`,
+      languages: languageAlternates(path),
+    },
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      locale: OG_LOCALES[locale],
+      title: `${title} — ${SITE_NAME}`,
+      description,
+      url: `/${locale}${path}`,
+      images: [shareImage(locale, `${SITE_NAME} — ${t("tagline")}`)],
+    },
   };
 }
 
-export default async function ParkingDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default async function ParkingDetailPage({ params }: Props) {
+  const { locale, id } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("detail");
+  const tCommon = await getTranslations("common");
   const detail = await fetchParkingDetailById(decodeURIComponent(id));
   if (!detail) notFound();
   const { parking } = detail;
@@ -67,7 +98,7 @@ export default async function ParkingDetailPage({
         href="/"
         className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ChevronLeft className="size-4" /> Back to overview
+        <ChevronLeft className="size-4" /> {tCommon("backToOverview")}
       </Link>
 
       <div className="surface-card rounded-xl border border-border/70 p-6 sm:p-8">
@@ -86,80 +117,62 @@ export default async function ParkingDetailPage({
           <FavoriteButton parkingId={parking.id} size="md" />
         </div>
 
-        <div
-          className={
-            parking.photoUrl
-              ? "md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] md:items-start md:gap-10"
-              : ""
-          }
-        >
-          <div className="min-w-0">
-            <div className="mt-6 flex flex-wrap items-center gap-1.5">
-              <ParkingStatusBadge parking={parking} />
-              {parking.category ? (
-                <MetaBadge>{parking.categoryLabel}</MetaBadge>
-              ) : null}
-              {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
-            </div>
-
-            <div className="mt-8 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
-              <AvailabilityGauge
-                percent={parking.freePercent}
-                bucket={parking.bucket}
-                size="lg"
-              />
-              <div>
-                <div className="flex items-center gap-3">
-                  <p
-                    className={
-                      parking.hasLiveData
-                        ? "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums"
-                        : "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums text-muted-foreground"
-                    }
-                  >
-                    {parking.hasLiveData ? parking.freeSpaces : "—"}
-                  </p>
-                  {!parking.hasLiveData ? <LiveDataWarning size="md" /> : null}
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  of {parking.totalSpaces} spaces free
-                </p>
-                {parking.hasLiveData ? (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {Math.round(parking.occupiedPercent)}% currently occupied
-                  </p>
-                ) : (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Live occupancy is unavailable right now.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <ParkingActions parking={parking} variant="full" className="mt-8" />
-
-            {parking.description ? (
-              <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
-                {parking.description}
-              </p>
+        <div className="min-w-0">
+          <div className="mt-6 flex flex-wrap items-center gap-1.5">
+            <ParkingStatusBadge parking={parking} />
+            {parking.category ? (
+              <MetaBadge>
+                <ParkingLabel parking={parking} kind="lez" />
+              </MetaBadge>
+            ) : null}
+            {parking.type ? (
+              <MetaBadge>
+                <ParkingLabel parking={parking} kind="type" />
+              </MetaBadge>
             ) : null}
           </div>
 
-          {parking.photoUrl ? (
-            // Right column on md+; top-aligned with the badges row of the
-            // left column. On mobile (no grid) it stacks at the end so live
-            // availability stays the focus.
-            <div className="mt-8 md:mt-6">
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border border-border/60 bg-muted">
-                <Image
-                  src={parking.photoUrl}
-                  alt={`Photo of ${parking.name} parking`}
-                  fill
-                  sizes="(min-width: 768px) 20rem, 100vw"
-                  className="object-cover"
-                />
+          <div className="mt-8 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
+            <AvailabilityGauge
+              percent={parking.freePercent}
+              bucket={parking.bucket}
+              size="lg"
+            />
+            <div>
+              <div className="flex items-center gap-3">
+                <p
+                  className={
+                    parking.hasLiveData
+                      ? "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums"
+                      : "font-heading text-5xl font-bold leading-none tracking-tight tabular-nums text-muted-foreground"
+                  }
+                >
+                  {parking.hasLiveData ? parking.freeSpaces : "—"}
+                </p>
+                {!parking.hasLiveData ? <LiveDataWarning size="md" /> : null}
               </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t("spacesFree", { total: parking.totalSpaces })}
+              </p>
+              {parking.hasLiveData ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("occupied", { percent: Math.round(parking.occupiedPercent) })}
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("unavailable")}
+                </p>
+              )}
+              <DataFreshness parking={parking} serverNow={serverClock()} />
             </div>
+          </div>
+
+          <ParkingActions parking={parking} variant="full" className="mt-8" />
+
+          {parking.description ? (
+            <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
+              {parking.description}
+            </p>
           ) : null}
         </div>
 
@@ -167,7 +180,7 @@ export default async function ParkingDetailPage({
           {parking.openingHours ? (
             <div>
               <dt className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                <Clock className="size-3.5" /> Opening hours
+                <Clock className="size-3.5" /> {t("openingHours")}
               </dt>
               <dd className="mt-1 text-sm">{parking.openingHours}</dd>
             </div>
@@ -175,7 +188,7 @@ export default async function ParkingDetailPage({
           {parking.operator ? (
             <div>
               <dt className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                <Building2 className="size-3.5" /> Operator
+                <Building2 className="size-3.5" /> {t("operator")}
               </dt>
               <dd className="mt-1 text-sm">{parking.operator}</dd>
             </div>
@@ -183,17 +196,21 @@ export default async function ParkingDetailPage({
           {parking.type ? (
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Type
+                {t("type")}
               </dt>
-              <dd className="mt-1 text-sm">{parking.typeLabel}</dd>
+              <dd className="mt-1 text-sm">
+                <ParkingLabel parking={parking} kind="type" />
+              </dd>
             </div>
           ) : null}
           {parking.category ? (
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Low emission zone
+                {t("lez")}
               </dt>
-              <dd className="mt-1 text-sm">{parking.categoryLabel}</dd>
+              <dd className="mt-1 text-sm">
+                <ParkingLabel parking={parking} kind="lez" />
+              </dd>
             </div>
           ) : null}
         </dl>
@@ -206,7 +223,7 @@ export default async function ParkingDetailPage({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Visit website
+                {t("website")}
                 <ExternalLink className="size-3.5" />
               </a>
             </Button>
@@ -217,7 +234,11 @@ export default async function ParkingDetailPage({
       {getHistoryDataset(parking.id) ? (
         <div className="mt-6 surface-card rounded-xl border border-border/70 p-6 sm:p-8">
           <Suspense fallback={<HistorySkeleton />}>
-            <HistorySection parkingId={parking.id} totalSpaces={parking.totalSpaces} />
+            <HistorySection
+              parkingId={parking.id}
+              totalSpaces={parking.totalSpaces}
+              lastUpdatedAt={parking.lastUpdatedAt}
+            />
           </Suspense>
         </div>
       ) : null}
@@ -225,7 +246,7 @@ export default async function ParkingDetailPage({
       {mapSrc ? (
         <div className="mt-6 surface-card overflow-hidden rounded-xl border border-border/70">
           <iframe
-            title={`Map of ${parking.name}`}
+            title={t("mapTitle", { name: parking.name })}
             src={mapSrc}
             width="100%"
             height="360"
@@ -243,24 +264,25 @@ export default async function ParkingDetailPage({
 async function HistorySection({
   parkingId,
   totalSpaces,
+  lastUpdatedAt,
 }: {
   parkingId: string;
   totalSpaces: number;
+  lastUpdatedAt: number | null;
 }) {
   const points = await getHistory(parkingId);
   if (!points || points.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No recent history available for this parking.
-      </p>
-    );
+    const t = await getTranslations("history");
+    return <p className="text-sm text-muted-foreground">{t("none")}</p>;
   }
   const trend = computeTrend(points);
   return (
-    <ParkingHistoryChart
+    <ParkingHistorySection
       points={points}
       trend={trend}
       totalSpaces={totalSpaces || points[points.length - 1].totalSpaces}
+      lastUpdatedAt={lastUpdatedAt}
+      serverNow={serverClock()}
     />
   );
 }
