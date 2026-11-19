@@ -280,7 +280,7 @@ export function ParkingOverview({
             onSelect={chooseDestination}
             onClear={clearDestination}
           />
-          {destination ? (
+          {destination && sort === "distance" ? (
             <p role="status" className="mt-2 text-xs text-muted-foreground">
               {tDestination("sortedNote", { place: destination.name })}
             </p>

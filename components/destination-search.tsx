@@ -54,7 +54,11 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
           (place) => !known.some((k) => k.name === place.name),
         )
       : [];
-  const canSearch = query.length >= MIN_QUERY_LENGTH && !remoteForQuery;
+  // Offered until this text has been looked up — and again after a failed
+  // lookup, so a timeout can be retried without retyping.
+  const canSearch =
+    query.length >= MIN_QUERY_LENGTH &&
+    (!remoteForQuery || remoteForQuery.status === "error");
 
   const rows: Row[] = [
     ...known.map((place): Row => ({ kind: "place", place })),
@@ -63,8 +67,17 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
   ];
   const active = Math.min(activeIndex, Math.max(0, rows.length - 1));
 
+  // Drop the lookup in flight, if any. The ref is emptied *before* aborting:
+  // the abort rejects the fetch, and that rejection must not be mistaken for
+  // a real failure of a search the visitor has already moved on from.
+  function cancelSearch() {
+    const controller = requestRef.current;
+    requestRef.current = null;
+    controller?.abort();
+  }
+
   function choose(place: Place) {
-    requestRef.current?.abort();
+    cancelSearch();
     setText(place.name);
     setOpen(false);
     setRemote({ status: "idle" });
@@ -73,22 +86,25 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
   }
 
   async function searchEverywhere() {
-    requestRef.current?.abort();
+    cancelSearch();
     const controller = new AbortController();
     requestRef.current = controller;
     const timeout = window.setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
     setRemote({ status: "loading", query });
     try {
       const places = await geocodeInGhent(query, locale, controller.signal);
+      // Replaced by a newer search, or cancelled: this outcome no longer counts.
+      if (requestRef.current !== controller) return;
       setRemote({ status: "done", query, places });
       // Put the highlight on the first new result.
       setActiveIndex(known.length);
     } catch {
-      // A newer search replaced this one: its outcome is the one that counts.
+      // Same check. A timeout leaves the ref alone, so it does show an error.
       if (requestRef.current !== controller) return;
       setRemote({ status: "error", query });
     } finally {
       window.clearTimeout(timeout);
+      if (requestRef.current === controller) requestRef.current = null;
     }
   }
 
@@ -99,6 +115,10 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    // Composing text (Japanese, Chinese, Korean keyboards): Enter and the
+    // arrows belong to the keyboard's own candidate list, not to ours.
+    // Safari reports the confirming Enter as key code 229 instead.
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       if (!open) {
@@ -119,7 +139,7 @@ export function DestinationSearch({ selected, onSelect, onClear }: Props) {
   }
 
   function clear() {
-    requestRef.current?.abort();
+    cancelSearch();
     setText("");
     setRemote({ status: "idle" });
     setActiveIndex(0);

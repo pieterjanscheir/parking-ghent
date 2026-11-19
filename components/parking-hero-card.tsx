@@ -31,6 +31,8 @@ export function ParkingHeroCard({
   const t = useTranslations("garage");
   const labels = useParkingLabels();
   const formatDistance = useFormatDistance();
+  // Shown even for a garage the feed gives no address for.
+  const hasDistance = distanceKm !== null && distanceKm !== undefined;
   return (
     <Link
       href={`/parkings/${encodeURIComponent(parking.id)}`}
@@ -48,12 +50,17 @@ export function ParkingHeroCard({
           <h3 className="font-heading text-2xl font-bold leading-tight tracking-tight">
             {parking.name}
           </h3>
-          {parking.address ? (
+          {parking.address || hasDistance ? (
             <p className="mt-1.5 inline-flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="size-3.5" />
-              <span className="truncate">{parking.address}</span>
-              {distanceKm !== null && distanceKm !== undefined ? (
-                <span className="shrink-0 text-foreground/80">· {formatDistance(distanceKm, walking)}</span>
+              {parking.address ? (
+                <span className="truncate">{parking.address}</span>
+              ) : null}
+              {hasDistance ? (
+                <span className="shrink-0 text-foreground/80">
+                  {parking.address ? "· " : null}
+                  {formatDistance(distanceKm, walking)}
+                </span>
               ) : null}
             </p>
           ) : null}
