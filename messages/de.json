@@ -317,5 +317,11 @@
     "savedCopy": "Offline-Kopie: Diese Seite wurde {age} gespeichert. Die Zahlen können sich seitdem geändert haben.",
     "noConnection": "Sie sind offline. Die Zahlen auf dieser Seite sind möglicherweise veraltet.",
     "reload": "Neu laden"
+  },
+  "chargers": {
+    "toggle": "Ladepunkte",
+    "toggleLabel": "Ladepunkte für Elektroautos auf der Karte anzeigen",
+    "fast": "Schnelllader",
+    "error": "Die Ladepunkte konnten nicht geladen werden."
   }
 }

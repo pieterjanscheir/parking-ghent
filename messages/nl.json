@@ -317,5 +317,11 @@
     "savedCopy": "Offline kopie: deze pagina is {age} opgeslagen. De tellingen kunnen intussen veranderd zijn.",
     "noConnection": "Je bent offline. De tellingen op deze pagina kunnen verouderd zijn.",
     "reload": "Opnieuw laden"
+  },
+  "chargers": {
+    "toggle": "Laadpunten",
+    "toggleLabel": "Toon laadpunten voor elektrische wagens op de kaart",
+    "fast": "Snellader",
+    "error": "De laadpunten konden niet geladen worden."
   }
 }

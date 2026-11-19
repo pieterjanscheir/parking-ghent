@@ -60,3 +60,45 @@ describe("chargingByPlace", () => {
     });
   });
 });
+
+describe("parseChargeStations", () => {
+  const point = (lat: number, lon: number, overrides: Record<string, unknown> = {}) => ({
+    straatnaam: "Tondelierlaan",
+    cpo: "Total",
+    kw: 22,
+    status: "In dienst",
+    geo_point_2d: { lat, lon },
+    ...overrides,
+  });
+
+  it("merges the sockets of one post into one station", async () => {
+    const { parseChargeStations } = await import("./chargers");
+    const stations = parseChargeStations([
+      point(51.064766, 3.716224),
+      point(51.064768, 3.716226, { kw: 11 }),
+      point(51.0489, 3.7238, { straatnaam: "Savaanstraat", cpo: "Allego", kw: 120 }),
+    ]);
+    expect(stations).toEqual([
+      { lat: 51.06477, lng: 3.71622, count: 2, maxKw: 22, street: "Tondelierlaan", operator: "Total" },
+      { lat: 51.0489, lng: 3.7238, count: 1, maxKw: 120, street: "Savaanstraat", operator: "Allego" },
+    ]);
+  });
+
+  it("leaves out charge points that are out of service, and unreadable records", async () => {
+    const { parseChargeStations } = await import("./chargers");
+    const stations = parseChargeStations([
+      point(51.06, 3.71, { status: "Buiten dienst" }),
+      { straatnaam: "No position" },
+      "junk",
+      point(51.05, 3.72, { kw: null, cpo: null, straatnaam: null }),
+    ]);
+    expect(stations).toEqual([
+      { lat: 51.05, lng: 3.72, count: 1, maxKw: null, street: "", operator: "" },
+    ]);
+  });
+
+  it("rejects a response that isn't a list", async () => {
+    const { parseChargeStations } = await import("./chargers");
+    expect(() => parseChargeStations({ error_code: "nope" })).toThrow();
+  });
+});

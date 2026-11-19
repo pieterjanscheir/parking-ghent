@@ -14,6 +14,9 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Park & Ride, free parking, EV charging** — badges on cards and garage pages, and filters for each. A garage page shows how many charge points it has and the city's own remark about the garage.
 - **Where did I park?** — "I parked here" on any car park page remembers the car park, the time and an optional note (level, row). The overview then opens with a reminder and a walking route back. Stored in the browser only, dropped after a week ([lib/parked.ts](lib/parked.ts)).
 - **Nearby alternatives** — a garage page lists up to three other garages with space within 2.5 km; when the garage itself has no space the section is titled "No space here? Try nearby".
+- **How to drive in** — the garage map shows the city's recommended routes between the ring road (R40) and the garage as blue lines, for the eleven garages in the centre that have them. Ghent's circulation plan closes many other streets to through traffic ([lib/approach-routes.ts](lib/approach-routes.ts)).
+- **Charge points on the map** — a "Charge points" button on the overview map shows every public charge point for electric cars in the city (about 1,160 sockets), fast chargers in a different colour.
+- **Works offline** — the pages a phone has already seen open without a connection, for example in an underground garage, with a notice saying how old the copy is — see [Offline](#offline).
 - **Low-emission zone** — garages inside the zone say so, with a link to the city's rules and vehicle check.
 - **Near me** — optional browser geolocation to sort by distance and show how far each garage is. The location stays in memory, is never stored, and is never sent anywhere ([lib/use-geolocation.ts](lib/use-geolocation.ts)).
 - **Open with space** quick filter, plus search by name or street and status / LEZ / type / availability filters, all synced to the URL so any view is shareable.
@@ -96,12 +99,28 @@ The live feed has 15 garages. Four more of the city's datasets fill in the rest:
 | `locaties-openbare-parkings-gent` | All 37 public car parks: the 18 that the live feed doesn't cover, plus Park & Ride marks and the city's remarks for the ones it does | 24 h |
 | `laadpalen-gent` | Charge points that stand inside a car park (about 90), counted per garage | 24 h |
 | `parkeertariefzones-gent` | Which street-parking zone a destination is in | 24 h |
+| `aanrijroutes-gent` | The recommended streets between the ring road and a garage, drawn on the garage map | 24 h |
 
 - **Matching** ([lib/directory.ts](lib/directory.ts)): a directory entry is a garage we already have live when its pin is within 110 m of a live garage, or when the names match ("Dok Noord", and "The Loop C" under the feed's single "The Loop"). Kouter and Savaan are different garages 150 m apart, which is why distance alone isn't enough the other way round.
 - **Charge points** ([lib/chargers.ts](lib/chargers.ts)) are counted once each, for the nearest car park within 120 m.
 - **Free or paid** is only shown where the data says so: the live feed's "free" flag, or a city note that starts "P+R gratis" or "Parking betalend". Otherwise the app says nothing.
 - **Street zones** ([lib/street-zones.ts](lib/street-zones.ts)): the outlines (about 300 KB) stay on the server; the browser asks `/api/street-zone?at=<lat>,<lng>` and gets one colour back. The rates themselves are not in the data, so the app names the zone and links to the city's page.
-- All three are optional. If one fails, the live garages are shown as before, and the failing list is retried once a minute rather than on every page view.
+- **Routes** ([lib/approach-routes.ts](lib/approach-routes.ts)): the data is a set of road segments labelled with what they connect ("R40 FT" → "P Sint Michiels, P Ramen"). A two-way street carries both directions in one record, so the app shows the streets that serve a garage without claiming which direction is "in".
+- **The charge-point map layer** uses the full `laadpalen-gent` list, grouped per post, and is only fetched (`/api/chargers`) when a visitor switches the layer on.
+- All of these are optional. If one fails, the live garages are shown as before, and the failing list is retried once a minute rather than on every page view.
+
+## Offline
+
+[public/sw.js](public/sw.js) is a small hand-written service worker, registered by [components/offline-notice.tsx](components/offline-notice.tsx) (not in development).
+
+- **Online, nothing changes.** Pages always come from the network first. API calls and Next.js data requests are never cached; only static files with a content hash in their name are.
+- **A saved copy is a fallback**, used when the network fails or a page load hangs for six seconds. Up to 40 pages are kept.
+- **A saved copy says so.** The worker tells the page when its copy was saved. A notice under the header reads "Offline copy: this page was saved 2 h ago", and every "updated … ago" label counts from that moment rather than from when the page was opened ([lib/use-now.ts](lib/use-now.ts)), so old counts are never presented as live.
+- **The installed app** opens at `/`, which only redirects to a language; offline it is sent to the start page that was saved most recently.
+- **A page that was never saved** gets a short offline page in the visitor's language.
+- "Where did I park?" lives in the browser's own storage, so the reminder works offline too.
+
+To throw away everything saved by an earlier release, bump `VERSION` in `public/sw.js`.
 
 ## Our own history archive
 
@@ -206,6 +225,7 @@ app/                          App Router routes
     [...rest]/page.tsx        Translated "page not found" for unknown paths
   api/cron/snapshot/route.ts  Scheduled job: save the current counts to the archive
   api/street-zone/route.ts    Which street-parking zone a spot is in
+  api/chargers/route.ts       Every public charge point, for the map layer
   manifest.ts                 Web app manifest (name, icons, shortcuts)
   icon.svg, apple-icon.png    App icon (source artwork: icon.svg)
   sitemap.ts, robots.ts       For search engines (previews are not indexed)
@@ -226,6 +246,7 @@ components/                   UI building blocks
   facility-badges.tsx         Park & Ride / free / EV charging badges
   parking-facilities.tsx      Price, Park & Ride, charging and the city's note on a page
   parked-here.tsx             "I parked here" and the reminder on the overview
+  offline-notice.tsx          Registers the service worker; "you are looking at a saved copy"
   language-switcher.tsx       Language menu in the header
   settings-menu.tsx           Gear menu in the header (map choice)
   parking-location-map.tsx    Garage-page map: OpenStreetMap or Google, per the setting
@@ -255,6 +276,7 @@ lib/
   directory.ts                The city's list of all public car parks, matched to the live feed
   chargers.ts                 Charge points inside car parks
   street-zones.ts             Street-parking zones and "which zone is this spot in?"
+  approach-routes.ts          Recommended driving routes between the ring road and a garage
   recommend.ts                Best garage for a point, nearest Park & Ride, nearby alternatives
   parked.ts                   Where the visitor parked (localStorage)
   history-archive.ts          Our own history: snapshot format, day files, append
@@ -290,6 +312,7 @@ All from the City of Ghent open data portal:
 - [`locaties-openbare-parkings-gent`](https://gent.opendatasoft.com/explore/dataset/locaties-openbare-parkings-gent/) — every public car park: addresses for the live garages, and the Park & Ride lots and garages that have no live count.
 - [`laadpalen-gent`](https://gent.opendatasoft.com/explore/dataset/laadpalen-gent/) — public charge points; the ones inside a car park are counted per garage.
 - [`parkeertariefzones-gent`](https://gent.opendatasoft.com/explore/dataset/parkeertariefzones-gent/) — the street-parking zones.
+- [`aanrijroutes-gent`](https://gent.opendatasoft.com/explore/dataset/aanrijroutes-gent/) — the recommended driving routes to the garages in the centre.
 - `recente-bezetting-parking-<name>-gent` — per-garage recent-occupancy series powering the detail-page history chart (only published for a subset of garages).
 
 The three Interparking garages (Kouter, Zuid, Center) have no live count. Their numbers used to come from a separate `mobi-parkings` dataset, which is no longer on the portal (checked November 2026). They are listed from the directory instead, without a count.

@@ -1,7 +1,9 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Zap } from "lucide-react";
+import { toast } from "sonner";
 import L from "leaflet";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -13,6 +15,8 @@ import {
   useMap,
 } from "react-leaflet";
 import type { Parking } from "@/lib/parkings.schema";
+import { FAST_CHARGER_KW, type ChargeStation } from "@/lib/chargers";
+import { cn } from "@/lib/utils";
 import { noteFor, type DirectoryEntry } from "@/lib/directory";
 import type { Trend } from "@/lib/parking-history";
 import { distanceKm, type LatLng } from "@/lib/geo";
@@ -40,7 +44,85 @@ type Props = {
   destination: (LatLng & { name: string }) | null;
   // Current time, for judging how old each garage's count is.
   now: number;
+  // The "Charge points" layer: every public charge point in the city.
+  showChargers: boolean;
+  onToggleChargers: (show: boolean) => void;
 };
+
+// Loaded once per visit, the first time the layer is switched on.
+let stationsRequest: Promise<ChargeStation[]> | null = null;
+
+function loadStations(): Promise<ChargeStation[]> {
+  stationsRequest ??= fetch("/api/chargers")
+    .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+    .then((json: { stations?: unknown }) =>
+      (Array.isArray(json.stations) ? (json.stations as ChargeStation[]) : []).filter(
+        (s) => typeof s?.lat === "number" && typeof s?.lng === "number",
+      ),
+    )
+    .catch((err) => {
+      // Let a later attempt try again.
+      stationsRequest = null;
+      throw err;
+    });
+  return stationsRequest;
+}
+
+function ChargerLayer() {
+  const t = useTranslations("chargers");
+  const tFacilities = useTranslations("facilities");
+  const tDetail = useTranslations("detail");
+  const [stations, setStations] = useState<ChargeStation[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadStations()
+      .then((loaded) => {
+        if (!cancelled) setStations(loaded);
+      })
+      .catch(() => {
+        if (!cancelled) toast.error(t("error"));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
+
+  if (!stations) return null;
+  return stations.map((station) => {
+    const fast = station.maxKw !== null && station.maxKw >= FAST_CHARGER_KW;
+    return (
+      <CircleMarker
+        key={`${station.lat},${station.lng}`}
+        center={[station.lat, station.lng]}
+        radius={fast ? 6.5 : 3.5}
+        pathOptions={{
+          color: "oklch(0.2 0.01 280)",
+          weight: 1.5,
+          fillColor: fast ? "oklch(0.75 0.17 55)" : "oklch(0.85 0.15 95)",
+          fillOpacity: 0.95,
+        }}
+      >
+        <Popup>
+          <div className="space-y-1 text-sm">
+            {station.street ? <p className="font-semibold">{station.street}</p> : null}
+            <p>
+              {station.maxKw !== null
+                ? tFacilities("chargePointsKw", { count: station.count, kw: station.maxKw })
+                : tFacilities("chargePoints", { count: station.count })}
+            </p>
+            {fast ? <p className="font-medium">{t("fast")}</p> : null}
+            {station.operator ? (
+              <p className="opacity-80">
+                {tDetail("operator")}: {station.operator}
+              </p>
+            ) : null}
+          </div>
+        </Popup>
+      </CircleMarker>
+    );
+  });
+}
 
 const GHENT: [number, number] = [51.0543, 3.7174];
 
@@ -106,8 +188,11 @@ export default function ParkingMap({
   userLocation,
   destination,
   now,
+  showChargers,
+  onToggleChargers,
 }: Props) {
   const t = useTranslations("map");
+  const tChargers = useTranslations("chargers");
   const tCommon = useTranslations("common");
   const tForecast = useTranslations("forecast");
   const tFresh = useTranslations("freshness");
@@ -158,7 +243,23 @@ export default function ParkingMap({
   const origin = destination ?? userLocation;
 
   return (
-    <div className="surface-card overflow-hidden rounded-xl border border-border/70">
+    <div className="surface-card relative overflow-hidden rounded-xl border border-border/70">
+      <button
+        type="button"
+        aria-pressed={showChargers}
+        aria-label={tChargers("toggleLabel")}
+        title={tChargers("toggleLabel")}
+        onClick={() => onToggleChargers(!showChargers)}
+        className={cn(
+          "absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium shadow-md transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+          showChargers
+            ? "border-amber-300/60 bg-amber-300 text-black"
+            : "border-border bg-card text-foreground hover:bg-muted",
+        )}
+      >
+        <Zap className="size-3.5" aria-hidden />
+        {tChargers("toggle")}
+      </button>
       <MapContainer
         center={GHENT}
         zoom={13}
@@ -171,6 +272,7 @@ export default function ParkingMap({
           maxZoom={19}
         />
         <MapSetup points={bounds} />
+        {showChargers ? <ChargerLayer /> : null}
         {destination ? (
           // Above the garage pills, so a garage right next to the
           // destination can't hide it.

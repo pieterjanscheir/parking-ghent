@@ -317,5 +317,11 @@
     "savedCopy": "Offline copy: this page was saved {age}. The counts may have changed since.",
     "noConnection": "You're offline. The counts on this page may be out of date.",
     "reload": "Reload"
+  },
+  "chargers": {
+    "toggle": "Charge points",
+    "toggleLabel": "Show charge points for electric cars on the map",
+    "fast": "Fast charger",
+    "error": "Couldn't load the charge points."
   }
 }

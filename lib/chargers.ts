@@ -97,3 +97,72 @@ export function chargingByPlace(
   }
   return out;
 }
+
+// --- Every public charge point, for the map layer --------------------------
+
+const ALL_ENDPOINT =
+  "https://gent.opendatasoft.com/api/explore/v2.1/catalog/datasets/laadpalen-gent/exports/json" +
+  "?select=straatnaam,cpo,kw,status,geo_point_2d";
+
+const AllPointSchema = z.object({
+  straatnaam: z.string().nullish(),
+  cpo: z.string().nullish(),
+  kw: z.number().nullish(),
+  status: z.string().nullish(),
+  geo_point_2d: z.object({ lat: z.number(), lon: z.number() }),
+});
+
+// Charge points that stand together (a post usually has two sockets) are
+// shown as one dot.
+export type ChargeStation = LatLng & {
+  count: number;
+  maxKw: number | null;
+  street: string;
+  operator: string;
+};
+
+// From this power up a charger is a fast (DC) one: minutes, not hours.
+export const FAST_CHARGER_KW = 50;
+
+export function parseChargeStations(json: unknown): ChargeStation[] {
+  const stations = new Map<string, ChargeStation>();
+  for (const raw of z.array(z.unknown()).parse(json)) {
+    const parsed = AllPointSchema.safeParse(raw);
+    if (!parsed.success) continue;
+    const p = parsed.data;
+    if (p.status && p.status !== "In dienst") continue;
+    const lat = p.geo_point_2d.lat;
+    const lng = p.geo_point_2d.lon;
+    // Four decimals is about 10 m: the sockets of one post, or posts side
+    // by side.
+    const id = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+    const kw = p.kw && p.kw > 0 ? p.kw : null;
+    const station = stations.get(id);
+    if (station) {
+      station.count += 1;
+      if (kw !== null && (station.maxKw === null || kw > station.maxKw)) station.maxKw = kw;
+    } else {
+      stations.set(id, {
+        lat: Math.round(lat * 1e5) / 1e5,
+        lng: Math.round(lng * 1e5) / 1e5,
+        count: 1,
+        maxKw: kw,
+        street: (p.straatnaam ?? "").trim(),
+        operator: (p.cpo ?? "").trim(),
+      });
+    }
+  }
+  return [...stations.values()];
+}
+
+export function fetchChargeStations(): Promise<ChargeStation[]> {
+  return cached(
+    "charge-stations",
+    { ttlMs: CHARGERS_TTL_MS, errorTtlMs: RETRY_AFTER_MS, staleIfError: true },
+    async () => {
+      const res = await fetchUpstream(ALL_ENDPOINT);
+      if (!res.ok) throw new Error(`Charge points failed: ${res.status} ${res.statusText}`);
+      return parseChargeStations(JSON.parse(res.text));
+    },
+  );
+}

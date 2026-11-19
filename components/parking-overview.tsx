@@ -126,6 +126,8 @@ export function ParkingOverview({
   const [typeFilter, setTypeFilter] = useQueryState("type", ARRAY_PARSER);
   const [bucketFilter, setBucketFilter] = useQueryState("bucket", ARRAY_PARSER);
   const [featureFilter, setFeatureFilter] = useQueryState("has", ARRAY_PARSER);
+  // The map's "Charge points" layer.
+  const [showChargers, setShowChargers] = useQueryState("ev", BOOL_PARSER);
   // Where the visitor is heading. Kept in the URL (name + coordinates) so
   // "parking near Vooruit" can be shared or bookmarked.
   const [destName, setDestName] = useQueryState("dest", Q_OPTIONS);
@@ -527,6 +529,8 @@ export function ParkingOverview({
           userLocation={geo.location}
           destination={destination}
           now={now}
+          showChargers={showChargers}
+          onToggleChargers={(show) => setShowChargers(show ? true : null)}
         />
       ) : liveIsEmpty ? null : view === "list" ? (
         <ParkingListView

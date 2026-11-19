@@ -317,5 +317,11 @@
     "savedCopy": "Copia sin conexión: esta página se guardó {age}. Los recuentos pueden haber cambiado desde entonces.",
     "noConnection": "Estás sin conexión. Los recuentos de esta página pueden estar desactualizados.",
     "reload": "Recargar"
+  },
+  "chargers": {
+    "toggle": "Puntos de recarga",
+    "toggleLabel": "Mostrar en el mapa los puntos de recarga para coches eléctricos",
+    "fast": "Carga rápida",
+    "error": "No se pudieron cargar los puntos de recarga."
   }
 }

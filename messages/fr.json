@@ -317,5 +317,11 @@
     "savedCopy": "Copie hors ligne : cette page a été enregistrée {age}. Les comptages ont pu changer depuis.",
     "noConnection": "Vous êtes hors ligne. Les comptages de cette page ne sont peut-être plus à jour.",
     "reload": "Recharger"
+  },
+  "chargers": {
+    "toggle": "Bornes de recharge",
+    "toggleLabel": "Afficher les bornes de recharge pour voitures électriques sur la carte",
+    "fast": "Recharge rapide",
+    "error": "Impossible de charger les bornes de recharge."
   }
 }
