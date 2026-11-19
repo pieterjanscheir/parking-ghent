@@ -40,7 +40,8 @@ export function parseRecent(raw: string): Place[] | null {
 
 // `place` moved to the front; a place already in the list isn't listed twice.
 export function withRecent(list: Place[], place: Place): Place[] {
-  const key = (p: Place) => p.name.trim().toLowerCase();
+  // Name and position: two streets in different boroughs can share a name.
+  const key = (p: Place) => `${p.name.trim().toLowerCase()}|${formatLatLng(p)}`;
   return [place, ...list.filter((p) => key(p) !== key(place))].slice(0, MAX_RECENT);
 }
 

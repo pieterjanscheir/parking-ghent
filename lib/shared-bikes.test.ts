@@ -9,7 +9,7 @@ describe("bikesUrl", () => {
     expect(url.origin).toBe("https://gent.opendatasoft.com");
     expect(url.pathname).toBe("/api/explore/v2.1/catalog/datasets/dott-deelfietsen-gent/records");
     expect(url.searchParams.get("where")).toBe(
-      "within_distance(loc, geom'POINT(3.69050 51.04901)', 400m)",
+      "within_distance(loc, geom'POINT(3.69050 51.04901)', 400m) and is_disabled=0 and is_reserved=0",
     );
     expect(url.searchParams.get("limit")).toBe("100");
     expect(url.searchParams.get("select")).toBe("is_disabled,is_reserved");
@@ -23,6 +23,13 @@ describe("bikesUrl", () => {
       "within_distance(geopunt,",
     );
     expect(bikesUrl("bolt", WATERSPORTBAAN)).toContain("bolt-deelfietsen-gent");
+  });
+
+  it("asks only for bikes that can be taken, so the 100-record limit can't hide them", () => {
+    const where = (provider: "donkey" | "dott" | "bolt") =>
+      new URL(bikesUrl(provider, WATERSPORTBAAN)).searchParams.get("where") ?? "";
+    expect(where("donkey")).toMatch(/ and is_renting=1$/);
+    expect(where("bolt")).toMatch(/ and is_disabled=0 and is_reserved=0$/);
   });
 
   it("sends nothing but the position", () => {

@@ -27,7 +27,7 @@ describe("reminderIcs", () => {
 
   it("escapes commas, semicolons, backslashes and line breaks", () => {
     const ics = reminderIcs({ ...event, description: "Level -2; row C, bay 4\\5\nBring the ticket" });
-    expect(ics).toContain("DESCRIPTION:Level -2\; row C\\, bay 4\\\\5\\nBring the ticket");
+    expect(ics).toContain("DESCRIPTION:Level -2\\; row C\\, bay 4\\\\5\\nBring the ticket");
   });
 
   it("folds long lines and keeps every line short", () => {

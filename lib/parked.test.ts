@@ -9,6 +9,7 @@ import {
   parseSharedSpot,
   sameSpot,
   timeLeft,
+  unchangedSince,
   untilFromClock,
   walkingRouteUrl,
   type ParkedSpot,
@@ -126,6 +127,19 @@ describe("sameSpot", () => {
     expect(sameSpot(spot, { ...spot, id: "parking-reep" })).toBe(false);
     expect(sameSpot(spot, null)).toBe(false);
     expect(sameSpot(null, null)).toBe(false);
+  });
+});
+
+describe("unchangedSince", () => {
+  it("lets a position lookup save when nothing happened in the meantime", () => {
+    expect(unchangedSince(null, null)).toBe(true);
+    expect(unchangedSince(spot, { ...spot, note: "edited while waiting" })).toBe(true);
+  });
+
+  it("drops the result when the spot was cleared, replaced or saved meanwhile", () => {
+    expect(unchangedSince(spot, null)).toBe(false);
+    expect(unchangedSince(spot, { ...spot, id: "parking-reep", at: spot.at + 5_000 })).toBe(false);
+    expect(unchangedSince(null, spot)).toBe(false);
   });
 });
 

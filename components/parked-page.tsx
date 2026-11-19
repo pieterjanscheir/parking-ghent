@@ -25,6 +25,8 @@ import {
   isCurrent,
   isStreetSpot,
   parseSharedSpot,
+  readParkedSpot,
+  unchangedSince,
   untilFromClock,
   useParkedSpot,
   walkingRouteUrl,
@@ -91,10 +93,21 @@ export function ParkedPage() {
       return;
     }
     setLocating("locating");
+    // What is saved as the lookup starts (an expired spot counts as none).
+    const startedWith = current;
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        // Moving the pin keeps the note: "opposite number 12" is still true.
-        const note = current && isStreetSpot(current) ? current.note : "";
+        // The lookup took a few seconds. If the spot was cleared or replaced
+        // in the meantime, that was the later wish: leave it alone.
+        const stored = readParkedSpot();
+        const latest = stored && isCurrent(stored, Date.now()) ? stored : null;
+        if (!unchangedSince(startedWith, latest)) {
+          setLocating("idle");
+          return;
+        }
+        // Moving the pin keeps the note ("opposite number 12" is still true),
+        // as it reads now, not as it read when the lookup started.
+        const note = latest && isStreetSpot(latest) ? latest.note : "";
         park(
           {
             id: STREET_SPOT_ID,

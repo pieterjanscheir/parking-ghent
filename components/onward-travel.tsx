@@ -51,6 +51,9 @@ export function OnwardTravel({ lat, lng }: { lat: number; lng: number }) {
       current = false;
       window.clearTimeout(timeout);
       controller.abort();
+      // What was counted here says nothing about the next spot.
+      setCounts({});
+      setDone(false);
     };
   }, [lat, lng]);
 
@@ -61,8 +64,10 @@ export function OnwardTravel({ lat, lng }: { lat: number; lng: number }) {
   );
 
   const withBikes = BIKE_PROVIDERS.filter((provider) => (counts[provider]?.count ?? 0) > 0);
-  // Every feed failed: say nothing rather than "no bikes".
-  const knowsNothing = done && Object.keys(counts).length === 0;
+  // "No bikes" is only true when every operator answered. With one or more
+  // feeds missing and no bikes found, say nothing rather than guess.
+  const answered = Object.keys(counts).length;
+  const knowsNothing = done && withBikes.length === 0 && answered < BIKE_PROVIDERS.length;
 
   return (
     <section aria-labelledby="onward-heading" className="mt-8">

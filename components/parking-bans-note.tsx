@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -12,9 +12,12 @@ import {
   parseBans,
   type ParkingBan,
 } from "@/lib/parking-bans";
+import { useDeviceNow } from "@/lib/use-now";
 import { cn } from "@/lib/utils";
 
-type Answer = { key: string; bans: ParkingBan[]; at: number };
+// The city's answer as it came: which bans are running, coming up or over
+// is worked out from it as time passes.
+type Answer = { key: string; json: unknown };
 
 // One more try after a failed request: a warning that can save a towed car
 // is worth a second attempt on a flaky connection.
@@ -39,17 +42,13 @@ async function fetchJson(url: string, signal: AbortSignal): Promise<unknown> {
 export function ParkingBansNote({ lat, lng, className }: { lat: number; lng: number; className?: string }) {
   const t = useTranslations("bans");
   const locale = useLocale();
-  const key = `${lat},${lng}`;
   const [answer, setAnswer] = useState<Answer | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 15_000);
     fetchJson(bansUrl({ lat, lng }), controller.signal)
-      .then((json) => {
-        const at = Date.now();
-        setAnswer({ key: `${lat},${lng}`, bans: parseBans(json, { lat, lng }, at), at });
-      })
+      .then((json) => setAnswer({ key: `${lat},${lng}`, json }))
       .catch(() => {
         /* aborted, offline or unavailable: stay silent */
       })
@@ -60,8 +59,20 @@ export function ParkingBansNote({ lat, lng, className }: { lat: number; lng: num
     };
   }, [lat, lng]);
 
-  // An answer for an earlier spot doesn't apply to this one.
-  if (!answer || answer.key !== key) return null;
+  // The device's clock, to the minute: a ban that starts at 07:00 turns "in
+  // force" at 07:00 and one that has ended drops off, without a reload.
+  const minute = Math.floor(useDeviceNow() / 60_000);
+  const bans = useMemo<ParkingBan[] | null>(
+    () =>
+      answer && answer.key === `${lat},${lng}` && minute > 0
+        ? parseBans(answer.json, { lat, lng }, minute * 60_000)
+        : null,
+    [answer, lat, lng, minute],
+  );
+
+  // No answer yet, or one for an earlier spot.
+  if (!bans) return null;
+  const now = minute * 60_000;
 
   // The city's times are clock times in Ghent; `clockDate` carries them as
   // UTC so they print the same on a phone set to another time zone.
@@ -70,7 +81,7 @@ export function ParkingBansNote({ lat, lng, className }: { lat: number; lng: num
   const print = (text: string, options: Intl.DateTimeFormatOptions) =>
     new Intl.DateTimeFormat(locale, options).format(clockDate(text));
   const rangeOf = (ban: ParkingBan) => {
-    const parts = banDateParts(ban, answer.at);
+    const parts = banDateParts(ban, now);
     const year = { year: "numeric" } as const;
     return {
       from: print(ban.from, { ...day, ...clock, ...(parts.fromYear ? year : {}) }),
@@ -85,13 +96,13 @@ export function ParkingBansNote({ lat, lng, className }: { lat: number; lng: num
       <h2 id="bans-heading" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {t("title")}
       </h2>
-      {answer.bans.length === 0 ? (
+      {bans.length === 0 ? (
         <p className="mt-1.5 text-sm">
           {t("none", { metres: BAN_RADIUS_M, days: BAN_LOOKAHEAD_DAYS })}
         </p>
       ) : (
         <ul className="mt-2 space-y-2">
-          {answer.bans.map((ban, index) => (
+          {bans.map((ban, index) => (
             <li
               key={index}
               className={cn(

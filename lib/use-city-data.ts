@@ -24,6 +24,9 @@ export function useCityData(url: string): unknown {
     return () => {
       window.clearTimeout(timeout);
       controller.abort();
+      // Going from A to B and back to A must not show A's old answer while
+      // (or instead of) asking again.
+      setAnswer(null);
     };
   }, [url]);
 

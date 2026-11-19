@@ -21,22 +21,28 @@ export const BIKE_PROVIDER_NAMES: Record<BikeProvider, string> = {
 };
 
 // Donkey Republic has stations with a count; Dott and Bolt list each bike.
-const SOURCES: Record<BikeProvider, { dataset: string; field: string; select: string }> = {
+// `usable` narrows the question to bikes that can be taken. The portal sends
+// 100 records at most, and without it a busy spot could fill those with
+// reserved bikes and hide the free ones.
+type Source = { dataset: string; field: string; select: string; usable: string };
+const FREE_FLOATING = "is_disabled=0 and is_reserved=0";
+const SOURCES: Record<BikeProvider, Source> = {
   donkey: {
     dataset: "donkey-republic-beschikbaarheid-deelfietsen-per-station",
     field: "geopunt",
     select: "num_bikes_available,is_renting",
+    usable: "is_renting=1",
   },
-  dott: { dataset: "dott-deelfietsen-gent", field: "loc", select: "is_disabled,is_reserved" },
-  bolt: { dataset: "bolt-deelfietsen-gent", field: "loc", select: "is_disabled,is_reserved" },
+  dott: { dataset: "dott-deelfietsen-gent", field: "loc", select: "is_disabled,is_reserved", usable: FREE_FLOATING },
+  bolt: { dataset: "bolt-deelfietsen-gent", field: "loc", select: "is_disabled,is_reserved", usable: FREE_FLOATING },
 };
 
 export const BIKE_PROVIDERS = Object.keys(SOURCES) as BikeProvider[];
 
 export function bikesUrl(provider: BikeProvider, point: LatLng): string {
-  const { dataset, field, select } = SOURCES[provider];
+  const { dataset, field, select, usable } = SOURCES[provider];
   // Five decimals is about a metre: no need to send more precision than that.
-  const where = `within_distance(${field}, geom'POINT(${point.lng.toFixed(5)} ${point.lat.toFixed(5)})', ${BIKE_RADIUS_M}m)`;
+  const where = `within_distance(${field}, geom'POINT(${point.lng.toFixed(5)} ${point.lat.toFixed(5)})', ${BIKE_RADIUS_M}m) and ${usable}`;
   const params = new URLSearchParams({ limit: "100", select, where });
   return `${BASE}/${dataset}/records?${params}`;
 }

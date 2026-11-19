@@ -45,6 +45,11 @@ describe("withRecent", () => {
     expect(withRecent(list, place("gravensteen ")).map((p) => p.name)).toEqual(["gravensteen ", "Vooruit", "Korenmarkt"]);
   });
 
+  it("keeps two places that share a name but not a position", () => {
+    const list = [place("Kerkstraat", 51.05, 3.72)];
+    expect(withRecent(list, place("Kerkstraat", 51.08, 3.75))).toHaveLength(2);
+  });
+
   it("drops the oldest beyond four", () => {
     const list = [place("A"), place("B"), place("C"), place("D")];
     expect(withRecent(list, place("E")).map((p) => p.name)).toEqual(["E", "A", "B", "C"]);

@@ -125,6 +125,21 @@ export function sameSpot(a: ParkedSpot | null, b: ParkedSpot | null): boolean {
   return a !== null && b !== null && a.id === b.id && a.at === b.at;
 }
 
+// The spot as stored right now, for code that must not act on what a
+// component saw a few seconds ago.
+export function readParkedSpot(): ParkedSpot | null {
+  const stored = readStored(STORAGE_KEY);
+  return stored === null ? null : parseParkedSpot(stored);
+}
+
+// Looking up the phone's position takes a few seconds. May its result still
+// be saved? Only when the spot is as it was when the lookup started: not
+// cleared, not replaced by another car park, not saved again in another tab.
+export function unchangedSince(startedWith: ParkedSpot | null, latest: ParkedSpot | null): boolean {
+  if (startedWith === null) return latest === null;
+  return sameSpot(startedWith, latest);
+}
+
 type Place = { id: string; name: string; lat: number; lng: number };
 
 export function useParkedSpot(): {
@@ -160,8 +175,7 @@ export function useParkedSpot(): {
       // Another tab may have saved a different spot a moment ago, before this
       // one heard of it. The edit belongs to the spot on screen: if that is
       // no longer the stored one, drop it rather than bring the old spot back.
-      const stored = readStored(STORAGE_KEY);
-      const latest = stored === null ? null : parseParkedSpot(stored);
+      const latest = readParkedSpot();
       if (!latest || !sameSpot(latest, value)) return;
       // On top of what is stored, so a note typed in one tab and a time set
       // in another both survive.
