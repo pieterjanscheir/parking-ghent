@@ -280,5 +280,19 @@
     "title": "Parkhäuser in der Nähe",
     "titleNoSpace": "Hier kein Platz? Versuchen Sie es in der Nähe",
     "intro": "Weitere Parkhäuser mit freien Plätzen, das nächste zuerst. Entfernungen in Luftlinie von diesem Parkhaus."
+  },
+  "parked": {
+    "button": "Ich parke hier",
+    "saved": "Gespeichert. {name} wird auf diesem Gerät gemerkt.",
+    "bannerTitle": "Sie parken in {name}",
+    "here": "Sie parken hier",
+    "since": "Seit {time} ({age})",
+    "noteLabel": "Ebene oder Stellplatz (optional)",
+    "notePlaceholder": "z. B. Ebene -2, Reihe C",
+    "walkBack": "Zurück zum Auto",
+    "walkBackLabel": "Fußweg zu {name}",
+    "clear": "Ich bin weggefahren",
+    "clearLabel": "Parkplatz vergessen",
+    "privacy": "Nur in diesem Browser gespeichert."
   }
 }

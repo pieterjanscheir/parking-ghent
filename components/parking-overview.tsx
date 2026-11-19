@@ -67,6 +67,7 @@ import { AutoRefreshControl } from "./auto-refresh-control";
 import { DestinationAdvice } from "./destination-advice";
 import { DestinationSearch } from "./destination-search";
 import { ExtraParkingCard } from "./extra-parking-card";
+import { ParkedBanner } from "./parked-here";
 import { useFormatAge, useParkingLabels } from "./use-labels";
 
 // Leaflet touches `window` at import time, so the map is client-only.
@@ -342,6 +343,8 @@ export function ParkingOverview({
           />
         </dl>
       </header>
+
+      <ParkedBanner />
 
       {feedIsStale ? (
         <div

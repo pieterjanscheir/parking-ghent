@@ -280,5 +280,19 @@
     "title": "Aparcamientos cercanos",
     "titleNoSpace": "¿Sin sitio aquí? Prueba cerca",
     "intro": "Otros aparcamientos con plazas libres, del más cercano al más lejano. Distancias en línea recta desde este aparcamiento."
+  },
+  "parked": {
+    "button": "He aparcado aquí",
+    "saved": "Guardado. {name} se recuerda en este dispositivo.",
+    "bannerTitle": "Has aparcado en {name}",
+    "here": "Has aparcado aquí",
+    "since": "Desde las {time} ({age})",
+    "noteLabel": "Planta o plaza (opcional)",
+    "notePlaceholder": "p. ej. planta -2, fila C",
+    "walkBack": "Volver a pie",
+    "walkBackLabel": "Ruta a pie hasta {name}",
+    "clear": "Ya me he ido",
+    "clearLabel": "Olvidar dónde he aparcado",
+    "privacy": "Solo se guarda en este navegador."
   }
 }

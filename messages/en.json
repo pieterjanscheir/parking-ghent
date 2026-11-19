@@ -280,5 +280,19 @@
     "title": "Nearby garages",
     "titleNoSpace": "No space here? Try nearby",
     "intro": "Other garages with free spaces, nearest first. Distances are in a straight line from this garage."
+  },
+  "parked": {
+    "button": "I parked here",
+    "saved": "Saved. {name} is remembered on this device.",
+    "bannerTitle": "You parked at {name}",
+    "here": "You parked here",
+    "since": "Since {time} ({age})",
+    "noteLabel": "Level or spot (optional)",
+    "notePlaceholder": "e.g. level -2, row C",
+    "walkBack": "Walk back",
+    "walkBackLabel": "Walking route to {name}",
+    "clear": "I've left",
+    "clearLabel": "Forget where I parked",
+    "privacy": "Only stored in this browser."
   }
 }

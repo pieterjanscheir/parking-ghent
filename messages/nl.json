@@ -280,5 +280,19 @@
     "title": "Garages in de buurt",
     "titleNoSpace": "Geen plaats hier? Probeer in de buurt",
     "intro": "Andere garages met vrije plaatsen, de dichtste eerst. Afstand in vogelvlucht vanaf deze garage."
+  },
+  "parked": {
+    "button": "Ik sta hier geparkeerd",
+    "saved": "Opgeslagen. {name} wordt op dit toestel onthouden.",
+    "bannerTitle": "Je staat geparkeerd in {name}",
+    "here": "Je staat hier geparkeerd",
+    "since": "Sinds {time} ({age})",
+    "noteLabel": "Verdieping of plaats (optioneel)",
+    "notePlaceholder": "bv. verdieping -2, rij C",
+    "walkBack": "Wandel terug",
+    "walkBackLabel": "Wandelroute naar {name}",
+    "clear": "Ik ben vertrokken",
+    "clearLabel": "Vergeet waar ik geparkeerd sta",
+    "privacy": "Alleen in deze browser bewaard."
   }
 }

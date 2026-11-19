@@ -38,6 +38,7 @@ import { ExtraParkingDetail } from "@/components/extra-parking-detail";
 import { FacilityBadges } from "@/components/facility-badges";
 import { FavoriteButton } from "@/components/favorite-button";
 import { LiveDataWarning } from "@/components/live-data-warning";
+import { ParkedHere } from "@/components/parked-here";
 import { ParkingActions } from "@/components/parking-actions";
 import { ParkingFacilities } from "@/components/parking-facilities";
 import { ParkingHistorySection } from "@/components/parking-history-section";
@@ -211,6 +212,10 @@ export default async function ParkingDetailPage({ params }: Props) {
           </div>
 
           <ParkingActions parking={parking} variant="full" className="mt-8" />
+          <ParkedHere
+            place={{ id: parking.id, name: parking.name, lat: parking.lat, lng: parking.lng }}
+            className="mt-4"
+          />
 
           {parking.description ? (
             <p className="mt-8 text-sm leading-relaxed text-muted-foreground">

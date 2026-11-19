@@ -280,5 +280,19 @@
     "title": "Parkings à proximité",
     "titleNoSpace": "Pas de place ici ? Essayez à proximité",
     "intro": "Autres parkings avec des places libres, du plus proche au plus éloigné. Distances à vol d’oiseau depuis ce parking."
+  },
+  "parked": {
+    "button": "Je suis garé ici",
+    "saved": "Enregistré. {name} est mémorisé sur cet appareil.",
+    "bannerTitle": "Vous êtes garé à {name}",
+    "here": "Vous êtes garé ici",
+    "since": "Depuis {time} ({age})",
+    "noteLabel": "Niveau ou emplacement (facultatif)",
+    "notePlaceholder": "p. ex. niveau -2, rangée C",
+    "walkBack": "Y retourner à pied",
+    "walkBackLabel": "Itinéraire à pied vers {name}",
+    "clear": "Je suis parti",
+    "clearLabel": "Oublier où je suis garé",
+    "privacy": "Enregistré uniquement dans ce navigateur."
   }
 }

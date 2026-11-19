@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import type { DirectoryEntry } from "@/lib/directory";
 import { Button } from "@/components/ui/button";
 import { FacilityBadges } from "./facility-badges";
+import { ParkedHere } from "./parked-here";
 import { ParkingActions } from "./parking-actions";
 import { ParkingFacilities } from "./parking-facilities";
 import { ParkingLocationMap } from "./parking-location-map";
@@ -67,6 +68,10 @@ export function ExtraParkingDetail({ entry }: { entry: DirectoryEntry }) {
           }}
           variant="full"
           className="mt-8"
+        />
+        <ParkedHere
+          place={{ id: entry.id, name: entry.name, lat: entry.lat, lng: entry.lng }}
+          className="mt-4"
         />
 
         <ParkingFacilities

@@ -37,6 +37,12 @@ function subscribe(listener: () => void) {
 const getSnapshot = () => current;
 const getServerSnapshot = () => 0;
 
+// The device's own clock, ticking every 15 s; 0 during server render and
+// hydration. For things timed by this device alone (when the visitor parked).
+export function useDeviceNow(): number {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
 // When this page first saw each server timestamp, by the device's clock.
 // Module-level so it survives navigating away and back: a page restored from
 // the router's cache then still knows how long ago its data arrived.
