@@ -11,11 +11,14 @@ type Props = {
   place: string | null;
   suggestion: Suggestion | null;
   parkAndRide: { id: string; name: string; km: number } | null;
+  // An extra line at the bottom of the panel (street parking at the
+  // destination).
+  children?: React.ReactNode;
 };
 
 // The short answer above the list: which garage to take, and why not the
 // nearest one when that isn't it.
-export function DestinationAdvice({ place, suggestion, parkAndRide }: Props) {
+export function DestinationAdvice({ place, suggestion, parkAndRide, children }: Props) {
   const t = useTranslations("advice");
   const formatDistance = useFormatDistance();
   const walking = place !== null;
@@ -82,6 +85,7 @@ export function DestinationAdvice({ place, suggestion, parkAndRide }: Props) {
           ({formatDistance(parkAndRide.km)})
         </p>
       ) : null}
+      {children}
     </section>
   );
 }

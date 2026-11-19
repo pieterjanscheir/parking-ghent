@@ -30,7 +30,7 @@
   },
   "overview": {
     "title": "Where to park in Ghent",
-    "intro": "Live free spaces in the city's parking garages, with a short-term forecast so you know what to expect when you arrive.",
+    "intro": "Live free spaces in the city's parking garages, with a short-term forecast, plus every Park & Ride and other car park in Ghent.",
     "stats": {
       "openNow": "Open now",
       "withSpace": "With space",
@@ -294,5 +294,21 @@
     "clear": "I've left",
     "clearLabel": "Forget where I parked",
     "privacy": "Only stored in this browser."
+  },
+  "street": {
+    "label": "Street parking at {place}:",
+    "zones": {
+      "red": "red zone (paid)",
+      "orange": "orange zone (paid)",
+      "yellow": "yellow zone (paid)",
+      "green": "green zone (paid)",
+      "blue": "blue zone (parking disc)"
+    },
+    "none": "outside the city's street-parking zones",
+    "rates": "Rates and time limits"
+  },
+  "lez": {
+    "inside": "This garage is inside Ghent's low-emission zone. Check before you drive in whether your vehicle is allowed. A vehicle with a foreign number plate usually has to be registered first.",
+    "link": "Rules and vehicle check (City of Ghent)"
   }
 }

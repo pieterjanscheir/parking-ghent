@@ -9,6 +9,12 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Overview built for "where can I park?"** — headline stats (open garages, garages with space, total free spaces, the emptiest garage), sorted by most free spaces by default, with closed or no-data garages pushed to the bottom ([components/parking-overview.tsx](components/parking-overview.tsx), sorting in [lib/parkings.ts](lib/parkings.ts)).
 - **Map view** — every garage on one map with its live free-space count, coloured by availability ([components/parking-map.tsx](components/parking-map.tsx), Leaflet + OpenStreetMap).
 - **Search by destination** — "Where are you going?" sorts the garages by walking distance to a place, with an estimated walking time on every card ("340 m · ~6 min walk") and the destination pinned on the map. About 40 well-known Ghent places (Gravensteen, Vooruit, the hospitals, the stations …) are suggested instantly while typing, also by their English, French and older names; anything else, such as a street address, is looked up on OpenStreetMap when asked. The result is part of the URL, so "parking near Vooruit" can be shared — see [Destination search](#destination-search).
+- **A straight answer** — with a destination or "Near me", a "Best choice" panel names one garage: the nearest, unless it is closed, full, down to a few spaces, forecast to be full within half an hour, or without a reliable count. When it passes over the nearest garage it says which one and why. It also names the nearest Park & Ride, and which street-parking zone the destination is in ([lib/recommend.ts](lib/recommend.ts)).
+- **Every public car park, not only the ones with a count** — the 13 Park & Ride lots and five more garages (Kouter, Zuid, Center parking, Leopoldskazerne, Zuiderpoort) publish no live numbers. They are listed in their own section and on the map, clearly marked "no live count", each with its own page — see [More than the live feed](#more-than-the-live-feed).
+- **Park & Ride, free parking, EV charging** — badges on cards and garage pages, and filters for each. A garage page shows how many charge points it has and the city's own remark about the garage.
+- **Where did I park?** — "I parked here" on any car park page remembers the car park, the time and an optional note (level, row). The overview then opens with a reminder and a walking route back. Stored in the browser only, dropped after a week ([lib/parked.ts](lib/parked.ts)).
+- **Nearby alternatives** — a garage page lists up to three other garages with space within 2.5 km; when the garage itself has no space the section is titled "No space here? Try nearby".
+- **Low-emission zone** — garages inside the zone say so, with a link to the city's rules and vehicle check.
 - **Near me** — optional browser geolocation to sort by distance and show how far each garage is. The location stays in memory, is never stored, and is never sent anywhere ([lib/use-geolocation.ts](lib/use-geolocation.ts)).
 - **Open with space** quick filter, plus search by name or street and status / LEZ / type / availability filters, all synced to the URL so any view is shareable.
 - **Short-term forecast** on cards ("~120 free in 30 min", "Likely full in ~20 min") and a 60-minute forecast with ranges on detail pages — see [Forecasting](#forecasting).
@@ -80,6 +86,22 @@ Every visitor used to trigger a fresh round of ~20 upstream requests on each pag
 - Concurrent requests share one upstream call, and the overview, the detail page and its title all reuse the same data.
 - Each upstream call times out after 4 s and is retried once ([lib/upstream.ts](lib/upstream.ts)); a failure is remembered for 5 s so an outage isn't hammered.
 - The cache lives in the server instance's memory, so each running instance keeps its own copy. That's enough at this scale and needs no extra service.
+
+## More than the live feed
+
+The live feed has 15 garages. Four more of the city's datasets fill in the rest:
+
+| Dataset | Used for | Reused for |
+| --- | --- | --- |
+| `locaties-openbare-parkings-gent` | All 37 public car parks: the 18 that the live feed doesn't cover, plus Park & Ride marks and the city's remarks for the ones it does | 24 h |
+| `laadpalen-gent` | Charge points that stand inside a car park (about 90), counted per garage | 24 h |
+| `parkeertariefzones-gent` | Which street-parking zone a destination is in | 24 h |
+
+- **Matching** ([lib/directory.ts](lib/directory.ts)): a directory entry is a garage we already have live when its pin is within 110 m of a live garage, or when the names match ("Dok Noord", and "The Loop C" under the feed's single "The Loop"). Kouter and Savaan are different garages 150 m apart, which is why distance alone isn't enough the other way round.
+- **Charge points** ([lib/chargers.ts](lib/chargers.ts)) are counted once each, for the nearest car park within 120 m.
+- **Free or paid** is only shown where the data says so: the live feed's "free" flag, or a city note that starts "P+R gratis" or "Parking betalend". Otherwise the app says nothing.
+- **Street zones** ([lib/street-zones.ts](lib/street-zones.ts)): the outlines (about 300 KB) stay on the server; the browser asks `/api/street-zone?at=<lat>,<lng>` and gets one colour back. The rates themselves are not in the data, so the app names the zone and links to the city's page.
+- All three are optional. If one fails, the live garages are shown as before, and the failing list is retried once a minute rather than on every page view.
 
 ## Our own history archive
 
@@ -183,6 +205,7 @@ app/                          App Router routes
     opengraph-image.tsx       Share preview card, one per language
     [...rest]/page.tsx        Translated "page not found" for unknown paths
   api/cron/snapshot/route.ts  Scheduled job: save the current counts to the archive
+  api/street-zone/route.ts    Which street-parking zone a spot is in
   manifest.ts                 Web app manifest (name, icons, shortcuts)
   icon.svg, apple-icon.png    App icon (source artwork: icon.svg)
   sitemap.ts, robots.ts       For search engines (previews are not indexed)
@@ -196,6 +219,13 @@ components/                   UI building blocks
   parking-map.tsx             Leaflet map of all parkings (client-only)
   forecast-hint.tsx           One-line forecast for cards / list / map
   destination-search.tsx      "Where are you going?" box with suggestions
+  destination-advice.tsx      "Best choice" panel for a destination or "Near me"
+  street-zone-note.tsx        Street-parking zone at the destination
+  extra-parking-card.tsx      Card for a car park without a live count
+  extra-parking-detail.tsx    Page for a car park without a live count
+  facility-badges.tsx         Park & Ride / free / EV charging badges
+  parking-facilities.tsx      Price, Park & Ride, charging and the city's note on a page
+  parked-here.tsx             "I parked here" and the reminder on the overview
   language-switcher.tsx       Language menu in the header
   settings-menu.tsx           Gear menu in the header (map choice)
   parking-location-map.tsx    Garage-page map: OpenStreetMap or Google, per the setting
@@ -222,6 +252,11 @@ lib/
   parkings.ts                 Server fetchers + sort / filter helpers
   parkings.schema.ts          Zod schema + Parking type + normaliser
   parking-history.ts          History fetcher
+  directory.ts                The city's list of all public car parks, matched to the live feed
+  chargers.ts                 Charge points inside car parks
+  street-zones.ts             Street-parking zones and "which zone is this spot in?"
+  recommend.ts                Best garage for a point, nearest Park & Ride, nearby alternatives
+  parked.ts                   Where the visitor parked (localStorage)
   history-archive.ts          Our own history: snapshot format, day files, append
   archive-store.ts            Where the archive lives: Vercel Blob, a folder, or memory
   cron-auth.ts                Checks that a scheduled call really comes from Vercel
@@ -252,10 +287,12 @@ The site URL used in share tags, `robots.txt` and the sitemap comes from Vercel'
 All from the City of Ghent open data portal:
 
 - [`bezetting-parkeergarages-real-time`](https://gent.opendatasoft.com/api/records/1.0/search/?dataset=bezetting-parkeergarages-real-time) — the live feed: current availability per garage.
-- [`locaties-openbare-parkings-gent`](https://gent.opendatasoft.com/explore/dataset/locaties-openbare-parkings-gent/) — static catalogue used to backfill missing addresses.
+- [`locaties-openbare-parkings-gent`](https://gent.opendatasoft.com/explore/dataset/locaties-openbare-parkings-gent/) — every public car park: addresses for the live garages, and the Park & Ride lots and garages that have no live count.
+- [`laadpalen-gent`](https://gent.opendatasoft.com/explore/dataset/laadpalen-gent/) — public charge points; the ones inside a car park are counted per garage.
+- [`parkeertariefzones-gent`](https://gent.opendatasoft.com/explore/dataset/parkeertariefzones-gent/) — the street-parking zones.
 - `recente-bezetting-parking-<name>-gent` — per-garage recent-occupancy series powering the detail-page history chart (only published for a subset of garages).
 
-The three Interparking garages (Kouter, Zuid, Center) are not listed. They used to come from a separate `mobi-parkings` dataset, which is no longer on the portal (checked November 2026), and the catalogue has no public replacement yet.
+The three Interparking garages (Kouter, Zuid, Center) have no live count. Their numbers used to come from a separate `mobi-parkings` dataset, which is no longer on the portal (checked November 2026). They are listed from the directory instead, without a count.
 
 ## Credits
 

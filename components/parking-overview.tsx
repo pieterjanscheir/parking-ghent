@@ -68,6 +68,7 @@ import { DestinationAdvice } from "./destination-advice";
 import { DestinationSearch } from "./destination-search";
 import { ExtraParkingCard } from "./extra-parking-card";
 import { ParkedBanner } from "./parked-here";
+import { StreetZoneNote } from "./street-zone-note";
 import { useFormatAge, useParkingLabels } from "./use-labels";
 
 // Leaflet touches `window` at import time, so the map is client-only.
@@ -325,7 +326,11 @@ export function ParkingOverview({
               place={destination?.name ?? null}
               suggestion={advice.suggestion}
               parkAndRide={advice.parkAndRide}
-            />
+            >
+              {destination ? (
+                <StreetZoneNote place={destination.name} at={destination} />
+              ) : null}
+            </DestinationAdvice>
           ) : null}
         </div>
         <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">

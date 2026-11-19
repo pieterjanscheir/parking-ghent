@@ -30,7 +30,7 @@
   },
   "overview": {
     "title": "Waar parkeren in Gent",
-    "intro": "Live vrije plaatsen in de parkings van de stad, met een kortetermijnvoorspelling zodat je weet wat je kunt verwachten als je aankomt.",
+    "intro": "Live vrije plaatsen in de parkings van de stad, met een kortetermijnvoorspelling, plus elke Park & Ride en andere parking in Gent.",
     "stats": {
       "openNow": "Nu open",
       "withSpace": "Met plaats",
@@ -294,5 +294,21 @@
     "clear": "Ik ben vertrokken",
     "clearLabel": "Vergeet waar ik geparkeerd sta",
     "privacy": "Alleen in deze browser bewaard."
+  },
+  "street": {
+    "label": "Parkeren op straat bij {place}:",
+    "zones": {
+      "red": "rode zone (betalend)",
+      "orange": "oranje zone (betalend)",
+      "yellow": "gele zone (betalend)",
+      "green": "groene zone (betalend)",
+      "blue": "blauwe zone (parkeerschijf)"
+    },
+    "none": "buiten de parkeerzones van de stad",
+    "rates": "Tarieven en maximale parkeertijd"
+  },
+  "lez": {
+    "inside": "Deze garage ligt in de lage-emissiezone van Gent. Controleer vóór je binnenrijdt of je voertuig toegelaten is. Een voertuig met een buitenlandse nummerplaat moet meestal eerst geregistreerd worden.",
+    "link": "Regels en voertuigcheck (Stad Gent)"
   }
 }

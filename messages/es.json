@@ -30,7 +30,7 @@
   },
   "overview": {
     "title": "Dónde aparcar en Gante",
-    "intro": "Plazas libres en tiempo real en los aparcamientos de la ciudad, con una previsión a corto plazo para saber qué te espera al llegar.",
+    "intro": "Plazas libres en tiempo real en los aparcamientos de la ciudad, con una previsión a corto plazo, además de todos los Park & Ride y otros aparcamientos de Gante.",
     "stats": {
       "openNow": "Abiertos ahora",
       "withSpace": "Con plazas",
@@ -294,5 +294,21 @@
     "clear": "Ya me he ido",
     "clearLabel": "Olvidar dónde he aparcado",
     "privacy": "Solo se guarda en este navegador."
+  },
+  "street": {
+    "label": "Aparcar en la calle en {place}:",
+    "zones": {
+      "red": "zona roja (de pago)",
+      "orange": "zona naranja (de pago)",
+      "yellow": "zona amarilla (de pago)",
+      "green": "zona verde (de pago)",
+      "blue": "zona azul (disco de estacionamiento)"
+    },
+    "none": "fuera de las zonas de aparcamiento de la ciudad",
+    "rates": "Tarifas y tiempo máximo"
+  },
+  "lez": {
+    "inside": "Este aparcamiento está dentro de la zona de bajas emisiones de Gante. Comprueba antes de entrar si tu vehículo está permitido. Un vehículo con matrícula extranjera normalmente debe registrarse antes.",
+    "link": "Normas y comprobación del vehículo (Ayuntamiento de Gante)"
   }
 }

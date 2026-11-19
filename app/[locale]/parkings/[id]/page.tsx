@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   Clock,
   ExternalLink,
+  Leaf,
   MapPin,
   Building2,
 } from "lucide-react";
@@ -55,6 +56,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 const getHistory = cache(fetchParkingHistory);
 
 type Props = { params: Promise<{ locale: string; id: string }> };
+
+// The city's pages about the low-emission zone: the rules and the vehicle
+// check. It publishes them in Dutch and English.
+const LEZ_URL: Record<string, string> = {
+  nl: "https://stad.gent/nl/mobiliteit-openbare-werken/lage-emissiezone",
+  en: "https://stad.gent/en/mobility-ghent/low-emission-zone-ghent",
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
@@ -125,6 +133,7 @@ export default async function ParkingDetailPage({ params }: Props) {
   const tAlt = await getTranslations("alternatives");
   const tAdvice = await getTranslations("advice");
   const tDestination = await getTranslations("destination");
+  const tLez = await getTranslations("lez");
   const noSpaceHere =
     !parking.isOpen ||
     !parking.hasLiveData ||
@@ -271,6 +280,24 @@ export default async function ParkingDetailPage({ params }: Props) {
           evMaxKw={parking.evMaxKw}
           note={parking.note}
         />
+
+        {parking.isInsideLez ? (
+          <p className="mt-8 flex items-start gap-3 rounded-lg border border-border/70 bg-card/40 px-4 py-3 text-sm text-muted-foreground">
+            <Leaf className="mt-0.5 size-4 shrink-0 text-emerald-400" aria-hidden />
+            <span>
+              {tLez("inside")}{" "}
+              <a
+                href={LEZ_URL[locale] ?? LEZ_URL.en}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-medium text-foreground underline-offset-4 hover:underline"
+              >
+                {tLez("link")}
+                <ExternalLink className="size-3" aria-hidden />
+              </a>
+            </span>
+          </p>
+        ) : null}
 
         {parking.websiteUrl ? (
           <div className="mt-8">

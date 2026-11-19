@@ -30,7 +30,7 @@
   },
   "overview": {
     "title": "Où se garer à Gand",
-    "intro": "Places libres en direct dans les parkings de la ville, avec une prévision à court terme pour savoir à quoi vous attendre à votre arrivée.",
+    "intro": "Places libres en direct dans les parkings de la ville, avec une prévision à court terme, ainsi que tous les Park & Ride et autres parkings de Gand.",
     "stats": {
       "openNow": "Ouverts",
       "withSpace": "Avec places",
@@ -294,5 +294,21 @@
     "clear": "Je suis parti",
     "clearLabel": "Oublier où je suis garé",
     "privacy": "Enregistré uniquement dans ce navigateur."
+  },
+  "street": {
+    "label": "Stationnement en rue à {place} :",
+    "zones": {
+      "red": "zone rouge (payante)",
+      "orange": "zone orange (payante)",
+      "yellow": "zone jaune (payante)",
+      "green": "zone verte (payante)",
+      "blue": "zone bleue (disque de stationnement)"
+    },
+    "none": "hors des zones de stationnement de la ville",
+    "rates": "Tarifs et durée maximale"
+  },
+  "lez": {
+    "inside": "Ce parking se trouve dans la zone de basses émissions de Gand. Vérifiez avant d’y entrer si votre véhicule est autorisé. Un véhicule immatriculé à l’étranger doit généralement être enregistré au préalable.",
+    "link": "Règles et vérification du véhicule (Ville de Gand)"
   }
 }
