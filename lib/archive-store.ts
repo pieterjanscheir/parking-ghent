@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { get, put } from "@vercel/blob";
+import { BlobNotFoundError, get, head, put } from "@vercel/blob";
 
 // Where the history archive keeps its files. Deliberately tiny — read a text
 // file, write a text file — so the storage behind it can be swapped without
@@ -27,22 +27,62 @@ export type ArchiveStore = {
 
 const BLOB_CONTENT_TYPE = "application/x-ndjson";
 
+// How often a read is tried before giving up on getting the current contents.
+const BLOB_READ_ATTEMPTS = 3;
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // Private store: the files are only reachable with the project's credentials.
+//
+// A file's contents come through Blob's delivery network, and what arrives
+// there is not always what the store holds: in production every write after a
+// day file's first update was refused, because the version that came with the
+// contents was not the one the store compares against. So the store itself is
+// asked what the file is (`head`): its version is the one a write is checked
+// against, and its size shows whether the contents that arrived are current.
 export function blobStore(): ArchiveStore {
   return {
     async read(file) {
-      // Straight from origin storage: a cached copy could be minutes old, and
-      // we are about to build the next version of the file on top of it.
-      const found = await get(file, { access: "private", useCache: false });
-      if (!found || found.statusCode !== 200) return null;
-      const text = await new Response(found.stream).text();
-      return { text, version: found.blob.etag };
+      let problem = "";
+      for (let attempt = 0; attempt < BLOB_READ_ATTEMPTS; attempt++) {
+        if (attempt > 0) await pause(400 * attempt);
+        let stored;
+        try {
+          stored = await head(file);
+        } catch (err) {
+          if (err instanceof BlobNotFoundError) return null;
+          throw err;
+        }
+        // Straight from origin storage: a cached copy could be minutes old,
+        // and we are about to build the next version of the file on top of it.
+        const found = await get(file, { access: "private", useCache: false });
+        if (!found || found.statusCode !== 200) {
+          problem = `the store has ${stored.size} bytes (version ${stored.etag}), the download found no file`;
+          continue;
+        }
+        const bytes = new Uint8Array(await new Response(found.stream).arrayBuffer());
+        // The archive's files only grow, so an older copy is always shorter.
+        if (bytes.byteLength === stored.size) {
+          return { text: new TextDecoder().decode(bytes), version: stored.etag };
+        }
+        const via = ["x-vercel-cache", "age", "content-encoding"]
+          .map((name) => `${name}: ${found.headers.get(name) ?? "-"}`)
+          .join(", ");
+        problem =
+          `the store has ${stored.size} bytes (version ${stored.etag}), ` +
+          `the download gave ${bytes.byteLength} bytes (version ${found.blob.etag}; ${via})`;
+      }
+      // Never build on a copy that isn't the current one: the write would be
+      // refused at best, and drop snapshots at worst.
+      throw new Error(`${file}: could not read the current contents: ${problem}`);
     },
     async write(file, text, expected) {
       await put(file, text, {
         access: "private",
         contentType: BLOB_CONTENT_TYPE,
         addRandomSuffix: false,
+        // The shortest the delivery network may keep a copy (one minute); the
+        // default is a month, and these files change every ten minutes.
+        cacheControlMaxAge: 60,
         // An existing file may only be replaced if it still has the version
         // we read; a new file may not replace anything.
         ...(expected === null ? { allowOverwrite: false } : { ifMatch: expected }),
