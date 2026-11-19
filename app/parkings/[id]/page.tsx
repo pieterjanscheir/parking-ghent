@@ -26,7 +26,7 @@ import { DataFreshness } from "@/components/data-freshness";
 import { FavoriteButton } from "@/components/favorite-button";
 import { LiveDataWarning } from "@/components/live-data-warning";
 import { ParkingActions } from "@/components/parking-actions";
-import { ParkingHistoryChart } from "@/components/parking-history-chart";
+import { ParkingHistorySection } from "@/components/parking-history-section";
 import {
   ParkingStatusBadge,
   MetaBadge,
@@ -216,7 +216,11 @@ export default async function ParkingDetailPage({
       {getHistoryDataset(parking.id) ? (
         <div className="mt-6 surface-card rounded-xl border border-border/70 p-6 sm:p-8">
           <Suspense fallback={<HistorySkeleton />}>
-            <HistorySection parkingId={parking.id} totalSpaces={parking.totalSpaces} />
+            <HistorySection
+              parkingId={parking.id}
+              totalSpaces={parking.totalSpaces}
+              lastUpdatedAt={parking.lastUpdatedAt}
+            />
           </Suspense>
         </div>
       ) : null}
@@ -242,9 +246,11 @@ export default async function ParkingDetailPage({
 async function HistorySection({
   parkingId,
   totalSpaces,
+  lastUpdatedAt,
 }: {
   parkingId: string;
   totalSpaces: number;
+  lastUpdatedAt: number | null;
 }) {
   const points = await getHistory(parkingId);
   if (!points || points.length === 0) {
@@ -256,10 +262,12 @@ async function HistorySection({
   }
   const trend = computeTrend(points);
   return (
-    <ParkingHistoryChart
+    <ParkingHistorySection
       points={points}
       trend={trend}
       totalSpaces={totalSpaces || points[points.length - 1].totalSpaces}
+      lastUpdatedAt={lastUpdatedAt}
+      serverNow={serverClock()}
     />
   );
 }
