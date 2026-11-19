@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, renderHook } from "@testing-library/react";
+import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { useLocalStorageJson } from "./local-storage-store";
 
@@ -11,7 +11,10 @@ function parseNumber(raw: string): number | null {
 }
 
 describe("useLocalStorageJson", () => {
-  afterEach(() => window.localStorage.clear());
+  afterEach(() => {
+    cleanup();
+    window.localStorage.clear();
+  });
 
   it("returns null when nothing is stored", () => {
     const { result } = renderHook(() => useLocalStorageJson(KEY, parseNumber));

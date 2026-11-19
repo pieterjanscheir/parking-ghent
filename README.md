@@ -150,7 +150,7 @@ Usage on Vercel, per month: about 4,300 scheduled calls, 4,300 file writes, 4,30
 
 ## Getting started
 
-Requires Node 20+ and [pnpm](https://pnpm.io).
+Requires Node 22.22+ or 24.15+ (the range jsdom, used by the tests, supports) and [pnpm](https://pnpm.io).
 
 ```bash
 pnpm install

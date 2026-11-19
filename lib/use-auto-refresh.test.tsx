@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, renderHook } from "@testing-library/react";
+import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_INTERVAL_MS, useAutoRefresh } from "./use-auto-refresh";
 
@@ -20,6 +20,8 @@ describe("useAutoRefresh", () => {
   });
 
   afterEach(() => {
+    // Unmount hooks (and their intervals/listeners) before restoring timers.
+    cleanup();
     vi.useRealTimers();
     window.localStorage.clear();
     // Drop the own-property override so `document.hidden` falls back to

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, renderHook } from "@testing-library/react";
+import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { FavoritesProvider, MAX_FAVORITES, useFavorites } from "./favorites";
 
@@ -10,7 +10,10 @@ function renderFavorites() {
 }
 
 describe("FavoritesProvider", () => {
-  afterEach(() => window.localStorage.clear());
+  afterEach(() => {
+    cleanup();
+    window.localStorage.clear();
+  });
 
   it("starts empty", () => {
     const { result } = renderFavorites();
