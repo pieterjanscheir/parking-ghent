@@ -1,4 +1,4 @@
-import { knownPlaces, searchKnownPlaces, type Place } from "../destinations";
+import { knownPlaces, normalizeSearch, searchKnownPlaces, type Place } from "../destinations";
 import type { LatLng } from "../geo";
 
 // What the site knows about a city, apart from its live data. Plain facts,
@@ -55,7 +55,9 @@ export const GHENT: CityInfo = {
   source: "City of Ghent open data",
   hasPages: true,
   knows: { parkAndRide: true, price: true, charging: true, lowEmissionZone: true, forecast: true, typical: true },
-  findPlace: (text) => (text.trim() ? (searchKnownPlaces(text, 1)[0] ?? null) : null),
+  // A name with nothing to search for ("!!!") must not fall back to the list
+  // of popular places.
+  findPlace: (text) => (normalizeSearch(text) ? (searchKnownPlaces(text, 1)[0] ?? null) : null),
   placeNames: () => knownPlaces().map((place) => place.name),
 };
 
