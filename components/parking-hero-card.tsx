@@ -18,12 +18,15 @@ export function ParkingHeroCard({
   trend,
   now,
   distanceKm = null,
+  walking = false,
 }: {
   parking: Parking;
   trend: Trend | null;
   // Current time, for judging how old this garage's count is.
   now: number;
   distanceKm?: number | null;
+  // The distance is to the visitor's destination: show walking time too.
+  walking?: boolean;
 }) {
   const t = useTranslations("garage");
   const labels = useParkingLabels();
@@ -50,7 +53,7 @@ export function ParkingHeroCard({
               <MapPin className="size-3.5" />
               <span className="truncate">{parking.address}</span>
               {distanceKm !== null && distanceKm !== undefined ? (
-                <span className="shrink-0 text-foreground/80">· {formatDistance(distanceKm)}</span>
+                <span className="shrink-0 text-foreground/80">· {formatDistance(distanceKm, walking)}</span>
               ) : null}
             </p>
           ) : null}

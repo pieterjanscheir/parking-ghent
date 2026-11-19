@@ -23,3 +23,34 @@ export function formatDistance(km: number, locale = "en"): string {
   }).format(km);
   return `${value} km`;
 }
+
+// Rough walking time for a straight-line distance. Streets are never
+// straight, so the distance is stretched by 30% (a common rule of thumb for
+// city centres) and walked at 4.8 km/h. Good for "about 5 minutes", not for
+// catching a train.
+const DETOUR_FACTOR = 1.3;
+const WALKING_METRES_PER_MINUTE = 80;
+
+export function walkingMinutes(km: number): number {
+  return Math.max(
+    1,
+    Math.round((km * 1000 * DETOUR_FACTOR) / WALKING_METRES_PER_MINUTE),
+  );
+}
+
+// "51.04758,3.72795" (as stored in a shared link) → coordinates. Anything
+// that isn't a point in or around Ghent is rejected, so a mangled or
+// hand-edited link can't sort the garages by distance to nowhere.
+export function parseLatLng(text: string | null | undefined): LatLng | null {
+  if (!text) return null;
+  const match = /^(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)$/.exec(text.trim());
+  if (!match) return null;
+  const lat = Number(match[1]);
+  const lng = Number(match[2]);
+  const inGhentArea = lat >= 50.9 && lat <= 51.3 && lng >= 3.5 && lng <= 3.95;
+  return inGhentArea ? { lat, lng } : null;
+}
+
+export function formatLatLng(point: LatLng): string {
+  return `${point.lat.toFixed(5)},${point.lng.toFixed(5)}`;
+}

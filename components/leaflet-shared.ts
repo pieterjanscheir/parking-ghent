@@ -17,6 +17,18 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
 
+// A teardrop pin for where the visitor is heading. Its shape and colour set
+// it apart from the garage pills, and its tip sits on the exact spot.
+export function destinationIcon(): L.DivIcon {
+  return L.divIcon({
+    className: "destination-marker",
+    html: "<span></span>",
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+    popupAnchor: [0, -36],
+  });
+}
+
 // A pill with the live free-space count, coloured like the availability
 // gauge, so the map answers "where is there space?" without any clicks.
 export function markerIcon(p: Parking, closedLabel: string): L.DivIcon {

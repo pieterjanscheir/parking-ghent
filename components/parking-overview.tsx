@@ -37,6 +37,8 @@ import { useAutoRefresh } from "@/lib/use-auto-refresh";
 import { useNow } from "@/lib/use-now";
 import { FEED_STALE_AFTER_MS, isStale, newestUpdate } from "@/lib/freshness";
 import { useGeolocation } from "@/lib/use-geolocation";
+import { formatLatLng, parseLatLng } from "@/lib/geo";
+import type { Place } from "@/lib/destinations";
 import {
   DEFAULT_SORT,
   SORT_KEYS,
@@ -58,6 +60,7 @@ import {
   type ParkingFiltersValue,
 } from "./parking-filters";
 import { AutoRefreshControl } from "./auto-refresh-control";
+import { DestinationSearch } from "./destination-search";
 import { useFormatAge, useParkingLabels } from "./use-labels";
 
 // Leaflet touches `window` at import time, so the map is client-only.
@@ -94,6 +97,7 @@ export function ParkingOverview({
   const t = useTranslations("overview");
   const tSort = useTranslations("sort");
   const tCommon = useTranslations("common");
+  const tDestination = useTranslations("destination");
   const format = useFormatter();
   const formatAge = useFormatAge();
   const labels = useParkingLabels();
@@ -109,6 +113,19 @@ export function ParkingOverview({
   const [lezFilter, setLezFilter] = useQueryState("lez", ARRAY_PARSER);
   const [typeFilter, setTypeFilter] = useQueryState("type", ARRAY_PARSER);
   const [bucketFilter, setBucketFilter] = useQueryState("bucket", ARRAY_PARSER);
+  // Where the visitor is heading. Kept in the URL (name + coordinates) so
+  // "parking near Vooruit" can be shared or bookmarked.
+  const [destName, setDestName] = useQueryState("dest", Q_OPTIONS);
+  const [destAt, setDestAt] = useQueryState("at", Q_OPTIONS);
+  const destination: Place | null = useMemo(() => {
+    const point = parseLatLng(destAt);
+    return point && destName
+      ? { id: `dest-${destAt}`, name: destName, detail: "", ...point }
+      : null;
+  }, [destName, destAt]);
+  // Distances are measured from the destination when there is one, otherwise
+  // from the visitor's own location ("Near me").
+  const origin = destination ?? geo.location;
 
   const handleTick = useCallback(() => router.refresh(), [router]);
   const refresh = useAutoRefresh(handleTick);
@@ -116,9 +133,12 @@ export function ParkingOverview({
   // "Nearest to me" needs a location; ask for it as soon as that sort is
   // picked (including when it arrives via a shared URL).
   const { status: geoStatus, request: requestLocation } = geo;
+  const hasDestination = destination !== null;
   useEffect(() => {
-    if (sort === "distance" && geoStatus === "idle") requestLocation();
-  }, [sort, geoStatus, requestLocation]);
+    if (sort === "distance" && geoStatus === "idle" && !hasDestination) {
+      requestLocation();
+    }
+  }, [sort, geoStatus, requestLocation, hasDestination]);
   useEffect(() => {
     if (geoStatus === "denied") {
       toast.error(t("locationDenied"));
@@ -184,8 +204,8 @@ export function ParkingOverview({
   );
 
   const filteredRest = useMemo(
-    () => sortParkings(filterParkings(rest, filters), sort, geo.location),
-    [rest, filters, sort, geo.location],
+    () => sortParkings(filterParkings(rest, filters), sort, origin),
+    [rest, filters, sort, origin],
   );
 
   // The map shows everything that matches, favorites included.
@@ -196,9 +216,9 @@ export function ParkingOverview({
 
   const distances = useMemo(() => {
     const out: Record<string, number | null> = {};
-    for (const p of parkings) out[p.id] = distanceTo(p, geo.location);
+    for (const p of parkings) out[p.id] = distanceTo(p, origin);
     return out;
-  }, [parkings, geo.location]);
+  }, [parkings, origin]);
 
   const updateFilters = (next: Partial<ParkingFiltersValue>) => {
     if (next.status !== undefined) setStatusFilter(next.status.length ? next.status : null);
@@ -220,7 +240,24 @@ export function ParkingOverview({
     clearFilters();
   };
 
+  const chooseDestination = (place: Place) => {
+    setDestName(place.name);
+    setDestAt(formatLatLng(place));
+    setSort("distance");
+  };
+
+  const clearDestination = () => {
+    setDestName(null);
+    setDestAt(null);
+    // "Nearest" without a destination means "nearest to me"; don't spring a
+    // location prompt on someone who only cleared a search.
+    if (sort === "distance" && !geo.location) setSort(null);
+  };
+
   const nearMe = () => {
+    // "Near me" and a destination are two answers to the same question.
+    setDestName(null);
+    setDestAt(null);
     setSort("distance");
     if (geo.status !== "locating") geo.request();
   };
@@ -234,6 +271,21 @@ export function ParkingOverview({
           {t("title")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">{t("intro")}</p>
+        <div className="mt-5 max-w-xl">
+          {/* Remounted when the destination changes from outside (a shared
+              link, "Near me"), so the text box follows it. */}
+          <DestinationSearch
+            key={destination?.id ?? "none"}
+            selected={destination}
+            onSelect={chooseDestination}
+            onClear={clearDestination}
+          />
+          {destination ? (
+            <p role="status" className="mt-2 text-xs text-muted-foreground">
+              {tDestination("sortedNote", { place: destination.name })}
+            </p>
+          ) : null}
+        </div>
         <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <SummaryStat label={t("stats.openNow")} value={`${summary.open} / ${parkings.length}`} />
           <SummaryStat label={t("stats.withSpace")} value={String(summary.usable)} />
@@ -283,6 +335,7 @@ export function ParkingOverview({
                 trend={trendsById[p.id] ?? null}
                 now={now}
                 distanceKm={distances[p.id]}
+                walking={hasDestination}
               />
             ))}
           </div>
@@ -318,7 +371,11 @@ export function ParkingOverview({
           </Button>
           <Button
             type="button"
-            variant={sort === "distance" && geo.location ? "default" : "outline"}
+            variant={
+              sort === "distance" && geo.location && !destination
+                ? "default"
+                : "outline"
+            }
             size="sm"
             onClick={nearMe}
             disabled={geo.status === "locating"}
@@ -340,7 +397,9 @@ export function ParkingOverview({
             <SelectContent>
               {SORT_KEYS.map((key) => (
                 <SelectItem key={key} value={key}>
-                  {tSort(key)}
+                  {key === "distance" && destination
+                    ? tDestination("nearestToDestination")
+                    : tSort(key)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -412,6 +471,7 @@ export function ParkingOverview({
           parkings={filteredAll}
           trendsById={trendsById}
           userLocation={geo.location}
+          destination={destination}
           now={now}
         />
       ) : view === "list" ? (
@@ -419,6 +479,7 @@ export function ParkingOverview({
           parkings={filteredRest}
           trendsById={trendsById}
           distances={distances}
+          walking={hasDestination}
           now={now}
           sort={sort}
           onSortChange={(s) => setSort(s === DEFAULT_SORT ? null : s)}
@@ -432,6 +493,7 @@ export function ParkingOverview({
               trend={trendsById[p.id] ?? null}
               now={now}
               distanceKm={distances[p.id]}
+              walking={hasDestination}
             />
           ))}
         </div>

@@ -8,6 +8,7 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 
 - **Overview built for "where can I park?"** — headline stats (open garages, garages with space, total free spaces, the emptiest garage), sorted by most free spaces by default, with closed or no-data garages pushed to the bottom ([components/parking-overview.tsx](components/parking-overview.tsx), sorting in [lib/parkings.ts](lib/parkings.ts)).
 - **Map view** — every garage on one map with its live free-space count, coloured by availability ([components/parking-map.tsx](components/parking-map.tsx), Leaflet + OpenStreetMap).
+- **Search by destination** — "Where are you going?" sorts the garages by walking distance to a place, with an estimated walking time on every card ("340 m · ~6 min walk") and the destination pinned on the map. About 40 well-known Ghent places (Gravensteen, Vooruit, the hospitals, the stations …) are suggested instantly while typing, also by their English, French and older names; anything else, such as a street address, is looked up on OpenStreetMap when asked. The result is part of the URL, so "parking near Vooruit" can be shared — see [Destination search](#destination-search).
 - **Near me** — optional browser geolocation to sort by distance and show how far each garage is. The location stays in memory, is never stored, and is never sent anywhere ([lib/use-geolocation.ts](lib/use-geolocation.ts)).
 - **Open with space** quick filter, plus search by name or street and status / LEZ / type / availability filters, all synced to the URL so any view is shareable.
 - **Short-term forecast** on cards ("~120 free in 30 min", "Likely full in ~20 min") and a 60-minute forecast with ranges on detail pages — see [Forecasting](#forecasting).
@@ -51,6 +52,13 @@ Translations use [next-intl](https://next-intl.dev).
 - **Not translated:** garage names, addresses, opening hours and descriptions come straight from the city's feed, in Dutch. The web manifest (install name and shortcuts) has a single language and uses Dutch.
 
 **Adding a language:** add its code to `locales` in `i18n/routing.ts` (plus its name in `LOCALE_LABELS` and its Open Graph code in `OG_LOCALES` in `lib/site.ts`), then copy `messages/en.json` to `messages/<code>.json` and translate it. `pnpm test` fails if a language file is missing a key or uses different `{placeholders}` than the English one.
+
+## Destination search
+
+- **Well-known places** live in [lib/destinations.ts](lib/destinations.ts), with coordinates from OpenStreetMap. Matching ignores case and accents and also checks aliases ("castle of the counts", "ghelamco", "ziekenhuis"). These searches never leave the browser.
+- **Everything else** goes to OpenStreetMap's [Nominatim](https://nominatim.org) search ([lib/geocode.ts](lib/geocode.ts)), limited to Ghent. It is called straight from the visitor's browser and only on request (Enter, or "Search all of Ghent for …") — never while typing, which Nominatim's [usage policy](https://operations.osmfoundation.org/policies/nominatim/) forbids. So it costs nothing to run, and each visitor has their own rate limit. If the service is down or refuses, the list of well-known places still works.
+- **Walking time** is an estimate, not a route: straight-line distance plus 30% for real streets, at 4.8 km/h ([lib/geo.ts](lib/geo.ts)).
+- **Privacy:** a free-text search sends the typed text, and the visitor's IP address, to the OpenStreetMap Foundation — the same party that already serves the map tiles. Nothing is sent for the well-known places.
 
 ## Talking to the city's feeds
 
@@ -126,6 +134,7 @@ components/                   UI building blocks
   parking-overview.tsx        Overview client shell (summary / search / sort / filter / view)
   parking-map.tsx             Leaflet map of all parkings (client-only)
   forecast-hint.tsx           One-line forecast for cards / list / map
+  destination-search.tsx      "Where are you going?" box with suggestions
   language-switcher.tsx       NL · EN · FR links in the header
   settings-menu.tsx           Gear menu in the header (map choice)
   parking-location-map.tsx    Garage-page map: OpenStreetMap or Google, per the setting
@@ -157,7 +166,9 @@ lib/
   freshness.ts                Data-age and staleness helpers
   use-now.ts                  Shared ticking clock for "x min ago" labels
   forecast.ts                 Forecast model + per-parking backtest
-  geo.ts                      Distance helpers
+  geo.ts                      Distance and walking-time helpers
+  destinations.ts             Well-known Ghent places + matching
+  geocode.ts                  OpenStreetMap place search (browser-side)
   use-geolocation.ts          Opt-in browser location
   map-provider.ts             The visitor's map choice (localStorage)
   favorites.tsx               FavoritesProvider (localStorage, max 3)

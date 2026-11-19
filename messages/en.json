@@ -59,6 +59,21 @@
     "locationDenied": "Location access was denied — showing most free spaces instead.",
     "locationUnavailable": "Couldn't determine your location."
   },
+  "destination": {
+    "label": "Where are you going?",
+    "placeholder": "e.g. Gravensteen, Vooruit, a street…",
+    "popular": "Popular destinations",
+    "searchAll": "Search all of Ghent for “{query}”",
+    "searching": "Searching…",
+    "noResults": "Nothing found in Ghent for “{query}”.",
+    "error": "Search isn’t available right now. Try a place from the list.",
+    "clear": "Clear destination",
+    "attribution": "Search by OpenStreetMap",
+    "sortedNote": "Garages sorted by walking distance to {place}.",
+    "walk": "~{minutes} min walk",
+    "nearestToDestination": "Nearest to destination",
+    "marker": "Your destination"
+  },
   "sort": {
     "spaces-desc": "Most free spaces",
     "distance": "Nearest to me",
