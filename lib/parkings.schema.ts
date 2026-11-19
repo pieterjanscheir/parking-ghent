@@ -200,7 +200,13 @@ export function normalizeParking(record: {
   // it to 0 so the numeric UI doesn't break, and surface the unknown state
   // separately via `hasLiveData`.
   const hasLiveData = rawAvailable >= 0 && totalSpaces > 0;
-  const freeSpaces = Math.max(0, rawAvailable);
+  // The feed also sometimes counts more free spaces than the car park has
+  // (93 of 90). Cap the count at the capacity, as the history chart does, so
+  // no page says "103% free".
+  const freeSpaces =
+    totalSpaces > 0
+      ? Math.min(Math.max(0, rawAvailable), totalSpaces)
+      : Math.max(0, rawAvailable);
   const freePercent =
     totalSpaces > 0 ? (freeSpaces / totalSpaces) * 100 : 0;
   // Derive occupied from free so the two always sum to 100. The API's
