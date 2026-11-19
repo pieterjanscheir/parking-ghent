@@ -172,7 +172,9 @@
     "type": "Tipo",
     "lez": "Zona de bajas emisiones",
     "website": "Visitar sitio web",
-    "mapTitle": "Mapa de {name}"
+    "mapTitle": "Mapa de {name}",
+    "routesTitle": "Rutas de acceso",
+    "routesNote": "Las líneas azules son las rutas recomendadas por la ciudad entre la circunvalación (R40) y este aparcamiento. El plan de circulación de Gante cierra muchas otras calles al tráfico de paso."
   },
   "list": {
     "favorite": "Favorito",

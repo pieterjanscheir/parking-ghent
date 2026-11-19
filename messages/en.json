@@ -172,7 +172,9 @@
     "type": "Type",
     "lez": "Low emission zone",
     "website": "Visit website",
-    "mapTitle": "Map of {name}"
+    "mapTitle": "Map of {name}",
+    "routesTitle": "Driving in",
+    "routesNote": "The blue lines are the city's recommended routes between the ring road (R40) and this car park. Ghent's circulation plan closes many other streets to through traffic."
   },
   "list": {
     "favorite": "Favorite",

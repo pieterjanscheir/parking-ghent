@@ -172,7 +172,9 @@
     "type": "Type",
     "lez": "Lage-emissiezone",
     "website": "Website bezoeken",
-    "mapTitle": "Kaart van {name}"
+    "mapTitle": "Kaart van {name}",
+    "routesTitle": "Aanrijroutes",
+    "routesNote": "De blauwe lijnen zijn de door de stad aanbevolen routes tussen de stadsring (R40) en deze parking. Door het circulatieplan zijn veel andere straten afgesloten voor doorgaand verkeer."
   },
   "list": {
     "favorite": "Favoriet",

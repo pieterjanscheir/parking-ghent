@@ -172,7 +172,9 @@
     "type": "Type",
     "lez": "Zone de basses émissions",
     "website": "Visiter le site web",
-    "mapTitle": "Plan de {name}"
+    "mapTitle": "Plan de {name}",
+    "routesTitle": "Itinéraires d’accès",
+    "routesNote": "Les lignes bleues sont les itinéraires recommandés par la ville entre le ring (R40) et ce parking. Le plan de circulation de Gand ferme beaucoup d’autres rues au trafic de transit."
   },
   "list": {
     "favorite": "Favori",

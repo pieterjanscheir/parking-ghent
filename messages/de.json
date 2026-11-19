@@ -172,7 +172,9 @@
     "type": "Art",
     "lez": "Umweltzone (LEZ)",
     "website": "Website besuchen",
-    "mapTitle": "Karte von {name}"
+    "mapTitle": "Karte von {name}",
+    "routesTitle": "Anfahrtsrouten",
+    "routesNote": "Die blauen Linien sind die von der Stadt empfohlenen Routen zwischen dem Stadtring (R40) und diesem Parkhaus. Der Genter Verkehrsplan sperrt viele andere Straßen für den Durchgangsverkehr."
   },
   "list": {
     "favorite": "Favorit",

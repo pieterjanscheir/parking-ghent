@@ -17,6 +17,7 @@ import {
   fetchParkings,
   serverClock,
 } from "@/lib/parkings";
+import { fetchApproachRoutes, routesForGarage } from "@/lib/approach-routes";
 import { formatDistance, walkingMinutes } from "@/lib/geo";
 import { COMFORTABLE_SPACES, nearbyAlternatives } from "@/lib/recommend";
 import {
@@ -120,16 +121,17 @@ export default async function ParkingDetailPage({ params }: Props) {
     // it, so its page still works.
     const entry = await fetchExtraParkingById(key);
     if (!entry) throw err;
-    return <ExtraParkingDetail entry={entry} />;
+    return <ExtraParkingDetail entry={entry} routes={await approachRoutes(entry.name)} />;
   }
   if (!detail) {
     const entry = await fetchExtraParkingById(key);
     if (!entry) notFound();
-    return <ExtraParkingDetail entry={entry} />;
+    return <ExtraParkingDetail entry={entry} routes={await approachRoutes(entry.name)} />;
   }
   const { parking } = detail;
   // Same cached feed as above, so this costs no extra upstream call.
-  const alternatives = nearbyAlternatives(parking, await fetchParkings(), serverClock());
+  const [allParkings, routes] = await Promise.all([fetchParkings(), approachRoutes(parking.name)]);
+  const alternatives = nearbyAlternatives(parking, allParkings, serverClock());
   const tAlt = await getTranslations("alternatives");
   const tAdvice = await getTranslations("advice");
   const tDestination = await getTranslations("destination");
@@ -356,9 +358,19 @@ export default async function ParkingDetailPage({ params }: Props) {
         </section>
       ) : null}
 
-      <ParkingLocationMap parking={parking} />
+      <ParkingLocationMap parking={parking} routes={routes} />
     </div>
   );
+}
+
+// The recommended streets in and out, or none when the city has no route
+// for this car park or its route list can't be read: the map works without.
+async function approachRoutes(garageName: string) {
+  try {
+    return routesForGarage(await fetchApproachRoutes(), garageName);
+  } catch {
+    return [];
+  }
 }
 
 async function HistorySection({

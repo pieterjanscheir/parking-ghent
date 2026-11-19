@@ -3,7 +3,8 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo } from "react";
 import L from "leaflet";
-import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, Marker, Polyline, TileLayer, useMap } from "react-leaflet";
+import type { RouteLine } from "@/lib/approach-routes";
 import type { Parking } from "@/lib/parkings.schema";
 import {
   DARK_TILE_FILTER,
@@ -13,8 +14,22 @@ import {
   OSM_TILE_URL,
 } from "./leaflet-shared";
 
-function MapSetup() {
+// The same blue as the app's accent, readable on the darkened map.
+const ROUTE_STYLE = { color: "oklch(0.7 0.17 258)", weight: 4, opacity: 0.85 } as const;
+
+function MapSetup({ routes, position }: { routes: RouteLine[]; position: [number, number] }) {
   const map = useMap();
+  const [lat, lng] = position;
+  useEffect(() => {
+    // With routes, show them whole: the point is how to get in from the ring.
+    if (routes.length > 0) {
+      map.fitBounds(L.latLngBounds([[lat, lng], ...routes.flat()]), {
+        padding: [24, 24],
+        maxZoom: 16,
+        animate: false,
+      });
+    }
+  }, [map, routes, lat, lng]);
   useEffect(() => {
     map.getPane("tilePane")!.style.filter = DARK_TILE_FILTER;
     // The container gets its final size after mount (lazy load, layout
@@ -34,12 +49,15 @@ export default function ParkingLocationLeaflet({
   position,
   closedLabel,
   label,
+  routes,
 }: {
   // A live garage, or a car park without a count ("P" / "P+R" on the pin).
   marker: Parking | { name: string; parkAndRide: boolean };
   position: [number, number];
   closedLabel: string;
   label: string;
+  // The city's recommended streets between the ring road and this garage.
+  routes: RouteLine[];
 }) {
   const icon = useMemo(
     () =>
@@ -64,7 +82,10 @@ export default function ParkingLocationLeaflet({
         className="h-[360px] w-full"
       >
         <TileLayer attribution={OSM_ATTRIBUTION} url={OSM_TILE_URL} maxZoom={19} />
-        <MapSetup />
+        <MapSetup routes={routes} position={position} />
+        {routes.map((line, index) => (
+          <Polyline key={index} positions={line} pathOptions={ROUTE_STYLE} interactive={false} />
+        ))}
         {/* A label, not a control: `keyboard={false}` keeps it out of the tab
             order (by default Leaflet makes every marker a focusable button,
             even a non-interactive one). */}

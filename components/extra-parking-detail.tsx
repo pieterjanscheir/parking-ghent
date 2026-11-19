@@ -1,6 +1,7 @@
 import { ChevronLeft, ExternalLink, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import type { RouteLine } from "@/lib/approach-routes";
 import type { DirectoryEntry } from "@/lib/directory";
 import { Button } from "@/components/ui/button";
 import { FacilityBadges } from "./facility-badges";
@@ -12,7 +13,13 @@ import { MetaBadge } from "./parking-status-badge";
 
 // The page of a car park that publishes no live count (a Park & Ride or a
 // privately run garage): where it is, how big, how to get there.
-export function ExtraParkingDetail({ entry }: { entry: DirectoryEntry }) {
+export function ExtraParkingDetail({
+  entry,
+  routes = [],
+}: {
+  entry: DirectoryEntry;
+  routes?: RouteLine[];
+}) {
   const t = useTranslations("extras");
   const tCommon = useTranslations("common");
   return (
@@ -97,6 +104,7 @@ export function ExtraParkingDetail({ entry }: { entry: DirectoryEntry }) {
       <ParkingLocationMap
         parking={{ name: entry.name, lat: entry.lat, lng: entry.lng }}
         plainMarker={{ parkAndRide: entry.parkAndRide }}
+        routes={routes}
       />
     </div>
   );
