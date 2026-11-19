@@ -14,6 +14,9 @@ export type ParkedSpot = {
   // When they said so, by this device's clock (epoch ms).
   at: number;
   note: string;
+  // When the ticket, the parking disc or the visitor's own plan runs out
+  // (epoch ms), if they said so.
+  until: number | null;
 };
 
 const STORAGE_KEY = "parking.parked.v1";
@@ -53,6 +56,8 @@ export function parseParkedSpot(raw: string): ParkedSpot | null {
       lng: v.lng,
       at: v.at,
       note: typeof v.note === "string" ? v.note.slice(0, NOTE_MAX_LENGTH) : "",
+      // Only a time after parking makes sense.
+      until: typeof v.until === "number" && Number.isFinite(v.until) && v.until > v.at ? v.until : null,
     };
   } catch {
     return null;
@@ -63,6 +68,51 @@ export function parseParkedSpot(raw: string): ParkedSpot | null {
 // clock that was changed since).
 export function isCurrent(spot: ParkedSpot, now: number): boolean {
   return spot.at <= now + 60_000 && now - spot.at < FORGET_AFTER_MS;
+}
+
+// "18:30" typed by the visitor → the next moment this device's clock shows
+// that time: today, or tomorrow when it has already passed today.
+export function untilFromClock(clock: string, now: number): number | null {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(clock.trim());
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return null;
+  const at = new Date(now);
+  at.setHours(hours, minutes, 0, 0);
+  if (at.getTime() <= now) at.setDate(at.getDate() + 1);
+  return at.getTime();
+}
+
+// The other way round, for the time field: epoch ms → "18:30" on this device.
+export function clockOf(ms: number): string {
+  const at = new Date(ms);
+  return `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`;
+}
+
+// How long until (or since) a moment, in whole minutes.
+export function timeLeft(
+  until: number,
+  now: number,
+): { passed: boolean; hours: number; minutes: number; totalMinutes: number } {
+  const passed = until <= now;
+  // Round down what is left ("in 9 min" must not be 8 and a half to go).
+  const totalMinutes = passed
+    ? Math.floor((now - until) / 60_000)
+    : Math.floor((until - now) / 60_000);
+  return { passed, hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60, totalMinutes };
+}
+
+// "51.04590,3.73070" from a shared link (/parked?spot=…) → coordinates.
+// Unlike the destination links this isn't limited to Ghent: a spot can be
+// shared from anywhere.
+export function parseSharedSpot(text: string | null | undefined): { lat: number; lng: number } | null {
+  if (!text) return null;
+  const match = /^(-?\d{1,2}(?:\.\d{1,7})?),(-?\d{1,3}(?:\.\d{1,7})?)$/.exec(text.trim());
+  if (!match) return null;
+  const lat = Number(match[1]);
+  const lng = Number(match[2]);
+  return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : null;
 }
 
 // A walking route back to the car, from wherever the visitor is.
@@ -85,6 +135,8 @@ export function useParkedSpot(): {
   // `note` carries an existing note over when the same car's spot is moved.
   park: (place: Place, note?: string) => void;
   setNote: (note: string) => void;
+  // null removes the time.
+  setUntil: (until: number | null) => void;
   clear: () => void;
 } {
   const { value, mounted, write } = useLocalStorageJson(STORAGE_KEY, parseParkedSpot);
@@ -97,22 +149,31 @@ export function useParkedSpot(): {
         lng: place.lng,
         at: Date.now(),
         note: note.slice(0, NOTE_MAX_LENGTH),
+        // A new spot is a new ticket.
+        until: null,
       }),
     [write],
   );
-  const setNote = useCallback(
-    (note: string) => {
+  const change = useCallback(
+    (patch: Partial<Pick<ParkedSpot, "note" | "until">>) => {
       if (!value) return;
       // Another tab may have saved a different spot a moment ago, before this
-      // one heard of it. The note belongs to the spot on screen: if that is
-      // no longer the stored one, drop the edit rather than bring it back.
+      // one heard of it. The edit belongs to the spot on screen: if that is
+      // no longer the stored one, drop it rather than bring the old spot back.
       const stored = readStored(STORAGE_KEY);
       const latest = stored === null ? null : parseParkedSpot(stored);
-      if (!sameSpot(latest, value)) return;
-      write({ ...value, note: note.slice(0, NOTE_MAX_LENGTH) });
+      if (!latest || !sameSpot(latest, value)) return;
+      // On top of what is stored, so a note typed in one tab and a time set
+      // in another both survive.
+      write({ ...latest, ...patch });
     },
     [value, write],
   );
+  const setNote = useCallback(
+    (note: string) => change({ note: note.slice(0, NOTE_MAX_LENGTH) }),
+    [change],
+  );
+  const setUntil = useCallback((until: number | null) => change({ until }), [change]);
   const clear = useCallback(() => write(null), [write]);
-  return { spot: value, ready: mounted, park, setNote, clear };
+  return { spot: value, ready: mounted, park, setNote, setUntil, clear };
 }

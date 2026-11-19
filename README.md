@@ -14,7 +14,10 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Park & Ride, free parking, EV charging** — badges on cards and garage pages, and filters for each. A garage page shows how many charge points it has and the city's own remark about the garage.
 - **Where did I park?** — "I parked here" on any car park page remembers the car park, the time and an optional note (level, row). The overview then opens with a reminder and a walking route back. Stored in the browser only, dropped after a week ([lib/parked.ts](lib/parked.ts)).
 - **Parked on the street** — the car icon in the header opens "Where did I park?" (`/parked`), where "Save where I am now" pins the car from the phone's position. The page then shows it on a map, the walking route back, which street-parking zone it is in, and the temporary parking bans the city has granted around it for the coming week (removal vans, construction vehicles) — see [Straight from the browser](#straight-from-the-browser).
-- **Onward from a Park & Ride** — a Park & Ride page links to the route into the centre by public transport or by bike, and shows how many shared bikes (Donkey Republic, Dott, Bolt) stand within 400 m right now.
+- **Onward from a Park & Ride** — a Park & Ride page links to the route into the centre by public transport or by bike, names the nearest bus and tram stops, and shows how many shared bikes (Donkey Republic, Dott, Bolt) stand within 400 m right now.
+- **When the ticket runs out** — on "Where did I park?" a time can be set for the ticket or parking disc. The page and the overview reminder count down to it and turn amber from a quarter of an hour before. "Add a reminder to my calendar" downloads a calendar event with an alert ten minutes before, so the phone's own calendar reminds the visitor while this site is closed ([lib/ics.ts](lib/ics.ts)).
+- **Share the spot** — "Share this spot" sends a link to whoever came along: to the car park's page, or for a spot on the street to `/parked?spot=<lat>,<lng>`, which shows the pin and the walking route and can be saved as the receiver's own spot.
+- **Nearest pay machine** — for a spot on the street, with whether it takes cash (nearly all of Ghent's machines don't).
 - **Nearby alternatives** — a garage page lists up to three other garages with space within 2.5 km; when the garage itself has no space the section is titled "No space here? Try nearby".
 - **How to drive in** — the garage map shows the city's recommended routes between the ring road (R40) and the garage as blue lines, for the eleven garages in the centre that have them. Ghent's circulation plan closes many other streets to through traffic ([lib/approach-routes.ts](lib/approach-routes.ts)).
 - **Charge points on the map** — a "Charge points" button on the overview map shows every public charge point for electric cars in the city (about 1,160 sockets), fast chargers in a different colour.
@@ -117,6 +120,8 @@ Some questions have a different answer for every visitor and every minute, so th
 
 - **Shared bikes near a Park & Ride** ([lib/shared-bikes.ts](lib/shared-bikes.ts), [components/onward-travel.tsx](components/onward-travel.tsx)): three requests, one per operator, for the bikes within 400 m. Donkey Republic publishes stations with a count; Dott and Bolt publish each bike. Reserved and disabled bikes, and stations that aren't renting, are left out. An operator whose feed doesn't answer is simply not shown.
 - **Temporary parking bans around a car on the street** ([lib/parking-bans.ts](lib/parking-bans.ts), [components/parking-bans-note.tsx](components/parking-bans-note.tsx)): the city's granted bans within 75 m that are running now or start within seven days, nearest first. The data locates a ban by the middle of its stretch of street and a phone's position is easily 20 m off, so the list says "nearby", gives the distance, and always adds that the signs in the street decide. When the request fails the section stays empty rather than say "no bans".
+- **Bus and tram stops near a Park & Ride** ([lib/transit-stops.ts](lib/transit-stops.ts)): the four nearest stops within 400 m that a bus or tram calls at, one line per stop name.
+- **The nearest pay machine to a car on the street** ([lib/pay-machines.ts](lib/pay-machines.ts)): the nearest machine in service within 250 m.
 - **Privacy:** these requests carry the coordinates of the car park or of the saved spot, and the visitor's IP address, to the city's portal, as opening the city's own maps would. The street-parking zone of a saved spot is looked up through this site's own `/api/street-zone`. The saved spot itself (time, note) never leaves the browser.
 
 ## Offline
@@ -295,6 +300,10 @@ lib/
   recommend.ts                Best garage for a point, nearest Park & Ride, nearby alternatives
   parked.ts                   Where the visitor parked (localStorage)
   parking-bans.ts             The city's temporary parking bans near a spot
+  pay-machines.ts             The nearest on-street pay machine
+  transit-stops.ts            Bus and tram stops near a spot
+  ics.ts                      Calendar file with an alert (ticket reminder)
+  use-city-data.ts            One browser request to the city's open data
   shared-bikes.ts             Shared bikes near a spot; routes to the centre
   history-archive.ts          Our own history: snapshot format, day files, append
   archive-store.ts            Where the archive lives: Vercel Blob, a folder, or memory

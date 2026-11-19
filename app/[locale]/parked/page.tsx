@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ParkedPage } from "@/components/parked-page";
@@ -24,5 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Parked({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <ParkedPage />;
+  // The page reads a shared spot from the URL (?spot=…), which needs a
+  // Suspense boundary on a page that is built ahead of time.
+  return (
+    <Suspense fallback={<div className="mx-auto h-64 max-w-3xl px-4 py-8 sm:px-6 sm:py-12" />}>
+      <ParkedPage />
+    </Suspense>
+  );
 }

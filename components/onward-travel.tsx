@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Bike, Bus, ExternalLink } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Bike, Bus, ExternalLink, TramFront } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,13 +12,15 @@ import {
   onwardRouteUrl,
   type BikeProvider,
 } from "@/lib/shared-bikes";
+import { nearestStops, stopsUrl } from "@/lib/transit-stops";
+import { useCityData } from "@/lib/use-city-data";
 
 type Counts = Partial<Record<BikeProvider, { count: number; atLeast: boolean }>>;
 
 // On a Park & Ride page: how to carry on to the centre (public transport or
-// bike, as a route in Google Maps) and how many shared bikes stand nearby
-// right now. The bikes come straight from the city's open data to the
-// visitor's browser — see lib/shared-bikes.ts.
+// bike, as a route in Google Maps), which bus and tram stops are nearest, and
+// how many shared bikes stand nearby right now. Stops and bikes come straight
+// from the city's open data to the visitor's browser — see lib/shared-bikes.ts.
 export function OnwardTravel({ lat, lng }: { lat: number; lng: number }) {
   const t = useTranslations("onward");
   // Filled in operator by operator as each feed answers, so one slow feed
@@ -52,6 +54,12 @@ export function OnwardTravel({ lat, lng }: { lat: number; lng: number }) {
     };
   }, [lat, lng]);
 
+  const stopsJson = useCityData(stopsUrl({ lat, lng }));
+  const stops = useMemo(
+    () => (stopsJson === null ? [] : nearestStops(stopsJson, { lat, lng })),
+    [stopsJson, lat, lng],
+  );
+
   const withBikes = BIKE_PROVIDERS.filter((provider) => (counts[provider]?.count ?? 0) > 0);
   // Every feed failed: say nothing rather than "no bikes".
   const knowsNothing = done && Object.keys(counts).length === 0;
@@ -79,6 +87,31 @@ export function OnwardTravel({ lat, lng }: { lat: number; lng: number }) {
         </Button>
       </div>
       <p className="mt-1.5 text-xs text-muted-foreground">{t("routeNote")}</p>
+
+      {stops.length > 0 ? (
+        <div className="mt-5">
+          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {t("stopsTitle")}
+          </h3>
+          <ul className="mt-1.5 space-y-1 text-sm">
+            {stops.map((stop) => (
+              <li key={stop.name} className="flex items-baseline gap-2">
+                {stop.tram ? (
+                  <TramFront className="size-3.5 shrink-0 self-center text-muted-foreground" aria-hidden />
+                ) : (
+                  <Bus className="size-3.5 shrink-0 self-center text-muted-foreground" aria-hidden />
+                )}
+                <span className="font-medium">{stop.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  {stop.bus && stop.tram ? t("busAndTram") : stop.tram ? t("tram") : t("bus")}
+                  {" · "}
+                  {stop.metres} m
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {knowsNothing ? null : (
         <div className="mt-5" aria-live="polite">

@@ -10,6 +10,7 @@ import {
   NOTE_MAX_LENGTH,
   isCurrent,
   isStreetSpot,
+  timeLeft,
   useParkedSpot,
   walkingRouteUrl,
 } from "@/lib/parked";
@@ -18,6 +19,26 @@ import { cn } from "@/lib/utils";
 import { useFormatAge, useFormatTime } from "./use-labels";
 
 type Place = { id: string; name: string; lat: number | null; lng: number | null };
+
+// "Runs out at 18:30, in 40 min" / "Ran out at 18:30, 5 min ago" for the
+// time a visitor set on their spot. `urgent` from a quarter of an hour before.
+export function useUntilText(): (until: number, now: number) => { text: string; urgent: boolean } {
+  const t = useTranslations("parked");
+  const formatAge = useFormatAge();
+  const formatTime = useFormatTime();
+  return (until, now) => {
+    const left = timeLeft(until, now);
+    const time = formatTime(until);
+    if (left.passed) {
+      return { text: t("untilPassed", { time, age: formatAge(now - until) }), urgent: true };
+    }
+    const leftText =
+      left.hours > 0
+        ? t("inHours", { hours: left.hours, minutes: left.minutes })
+        : t("inMinutes", { count: left.minutes });
+    return { text: t("untilRunning", { time, left: leftText }), urgent: left.totalMinutes <= 15 };
+  };
+}
 
 // On a car park's page: "I parked here", and once they did, when that was,
 // a note for the level or spot, and a way to clear it again.
@@ -98,8 +119,10 @@ export function ParkedBanner() {
   const formatTime = useFormatTime();
   const now = useDeviceNow();
   const { spot, ready, clear } = useParkedSpot();
+  const untilText = useUntilText();
 
   if (!ready || now === 0 || !spot || !isCurrent(spot, now)) return null;
+  const until = spot.until === null ? null : untilText(spot.until, now);
   // A spot on the street has no car park page; its details are on /parked.
   const onStreet = isStreetSpot(spot);
   const title = onStreet ? t("streetTitle") : t("bannerTitle", { name: spot.name });
@@ -117,6 +140,16 @@ export function ParkedBanner() {
           {t("since", { time: formatTime(spot.at), age: formatAge(now - spot.at) })}
           {spot.note ? <span className="text-foreground"> · {spot.note}</span> : null}
         </p>
+        {until ? (
+          <p
+            className={cn(
+              "mt-0.5 text-xs font-medium",
+              until.urgent ? "text-amber-200" : "text-foreground",
+            )}
+          >
+            {until.text}
+          </p>
+        ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button asChild size="sm" className="gap-1.5">
