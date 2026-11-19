@@ -449,7 +449,7 @@
     "note2": "Offene Daten der Stadt Gent und eigene Messungen dieser Website. Keine personenbezogenen Daten.",
     "note3": "Bekannte Orte funktionieren mit ihrem Namen. Für eine Straßenadresse übergibt der Assistent selbst Koordinaten.",
     "note4": "Die Namen und Beschreibungen der Tools selbst sind auf Englisch; der Assistent antwortet in Ihrer Sprache.",
-    "example4": "Welche Parkhäuser in Straßburg haben gerade Platz?",
-    "note5": "Neben Gent kann der Assistent auch Straßburg abfragen, mit offenen Daten der Stadt Straßburg. Dort kennt er nur die Live-Zählung: noch keine Prognose, kein übliches Muster, keine Preise und keine Orte mit Namen, und diese Website hat keine Seiten dafür."
+    "example4": "Welche Parkhäuser in Hasselt haben gerade Platz?",
+    "note5": "Neben Gent hat der Assistent Live-Zählungen für Hasselt und Straßburg. Für Antwerpen, Brüssel, Lüttich und Namur weiß er, wo die Parkhäuser liegen und wie groß sie sind, nicht wie voll. Außerhalb von Gent gibt es noch keine Prognose, kein übliches Muster und keine Suche nach Ortsnamen, und diese Website hat keine Seiten für diese Städte."
   }
 }

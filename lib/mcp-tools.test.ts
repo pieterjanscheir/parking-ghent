@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GHENT, STRASBOURG } from "./cities/info";
+import { ANTWERP, GHENT, HASSELT, STRASBOURG } from "./cities/info";
 import type { DirectoryEntry } from "./directory";
 import type { Trend } from "./forecast";
 import type { Snapshot } from "./history-archive";
@@ -342,7 +342,130 @@ describe("listCities", () => {
     expect(default_city).toBe("ghent");
     expect(cities.map((c) => [c.id, c.forecast_for_the_next_hour, c.well_known_places_by_name, c.pages_on_this_site])).toEqual([
       ["ghent", true, true, true],
+      ["hasselt", false, false, false],
+      ["antwerp", false, false, false],
+      ["brussels", false, false, false],
+      ["liege", false, false, false],
+      ["namur", false, false, false],
       ["strasbourg", false, false, false],
     ]);
+  });
+
+  it("says which cities have live counts and which only list their car parks", () => {
+    const { cities } = listCities("https://example.org");
+    expect(cities.filter((c) => c.live_free_spaces).map((c) => c.id)).toEqual(["ghent", "hasselt", "strasbourg"]);
+    expect(cities.filter((c) => !c.live_free_spaces).map((c) => c.id)).toEqual([
+      "antwerp",
+      "brussels",
+      "liege",
+      "namur",
+    ]);
+    expect(cities.find((c) => c.id === "strasbourg")?.park_and_ride_marked).toBe(false);
+    expect(cities.find((c) => c.id === "antwerp")?.park_and_ride_marked).toBe(true);
+  });
+});
+
+describe("a city that only lists its car parks", () => {
+  const entry = (over: Partial<DirectoryEntry>): DirectoryEntry => ({
+    id: "parking-arenberg",
+    name: "Parking Arenberg",
+    lat: 51.2151,
+    lng: 4.409,
+    parkAndRide: false,
+    capacity: 387,
+    address: "Oudevaartplaats 2 - 4",
+    url: "https://www.interparking.be/nl/parkeren/antwerpen/arenberg/",
+    note: null,
+    isFree: null,
+    evChargers: 13,
+    evMaxKw: null,
+    ...over,
+  });
+  const arenberg = entry({});
+  const groenplaats = entry({ id: "parking-groenplaats", name: "Parking Groenplaats", lat: 51.2189, lng: 4.4011, capacity: 400, evChargers: 0, url: null });
+  const schoonselhof = entry({ id: "p-r-schoonselhof", name: "P&R Schoonselhof", lat: 51.1695, lng: 4.3652, parkAndRide: true, capacity: 116, isFree: true, evChargers: 0, url: null });
+  const far1 = entry({ id: "far-1", name: "Parking Noord", lat: 51.26, lng: 4.42, url: null });
+  const antwerp = () =>
+    sources({ city: ANTWERP, parkings: [], extras: [arenberg, groenplaats, schoonselhof, far1], trends: {}, profile: null });
+  // The cathedral.
+  const CATHEDRAL = { lat: 51.2203, lng: 4.4015 };
+
+  it("lists every car park without a count and says that nothing is known about room", () => {
+    const result = listGarages(antwerp(), {});
+    expect(result.garages_with_live_count).toEqual([]);
+    expect(result.car_parks_without_live_count).toHaveLength(4);
+    expect(result.car_parks_without_live_count[0]).toEqual({
+      id: "parking-arenberg",
+      name: "Parking Arenberg",
+      address: "Oudevaartplaats 2 - 4",
+      free_spaces: null,
+      total_spaces: 387,
+      park_and_ride: false,
+      // Unknown, not "paid".
+      free_of_charge: null,
+      ev_charge_points: 13,
+      // No page on this site: the operator's own.
+      url: "https://www.interparking.be/nl/parkeren/antwerpen/arenberg/",
+    });
+    expect(result.note).toMatch(/Antwerp publishes where its car parks are and how big, not how full/);
+    expect(result.source).toBe("City of Antwerp open geodata, via https://example.org");
+  });
+
+  it("gives no charge points rather than zero where none are listed", () => {
+    const [, groen, ride] = listGarages(antwerp(), {}).car_parks_without_live_count;
+    expect(groen.ev_charge_points).toBeNull();
+    expect(ride).toMatchObject({ park_and_ride: true, free_of_charge: true, ev_charge_points: null, url: null });
+  });
+
+  it("recommends nothing, and lists the nearest car parks by distance instead", () => {
+    const result = findParking(antwerp(), { ...CATHEDRAL, destination: "Kathedraal" });
+    expect(result.best_choice).toBeNull();
+    expect(result.other_garages_with_space).toEqual([]);
+    expect(result.nearest_car_parks_without_live_count.map((c) => c.name)).toEqual([
+      "Parking Groenplaats",
+      "Parking Arenberg",
+      "Parking Noord",
+    ]);
+    const [nearest] = result.nearest_car_parks_without_live_count;
+    expect(nearest.distance_m).toBeGreaterThan(100);
+    expect(nearest.distance_m).toBeLessThan(250);
+    expect(nearest.walking_minutes).toBeGreaterThan(0);
+    expect(result.nearest_park_and_ride).toMatchObject({ name: "P&R Schoonselhof", url: null });
+    expect(result.note).toMatch(/not how full/);
+    expect(result.see_on_the_website).toBeNull();
+  });
+
+  it("finds one car park by name, with its position", () => {
+    expect(getGarage(antwerp(), { garage: "groenplaats" })).toMatchObject({
+      name: "Parking Groenplaats",
+      free_spaces: null,
+      total_spaces: 400,
+      position: { lat: 51.2189, lng: 4.4011 },
+    });
+    expect(() => getGarage(antwerp(), { garage: "Meir" })).toThrow(/No car park called "Meir" in Antwerp/);
+  });
+
+  it("leaves Ghent's answers as they were, plus the nearest car parks without a count", () => {
+    const result = findParking(sources(), { destination: "Gravensteen" });
+    expect(result.note).toBeNull();
+    expect(result.nearest_car_parks_without_live_count.map((c) => c.id)).toEqual([ride.id]);
+    expect(listGarages(sources(), {}).note).toBeNull();
+  });
+});
+
+describe("Hasselt", () => {
+  it("marks its Park & Ride sites, and leaves price and charging unknown", () => {
+    const carpool = garage({ id: "p-r-carpool", name: "Parking P+R carpool Hasselt-Zuid (gratis)", parkAndRide: true, lat: 50.9, lng: 5.33, evChargers: 0 });
+    const [first] = listGarages(sources({ city: HASSELT, parkings: [carpool], extras: [], trends: {}, profile: null }), {})
+      .garages_with_live_count;
+    expect(first).toMatchObject({
+      city: "Hasselt",
+      free_spaces: 120,
+      park_and_ride: true,
+      free_of_charge: null,
+      ev_charge_points: null,
+      inside_low_emission_zone: null,
+      forecast: null,
+    });
   });
 });

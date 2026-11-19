@@ -5,6 +5,13 @@ import { fetchProfile } from "../history-profile-store";
 import { fetchAllTrends } from "../parking-history";
 import { fetchAllParkings } from "../parkings";
 import type { Parking } from "../parkings.schema";
+import {
+  fetchAntwerpCarParks,
+  fetchBrusselsCarParks,
+  fetchLiegeCarParks,
+  fetchNamurCarParks,
+} from "./belgium-static";
+import { fetchHasselt } from "./hasselt";
 import { CITY_INFO, type CityId, type CityInfo } from "./info";
 import { fetchStrasbourgParkings } from "./strasbourg";
 
@@ -20,6 +27,16 @@ export type City = CityInfo & {
   profile: () => Promise<Profile | null>;
 };
 
+// No history is kept for the cities below, so no forecast and no pattern.
+const noHistory = { trends: async () => ({}), profile: async () => null };
+
+// A city that only lists its car parks: nothing with a live count.
+const listOnly = (id: CityId, load: () => Promise<DirectoryEntry[]>): City => ({
+  ...CITY_INFO[id],
+  live: async () => ({ parkings: [], extras: await load() }),
+  ...noHistory,
+});
+
 const CITIES: Record<CityId, City> = {
   ghent: {
     ...CITY_INFO.ghent,
@@ -27,11 +44,15 @@ const CITIES: Record<CityId, City> = {
     trends: fetchAllTrends,
     profile: fetchProfile,
   },
+  hasselt: { ...CITY_INFO.hasselt, live: fetchHasselt, ...noHistory },
+  antwerp: listOnly("antwerp", fetchAntwerpCarParks),
+  brussels: listOnly("brussels", fetchBrusselsCarParks),
+  liege: listOnly("liege", fetchLiegeCarParks),
+  namur: listOnly("namur", fetchNamurCarParks),
   strasbourg: {
     ...CITY_INFO.strasbourg,
     live: async () => ({ parkings: await fetchStrasbourgParkings(), extras: [] }),
-    trends: async () => ({}),
-    profile: async () => null,
+    ...noHistory,
   },
 };
 

@@ -83,7 +83,7 @@ function buildServer(request: Request): McpServer {
     {
       title: "Cities this server knows",
       description:
-        "The cities these tools can answer for (Ghent in Belgium, Strasbourg in France) and what is known about each: live free spaces everywhere, a forecast and the usual weekly pattern only where the site keeps history.",
+        "The cities these tools can answer for and what is known about each. Live free spaces: Ghent and Hasselt in Belgium, Strasbourg in France. Car parks with their size and place but no live count: Antwerp, Brussels, Liège and Namur. A forecast and the usual weekly pattern only for Ghent, where the site keeps history.",
       inputSchema: {},
       annotations: READ_ONLY,
     },
@@ -95,7 +95,7 @@ function buildServer(request: Request): McpServer {
     {
       title: "Parking garages, live",
       description:
-        "Every public car park in a city (Ghent by default) with its live number of free spaces, a forecast for the next hour where there is one, and facts such as Park & Ride, free of charge and EV charging where the city's data has them. Car parks for which the city publishes no count are listed separately.",
+        "Every public car park in a city (Ghent by default) with its live number of free spaces, a forecast for the next hour where there is one, and facts such as Park & Ride, free of charge and EV charging where the city's data has them. Car parks for which the city publishes no count are listed separately; for some cities that is all of them (see list_cities).",
       inputSchema: {
         city: CITY,
         only_with_space: z
@@ -113,7 +113,7 @@ function buildServer(request: Request): McpServer {
     {
       title: "Best garage for a destination",
       description:
-        "Where to park for a destination: one recommended garage (the nearest that is open, has room and isn't about to fill up), why the nearest was passed over if it was, other garages with space, walking time, and the nearest Park & Ride. In Ghent, give a well-known place by name (Gravensteen, Korenmarkt, Vooruit, UZ Gent, Gent-Sint-Pieters…); for anything else, and for every destination in another city, give coordinates you have geocoded.",
+        "Where to park for a destination: one recommended garage (the nearest that is open, has room and isn't about to fill up), why the nearest was passed over if it was, other garages with space, walking time, the nearest Park & Ride, and the nearest car parks without a live count. In a city without live counts only that last list is filled, by distance. In Ghent, give a well-known place by name (Gravensteen, Korenmarkt, Vooruit, UZ Gent, Gent-Sint-Pieters…); for anything else, and for every destination in another city, give coordinates you have geocoded.",
       inputSchema: {
         city: CITY,
         destination: z.string().max(120).optional().describe("A well-known place in Ghent by name, or a label for the coordinates."),

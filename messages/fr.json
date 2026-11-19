@@ -449,7 +449,7 @@
     "note2": "Données ouvertes de la Ville de Gand et mesures propres à ce site. Aucune donnée personnelle.",
     "note3": "Les lieux connus fonctionnent par leur nom. Pour une adresse, l’assistant transmet lui-même des coordonnées.",
     "note4": "Les noms et descriptions des outils sont en anglais ; l’assistant répond dans votre langue.",
-    "example4": "Quels parkings à Strasbourg ont de la place en ce moment ?",
-    "note5": "Outre Gand, l’assistant peut consulter Strasbourg, avec les données ouvertes de la ville de Strasbourg. Il n’y connaît que le comptage en direct : pas encore de prévision, de profil habituel, de tarifs ni de lieux par leur nom, et ce site n’a pas de pages pour cette ville."
+    "example4": "Quels parkings à Hasselt ont de la place en ce moment ?",
+    "note5": "Outre Gand, l’assistant dispose de comptages en direct pour Hasselt et Strasbourg. Pour Anvers, Bruxelles, Liège et Namur, il sait où se trouvent les parkings et leur capacité, pas leur taux d’occupation. En dehors de Gand, il n’y a pas encore de prévision, de profil habituel ni de recherche par nom de lieu, et ce site n’a pas de pages pour ces villes."
   }
 }
