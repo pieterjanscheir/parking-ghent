@@ -4,7 +4,8 @@
     "description": "Parkplatzverfügbarkeit in Gent in Echtzeit — sehen Sie vor der Abfahrt, wo Sie parken können.",
     "garageTitle": "Parkhaus {name}",
     "garageFallbackTitle": "Parkhaus",
-    "garageDescription": "Freie Plätze in Echtzeit und eine Kurzzeitprognose für das Parkhaus {name} in Gent."
+    "garageDescription": "Freie Plätze in Echtzeit und eine Kurzzeitprognose für das Parkhaus {name} in Gent.",
+    "extraDescription": "Lage, Kapazität und Route für {name} in Gent. Für diesen Parkplatz gibt es keine Live-Zählung."
   },
   "common": {
     "open": "Geöffnet",
@@ -92,7 +93,8 @@
     "availability": "Verfügbarkeit",
     "available": "Verfügbar",
     "almostFull": "Fast voll",
-    "full": "Voll"
+    "full": "Voll",
+    "facilities": "Ausstattung"
   },
   "garage": {
     "favorite": "Favorit",
@@ -231,5 +233,31 @@
   },
   "share": {
     "features": "Live-Verfügbarkeit|30-Minuten-Prognose|Stadtplan|In meiner Nähe"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Kostenlos",
+    "freeParking": "Kostenlos parken",
+    "paid": "Kostenpflichtig",
+    "evCharging": "Laden von Elektroautos",
+    "evShort": "{count} Ladepunkte",
+    "chargePoints": "{count, plural, one {# Ladepunkt} other {# Ladepunkte}}",
+    "chargePointsKw": "{count, plural, one {# Ladepunkt} other {# Ladepunkte}}, bis zu {kw} kW",
+    "chargingLabel": "Elektroauto laden",
+    "priceLabel": "Preis",
+    "parkAndRideDetail": "Parken Sie hier und fahren Sie mit Straßenbahn, Bus oder Fahrrad weiter ins Zentrum.",
+    "cityNote": "Gut zu wissen",
+    "cityNoteSource": "Hinweis der Stadt Gent."
+  },
+  "extras": {
+    "title": "Park & Ride und weitere Parkmöglichkeiten",
+    "intro": "Diese Parkplätze melden nicht, wie viele Plätze frei sind. Es gibt daher keine Live-Zählung.",
+    "noLiveCount": "Keine Live-Zählung",
+    "spaces": "{count, plural, one {# Stellplatz} other {# Stellplätze}}",
+    "capacity": "Kapazität",
+    "detailLead": "Dieser Parkplatz veröffentlicht keine Live-Zählung. Wir können zeigen, wo er liegt und wie groß er ist, aber nicht, wie voll er gerade ist.",
+    "moreInfo": "Weitere Informationen",
+    "shareText": "Parkplatz in Gent, keine Live-Zählung"
   }
 }

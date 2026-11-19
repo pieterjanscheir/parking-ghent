@@ -118,6 +118,11 @@ afterEach(() => {
 
 const LIVE = "dataset=bezetting-parkeergarages-real-time";
 const LOCATIONS = "dataset=locaties-openbare-parkings-gent";
+// The directory of all car parks and the charge points (lib/directory.ts,
+// lib/chargers.ts). Optional extras: most tests leave them unanswered.
+const DIRECTORY = "datasets/locaties-openbare-parkings-gent/records";
+const CHARGERS = "datasets/laadpalen-gent/records";
+const EMPTY_LIST = { total_count: 0, results: [] };
 
 describe("fetchParkings — happy path", () => {
   it("returns the live feed's parkings sorted by name", async () => {
@@ -132,13 +137,15 @@ describe("fetchParkings — happy path", () => {
     expect(parkings.map((p) => p.id)).toEqual(["parking-dampoort", "parking-tolhuis"]);
   });
 
-  it("only calls the two feeds it needs", async () => {
+  it("only calls the four feeds it needs", async () => {
     route(LIVE, ok(primaryResponse([])));
     route(LOCATIONS, ok(locationsResponse([])));
+    route(DIRECTORY, ok(EMPTY_LIST));
+    route(CHARGERS, ok(EMPTY_LIST));
 
     await fetchParkings();
 
-    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(4);
     for (const [input] of vi.mocked(fetch).mock.calls) {
       // No API keys in the URL, and nothing outside the open-data portal.
       expect(String(input)).toMatch(/^https:\/\/gent\.opendatasoft\.com\//);
@@ -399,9 +406,11 @@ describe("fetchParkingDetailById", () => {
   it("returns null for an unknown id without any extra upstream call", async () => {
     route(LIVE, ok(primaryResponse([])));
     route(LOCATIONS, ok(locationsResponse([])));
+    route(DIRECTORY, ok(EMPTY_LIST));
+    route(CHARGERS, ok(EMPTY_LIST));
 
     expect(await fetchParkingDetailById("parking-kouter")).toBeNull();
-    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(4);
   });
 
   it("shares the overview's upstream calls (page title + page body + list)", async () => {

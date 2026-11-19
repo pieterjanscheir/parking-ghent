@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   CircleMarker,
   MapContainer,
@@ -13,8 +13,9 @@ import {
   useMap,
 } from "react-leaflet";
 import type { Parking } from "@/lib/parkings.schema";
+import { noteFor, type DirectoryEntry } from "@/lib/directory";
 import type { Trend } from "@/lib/parking-history";
-import type { LatLng } from "@/lib/geo";
+import { distanceKm, type LatLng } from "@/lib/geo";
 import { Link } from "@/i18n/navigation";
 import { distanceTo } from "@/lib/parkings";
 import { dataAgeMs, isStale } from "@/lib/freshness";
@@ -23,6 +24,7 @@ import {
   OSM_ATTRIBUTION,
   OSM_TILE_URL,
   destinationIcon,
+  extraMarkerIcon,
   markerIcon,
 } from "./leaflet-shared";
 import { forecastHint } from "./forecast-hint";
@@ -30,6 +32,8 @@ import { useFormatAge, useFormatDistance } from "./use-labels";
 
 type Props = {
   parkings: Parking[];
+  // Car parks without a live count, drawn as small "P" / "P+R" pins.
+  extras: DirectoryEntry[];
   trendsById: Record<string, Trend>;
   userLocation: LatLng | null;
   // Where the visitor is heading, if they searched for a destination.
@@ -97,6 +101,7 @@ function fit(map: L.Map, points: [number, number][]) {
 
 export default function ParkingMap({
   parkings,
+  extras,
   trendsById,
   userLocation,
   destination,
@@ -107,6 +112,8 @@ export default function ParkingMap({
   const tForecast = useTranslations("forecast");
   const tFresh = useTranslations("freshness");
   const tDestination = useTranslations("destination");
+  const tExtras = useTranslations("extras");
+  const locale = useLocale();
   const formatAge = useFormatAge();
   const formatDistance = useFormatDistance();
   const closedLabel = tCommon("closed");
@@ -119,6 +126,10 @@ export default function ParkingMap({
   const icons = useMemo(
     () => new Map(located.map((p) => [p.id, markerIcon(p, closedLabel)])),
     [located, closedLabel],
+  );
+  const extraIcons = useMemo(
+    () => new Map(extras.map((e) => [e.id, extraMarkerIcon(e.name, e.parkAndRide)])),
+    [extras],
   );
   const destinationPin = useMemo(() => destinationIcon(), []);
   const bounds = useMemo(() => {
@@ -138,9 +149,11 @@ export default function ParkingMap({
       ];
     }
     const pts: [number, number][] = located.map((p) => [p.lat!, p.lng!]);
+    // When a search leaves only car parks without a count, frame those.
+    if (pts.length === 0) for (const e of extras) pts.push([e.lat, e.lng]);
     if (userLocation) pts.push([userLocation.lat, userLocation.lng]);
     return pts;
-  }, [located, userLocation, destination]);
+  }, [located, extras, userLocation, destination]);
   // Distances are measured from the destination when there is one.
   const origin = destination ?? userLocation;
 
@@ -189,6 +202,43 @@ export default function ParkingMap({
             <Popup>{t("youAreHere")}</Popup>
           </CircleMarker>
         ) : null}
+        {extras.map((entry) => {
+          const dist = origin ? distanceKm(origin, entry) : null;
+          const note = noteFor(entry.note, locale);
+          return (
+            <Marker
+              key={entry.id}
+              position={[entry.lat, entry.lng]}
+              icon={extraIcons.get(entry.id)!}
+              // Below the live garages: a count is worth more than a "P".
+              zIndexOffset={-500}
+            >
+              <Popup>
+                <div className="space-y-1 text-sm">
+                  <p className="font-semibold">{entry.name}</p>
+                  <p>
+                    {tExtras("noLiveCount")}
+                    {entry.capacity ? ` · ${tExtras("spaces", { count: entry.capacity })}` : ""}
+                    {dist !== null
+                      ? ` · ${
+                          destination
+                            ? formatDistance(dist, true)
+                            : t("away", { distance: formatDistance(dist) })
+                        }`
+                      : ""}
+                  </p>
+                  {note ? <p className="opacity-80">{note}</p> : null}
+                  <Link
+                    href={`/parkings/${encodeURIComponent(entry.id)}`}
+                    className="font-medium"
+                  >
+                    {t("viewDetails")}
+                  </Link>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
         {located.map((p) => {
           const hint = forecastHint(p, trendsById[p.id] ?? null);
           const dist = distanceTo(p, origin);

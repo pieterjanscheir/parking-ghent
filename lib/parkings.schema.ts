@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { LocalizedNote } from "./directory";
 
 const LocationAndDimensionSchema = z
   .object({
@@ -80,6 +81,16 @@ export type Parking = {
   // When the feed last updated this garage's count (epoch ms), or null when
   // the feed gave no parseable timestamp.
   lastUpdatedAt: number | null;
+  // Free of charge, according to the feed.
+  isFree: boolean;
+  // Park & Ride: park at the edge, continue by tram, bus or bike.
+  parkAndRide: boolean;
+  // Charge points for electric cars inside the garage (0 when none are known).
+  evChargers: number;
+  // The fastest of them, in kW.
+  evMaxKw: number | null;
+  // The city's own remark about this garage ("Only accessible via …").
+  note: LocalizedNote | null;
 };
 
 function parseLocation(raw: string): {
@@ -227,5 +238,11 @@ export function normalizeParking(record: {
     lng,
     phone,
     lastUpdatedAt: parseTimestamp(f.lastupdate ?? ""),
+    isFree: f.freeparking === 1,
+    // The directory and the charge-point list fill these in (lib/parkings.ts).
+    parkAndRide: /^p\+r\b/i.test(f.name),
+    evChargers: 0,
+    evMaxKw: null,
+    note: null,
   };
 }

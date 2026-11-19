@@ -7,9 +7,10 @@ import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import type { Parking } from "@/lib/parkings.schema";
 import {
   DARK_TILE_FILTER,
+  extraMarkerIcon,
+  markerIcon,
   OSM_ATTRIBUTION,
   OSM_TILE_URL,
-  markerIcon,
 } from "./leaflet-shared";
 
 function MapSetup() {
@@ -29,19 +30,23 @@ function MapSetup() {
 // One garage on an OpenStreetMap map, with its live count on the marker.
 // Loaded with `ssr: false` — see parking-location-map.tsx.
 export default function ParkingLocationLeaflet({
-  parking,
+  marker,
   position,
   closedLabel,
   label,
 }: {
-  parking: Parking;
+  // A live garage, or a car park without a count ("P" / "P+R" on the pin).
+  marker: Parking | { name: string; parkAndRide: boolean };
   position: [number, number];
   closedLabel: string;
   label: string;
 }) {
   const icon = useMemo(
-    () => markerIcon(parking, closedLabel),
-    [parking, closedLabel],
+    () =>
+      "id" in marker
+        ? markerIcon(marker, closedLabel)
+        : extraMarkerIcon(marker.name, marker.parkAndRide),
+    [marker, closedLabel],
   );
   // This map sits in the middle of a scrolling page. Scrolling the page with
   // the mouse wheel or one finger must not get stuck moving the map instead,

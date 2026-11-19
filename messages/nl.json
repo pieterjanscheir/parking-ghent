@@ -4,7 +4,8 @@
     "description": "Live parkeerbezetting voor Gent — zie waar je kunt parkeren voor je vertrekt.",
     "garageTitle": "Parking {name}",
     "garageFallbackTitle": "Parking",
-    "garageDescription": "Live vrije plaatsen en een kortetermijnvoorspelling voor parking {name} in Gent."
+    "garageDescription": "Live vrije plaatsen en een kortetermijnvoorspelling voor parking {name} in Gent.",
+    "extraDescription": "Ligging, capaciteit en route voor {name} in Gent. Voor deze parking is geen live telling beschikbaar."
   },
   "common": {
     "open": "Open",
@@ -92,7 +93,8 @@
     "availability": "Beschikbaarheid",
     "available": "Beschikbaar",
     "almostFull": "Bijna volzet",
-    "full": "Volzet"
+    "full": "Volzet",
+    "facilities": "Voorzieningen"
   },
   "garage": {
     "favorite": "Favoriet",
@@ -231,5 +233,31 @@
   },
   "share": {
     "features": "Live beschikbaarheid|Voorspelling 30 min|Kaart|In mijn buurt"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Gratis",
+    "freeParking": "Gratis parkeren",
+    "paid": "Betalend",
+    "evCharging": "Laadpunten voor elektrische wagens",
+    "evShort": "{count} laadpunten",
+    "chargePoints": "{count, plural, one {# laadpunt} other {# laadpunten}}",
+    "chargePointsKw": "{count, plural, one {# laadpunt} other {# laadpunten}}, tot {kw} kW",
+    "chargingLabel": "Elektrisch laden",
+    "priceLabel": "Prijs",
+    "parkAndRideDetail": "Parkeer hier en ga verder naar het centrum met tram, bus of fiets.",
+    "cityNote": "Goed om te weten",
+    "cityNoteSource": "Opmerking van Stad Gent."
+  },
+  "extras": {
+    "title": "Park & Ride en andere parkings",
+    "intro": "Deze parkings geven niet door hoeveel plaatsen er vrij zijn, dus er is geen live telling.",
+    "noLiveCount": "Geen live telling",
+    "spaces": "{count, plural, one {# plaats} other {# plaatsen}}",
+    "capacity": "Capaciteit",
+    "detailLead": "Deze parking publiceert geen live tellingen. We kunnen tonen waar ze ligt en hoe groot ze is, niet hoe vol ze nu is.",
+    "moreInfo": "Meer informatie",
+    "shareText": "Parking in Gent, geen live telling"
   }
 }

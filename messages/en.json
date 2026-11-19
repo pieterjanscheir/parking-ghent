@@ -4,7 +4,8 @@
     "description": "Live parking availability for Ghent — see where to park before you drive.",
     "garageTitle": "Parking {name}",
     "garageFallbackTitle": "Parking",
-    "garageDescription": "Live free spaces and a short-term forecast for parking {name} in Ghent."
+    "garageDescription": "Live free spaces and a short-term forecast for parking {name} in Ghent.",
+    "extraDescription": "Location, capacity and directions for {name} in Ghent. No live count is available for this car park."
   },
   "common": {
     "open": "Open",
@@ -92,7 +93,8 @@
     "availability": "Availability",
     "available": "Available",
     "almostFull": "Almost full",
-    "full": "Full"
+    "full": "Full",
+    "facilities": "Facilities"
   },
   "garage": {
     "favorite": "Favorite",
@@ -231,5 +233,31 @@
   },
   "share": {
     "features": "Live availability|30-minute forecast|Map|Near me"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Free",
+    "freeParking": "Free parking",
+    "paid": "Paid",
+    "evCharging": "EV charging",
+    "evShort": "{count} chargers",
+    "chargePoints": "{count, plural, one {# charge point} other {# charge points}}",
+    "chargePointsKw": "{count, plural, one {# charge point} other {# charge points}}, up to {kw} kW",
+    "chargingLabel": "EV charging",
+    "priceLabel": "Price",
+    "parkAndRideDetail": "Park here and continue to the centre by tram, bus or bike.",
+    "cityNote": "Good to know",
+    "cityNoteSource": "Note from the City of Ghent."
+  },
+  "extras": {
+    "title": "Park & Ride and other car parks",
+    "intro": "These car parks don't publish how many spaces are free, so there is no live count.",
+    "noLiveCount": "No live count",
+    "spaces": "{count, plural, one {# space} other {# spaces}}",
+    "capacity": "Capacity",
+    "detailLead": "This car park doesn't publish live counts. We can show where it is and how big it is, not how full it is right now.",
+    "moreInfo": "More information",
+    "shareText": "Car park in Ghent, no live count"
   }
 }

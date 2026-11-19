@@ -41,6 +41,11 @@ function parking(overrides: Partial<Parking> = {}): Parking {
     lng: null,
     phone: null,
     lastUpdatedAt: NOON - MINUTE,
+    isFree: false,
+    parkAndRide: false,
+    evChargers: 0,
+    evMaxKw: null,
+    note: null,
     ...overrides,
   };
 }

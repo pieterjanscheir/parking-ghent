@@ -4,7 +4,8 @@
     "description": "Disponibilidad de aparcamiento en Gante en tiempo real: mira dónde aparcar antes de salir.",
     "garageTitle": "Aparcamiento {name}",
     "garageFallbackTitle": "Aparcamiento",
-    "garageDescription": "Plazas libres en tiempo real y una previsión a corto plazo para el aparcamiento {name} en Gante."
+    "garageDescription": "Plazas libres en tiempo real y una previsión a corto plazo para el aparcamiento {name} en Gante.",
+    "extraDescription": "Ubicación, capacidad y cómo llegar a {name} en Gante. No hay recuento en directo para este aparcamiento."
   },
   "common": {
     "open": "Abierto",
@@ -92,7 +93,8 @@
     "availability": "Disponibilidad",
     "available": "Disponible",
     "almostFull": "Casi lleno",
-    "full": "Lleno"
+    "full": "Lleno",
+    "facilities": "Servicios"
   },
   "garage": {
     "favorite": "Favorito",
@@ -231,5 +233,31 @@
   },
   "share": {
     "features": "Disponibilidad en directo|Previsión a 30 min|Mapa|Cerca de mí"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Gratis",
+    "freeParking": "Aparcamiento gratuito",
+    "paid": "De pago",
+    "evCharging": "Recarga de coches eléctricos",
+    "evShort": "{count} cargadores",
+    "chargePoints": "{count, plural, one {# punto de recarga} other {# puntos de recarga}}",
+    "chargePointsKw": "{count, plural, one {# punto de recarga} other {# puntos de recarga}}, hasta {kw} kW",
+    "chargingLabel": "Recarga eléctrica",
+    "priceLabel": "Precio",
+    "parkAndRideDetail": "Aparca aquí y continúa hasta el centro en tranvía, autobús o bicicleta.",
+    "cityNote": "Conviene saber",
+    "cityNoteSource": "Nota del Ayuntamiento de Gante."
+  },
+  "extras": {
+    "title": "Park & Ride y otros aparcamientos",
+    "intro": "Estos aparcamientos no publican cuántas plazas quedan libres, así que no hay recuento en directo.",
+    "noLiveCount": "Sin recuento en directo",
+    "spaces": "{count, plural, one {# plaza} other {# plazas}}",
+    "capacity": "Capacidad",
+    "detailLead": "Este aparcamiento no publica recuentos en directo. Podemos mostrarte dónde está y su tamaño, pero no cuánto se ha llenado ahora.",
+    "moreInfo": "Más información",
+    "shareText": "Aparcamiento en Gante, sin recuento en directo"
   }
 }

@@ -1,0 +1,67 @@
+import { Bus, Info, Tag, Zap } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { noteFor, type LocalizedNote } from "@/lib/directory";
+
+type Props = {
+  parkAndRide: boolean;
+  isFree: boolean | null;
+  evChargers: number;
+  evMaxKw: number | null;
+  note: LocalizedNote | null;
+};
+
+const TERM =
+  "inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground";
+
+// The practical facts on a car park's page: price (when known), Park & Ride,
+// charging, and the city's own remark. Renders nothing when there are none.
+export function ParkingFacilities({ parkAndRide, isFree, evChargers, evMaxKw, note }: Props) {
+  const t = useTranslations("facilities");
+  const locale = useLocale();
+  const remark = noteFor(note, locale);
+  if (!parkAndRide && isFree === null && evChargers === 0 && !remark) return null;
+  return (
+    <dl className="mt-8 grid gap-5 sm:grid-cols-2">
+      {isFree !== null ? (
+        <div>
+          <dt className={TERM}>
+            <Tag className="size-3.5" aria-hidden /> {t("priceLabel")}
+          </dt>
+          <dd className="mt-1 text-sm">{isFree ? t("freeParking") : t("paid")}</dd>
+        </div>
+      ) : null}
+      {parkAndRide ? (
+        <div>
+          <dt className={TERM}>
+            <Bus className="size-3.5" aria-hidden /> {t("parkAndRide")}
+          </dt>
+          <dd className="mt-1 text-sm">{t("parkAndRideDetail")}</dd>
+        </div>
+      ) : null}
+      {evChargers > 0 ? (
+        <div>
+          <dt className={TERM}>
+            <Zap className="size-3.5" aria-hidden /> {t("chargingLabel")}
+          </dt>
+          <dd className="mt-1 text-sm">
+            {evMaxKw !== null
+              ? t("chargePointsKw", { count: evChargers, kw: evMaxKw })
+              : t("chargePoints", { count: evChargers })}
+          </dd>
+        </div>
+      ) : null}
+      {remark ? (
+        <div className="sm:col-span-2">
+          <dt className={TERM}>
+            <Info className="size-3.5" aria-hidden /> {t("cityNote")}
+          </dt>
+          {/* The city writes these in Dutch, English and French only. */}
+          <dd className="mt-1 text-sm" lang={locale === "nl" || locale === "fr" ? locale : "en"}>
+            {remark}
+          </dd>
+          <dd className="mt-1 text-xs text-muted-foreground">{t("cityNoteSource")}</dd>
+        </div>
+      ) : null}
+    </dl>
+  );
+}

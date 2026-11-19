@@ -141,6 +141,15 @@
   white-space: nowrap;
   box-shadow: 0 0 0 3px oklch(0 0 0 / 0.25), 0 0 12px var(--marker-color);
 }
+/* Car parks without a live count: smaller and without the glow. */
+.parking-marker-extra > span {
+  min-width: 0;
+  padding: 0.05rem 0.35rem;
+  border-width: 1.5px;
+  font-size: 10px;
+  color: oklch(0.9 0 0);
+  box-shadow: 0 0 0 2px oklch(0 0 0 / 0.25);
+}
 /* Destination pin (components/leaflet-shared.ts): a teardrop whose tip sits
    on the coordinate. The square is rotated so its one sharp corner points
    down; 28px wide, so its tip is 28 × 0.707 ≈ 20px below its centre. */

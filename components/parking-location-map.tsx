@@ -20,7 +20,14 @@ const ParkingLocationLeaflet = dynamic(
 // The map on a garage page: OpenStreetMap by default, or an embedded Google
 // map for visitors who chose that in settings. Nothing is requested from
 // Google unless they did.
-export function ParkingLocationMap({ parking }: { parking: Parking }) {
+export function ParkingLocationMap({
+  parking,
+  plainMarker,
+}: {
+  parking: Pick<Parking, "name" | "lat" | "lng"> | Parking;
+  // For a car park without a live count: what the marker says instead.
+  plainMarker?: { parkAndRide: boolean };
+}) {
   const t = useTranslations("settings");
   const tDetail = useTranslations("detail");
   const tCommon = useTranslations("common");
@@ -47,7 +54,7 @@ export function ParkingLocationMap({ parking }: { parking: Parking }) {
         />
       ) : (
         <ParkingLocationLeaflet
-          parking={parking}
+          marker={plainMarker ? { name: parking.name, ...plainMarker } : (parking as Parking)}
           position={[parking.lat, parking.lng]}
           closedLabel={tCommon("closed")}
           label={label}

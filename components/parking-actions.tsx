@@ -48,10 +48,17 @@ function stopAndCall(phone: string) {
 
 type Translate = ReturnType<typeof useTranslations>;
 
+// What the buttons need to know. A live garage has all of it; a car park
+// without a count passes its own `shareText`.
+export type ActionTarget = Pick<Parking, "id" | "name" | "lat" | "lng" | "phone"> &
+  Partial<Pick<Parking, "hasLiveData" | "freeSpaces" | "totalSpaces">> & {
+    shareText?: string;
+  };
+
 // `t` is scoped to the "actions" messages. The shared link keeps the
 // sharer's language; the recipient can switch on arrival.
 async function handleShare(
-  parking: Parking,
+  parking: ActionTarget,
   e: React.MouseEvent,
   t: Translate,
   locale: string,
@@ -59,9 +66,11 @@ async function handleShare(
   e.preventDefault();
   e.stopPropagation();
   const url = `${window.location.origin}/${locale}/parkings/${encodeURIComponent(parking.id)}`;
-  const text = parking.hasLiveData
-    ? t("shareText", { free: parking.freeSpaces, total: parking.totalSpaces })
-    : t("shareTextUnavailable", { total: parking.totalSpaces });
+  const text =
+    parking.shareText ??
+    (parking.hasLiveData
+      ? t("shareText", { free: parking.freeSpaces ?? 0, total: parking.totalSpaces ?? 0 })
+      : t("shareTextUnavailable", { total: parking.totalSpaces ?? 0 }));
   const data = { title: parking.name, text, url };
   try {
     if (navigator.share && navigator.canShare?.(data) !== false) {
@@ -120,7 +129,7 @@ function ActionButton({
 }
 
 type Props = {
-  parking: Parking;
+  parking: ActionTarget;
   variant?: Variant;
   className?: string;
 };

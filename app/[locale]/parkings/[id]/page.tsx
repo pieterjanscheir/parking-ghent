@@ -10,6 +10,7 @@ import {
   Building2,
 } from "lucide-react";
 import {
+  fetchExtraParkingById,
   fetchParkingById,
   fetchParkingDetailById,
   serverClock,
@@ -30,9 +31,12 @@ import {
 import { ParkingLabel } from "@/components/parking-label";
 import { AvailabilityGauge } from "@/components/availability-gauge";
 import { DataFreshness } from "@/components/data-freshness";
+import { ExtraParkingDetail } from "@/components/extra-parking-detail";
+import { FacilityBadges } from "@/components/facility-badges";
 import { FavoriteButton } from "@/components/favorite-button";
 import { LiveDataWarning } from "@/components/live-data-warning";
 import { ParkingActions } from "@/components/parking-actions";
+import { ParkingFacilities } from "@/components/parking-facilities";
 import { ParkingHistorySection } from "@/components/parking-history-section";
 import { ParkingLocationMap } from "@/components/parking-location-map";
 import {
@@ -51,14 +55,25 @@ type Props = { params: Promise<{ locale: string; id: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
-  const parking = await fetchParkingById(decodeURIComponent(id));
+  const key = decodeURIComponent(id);
+  // A live garage, or else a car park without a live count. The second
+  // lookup also covers a live feed that is down.
+  const live = await fetchParkingById(key).catch(() => null);
+  const parking = live ?? (await fetchExtraParkingById(key));
   // The root layout's title template appends " — Ghent Parking".
   if (!parking) return { title: t("garageFallbackTitle") };
 
-  const title = t("garageTitle", { name: parking.name });
+  // "Parking Kouter", but "P+R Watersportbaan": a Park & Ride is known by
+  // that prefix.
+  const title =
+    live || !parking.parkAndRide
+      ? t("garageTitle", { name: parking.name })
+      : `P+R ${parking.name}`;
   // No live count here: share previews are cached for days, so a number
   // would be wrong by the time anyone sees it.
-  const description = t("garageDescription", { name: parking.name });
+  const description = live
+    ? t("garageDescription", { name: parking.name })
+    : t("extraDescription", { name: parking.name });
   const path = `/parkings/${encodeURIComponent(parking.id)}`;
   return {
     title,
@@ -84,8 +99,22 @@ export default async function ParkingDetailPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("detail");
   const tCommon = await getTranslations("common");
-  const detail = await fetchParkingDetailById(decodeURIComponent(id));
-  if (!detail) notFound();
+  const key = decodeURIComponent(id);
+  let detail: Awaited<ReturnType<typeof fetchParkingDetailById>>;
+  try {
+    detail = await fetchParkingDetailById(key);
+  } catch (err) {
+    // The live feed is down. A car park without a live count doesn't need
+    // it, so its page still works.
+    const entry = await fetchExtraParkingById(key);
+    if (!entry) throw err;
+    return <ExtraParkingDetail entry={entry} />;
+  }
+  if (!detail) {
+    const entry = await fetchExtraParkingById(key);
+    if (!entry) notFound();
+    return <ExtraParkingDetail entry={entry} />;
+  }
   const { parking } = detail;
 
   return (
@@ -126,6 +155,11 @@ export default async function ParkingDetailPage({ params }: Props) {
                 <ParkingLabel parking={parking} kind="type" />
               </MetaBadge>
             ) : null}
+            <FacilityBadges
+              parkAndRide={parking.parkAndRide}
+              isFree={parking.isFree}
+              evChargers={parking.evChargers}
+            />
           </div>
 
           <div className="mt-8 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
@@ -210,6 +244,15 @@ export default async function ParkingDetailPage({ params }: Props) {
             </div>
           ) : null}
         </dl>
+
+        <ParkingFacilities
+          parkAndRide={parking.parkAndRide}
+          // The feed only flags the free ones; "not flagged" isn't "paid".
+          isFree={parking.isFree ? true : null}
+          evChargers={parking.evChargers}
+          evMaxKw={parking.evMaxKw}
+          note={parking.note}
+        />
 
         {parking.websiteUrl ? (
           <div className="mt-8">

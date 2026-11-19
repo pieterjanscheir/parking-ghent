@@ -5,6 +5,7 @@ import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { cn } from "@/lib/utils";
 import { AvailabilityGauge } from "./availability-gauge";
+import { FacilityBadges } from "./facility-badges";
 import { FavoriteButton } from "./favorite-button";
 import { DataWarning } from "./live-data-warning";
 import { ParkingActions } from "./parking-actions";
@@ -106,6 +107,11 @@ export function ParkingHeroCard({
           <MetaBadge>{labels.lez(parking)}</MetaBadge>
         ) : null}
         {parking.type ? <MetaBadge>{labels.type(parking)}</MetaBadge> : null}
+        <FacilityBadges
+          parkAndRide={parking.parkAndRide}
+          isFree={parking.isFree}
+          evChargers={parking.evChargers}
+        />
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-3">

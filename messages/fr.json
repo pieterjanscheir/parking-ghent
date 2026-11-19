@@ -4,7 +4,8 @@
     "description": "Disponibilité des parkings de Gand en direct — voyez où vous garer avant de partir.",
     "garageTitle": "Parking {name}",
     "garageFallbackTitle": "Parking",
-    "garageDescription": "Places libres en direct et prévision à court terme pour le parking {name} à Gand."
+    "garageDescription": "Places libres en direct et prévision à court terme pour le parking {name} à Gand.",
+    "extraDescription": "Emplacement, capacité et itinéraire pour {name} à Gand. Aucun comptage en direct n’est disponible pour ce parking."
   },
   "common": {
     "open": "Ouvert",
@@ -92,7 +93,8 @@
     "availability": "Disponibilité",
     "available": "Disponible",
     "almostFull": "Presque complet",
-    "full": "Complet"
+    "full": "Complet",
+    "facilities": "Équipements"
   },
   "garage": {
     "favorite": "Favori",
@@ -231,5 +233,31 @@
   },
   "share": {
     "features": "Disponibilité en direct|Prévision à 30 min|Plan|Près de moi"
+  },
+  "facilities": {
+    "parkAndRide": "Park & Ride",
+    "parkAndRideShort": "P+R",
+    "free": "Gratuit",
+    "freeParking": "Stationnement gratuit",
+    "paid": "Payant",
+    "evCharging": "Recharge pour voitures électriques",
+    "evShort": "{count} bornes",
+    "chargePoints": "{count, plural, one {# point de recharge} other {# points de recharge}}",
+    "chargePointsKw": "{count, plural, one {# point de recharge} other {# points de recharge}}, jusqu’à {kw} kW",
+    "chargingLabel": "Recharge électrique",
+    "priceLabel": "Tarif",
+    "parkAndRideDetail": "Garez-vous ici et rejoignez le centre en tram, en bus ou à vélo.",
+    "cityNote": "Bon à savoir",
+    "cityNoteSource": "Remarque de la Ville de Gand."
+  },
+  "extras": {
+    "title": "Park & Ride et autres parkings",
+    "intro": "Ces parkings ne communiquent pas le nombre de places libres : il n’y a donc pas de comptage en direct.",
+    "noLiveCount": "Pas de comptage en direct",
+    "spaces": "{count, plural, one {# place} other {# places}}",
+    "capacity": "Capacité",
+    "detailLead": "Ce parking ne publie pas de comptage en direct. Nous pouvons indiquer où il se trouve et sa taille, pas son occupation actuelle.",
+    "moreInfo": "Plus d’informations",
+    "shareText": "Parking à Gand, sans comptage en direct"
   }
 }
