@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   GARAGE_STALE_AFTER_MS,
+  ageParts,
   dataAgeMs,
-  formatAge,
   isStale,
   newestUpdate,
 } from "./freshness";
@@ -56,17 +56,17 @@ describe("newestUpdate", () => {
   });
 });
 
-describe("formatAge", () => {
+describe("ageParts", () => {
   it.each([
-    [0, "just now"],
-    [59_000, "just now"],
-    [60_000, "1 min ago"],
-    [42 * 60_000, "42 min ago"],
-    [60 * 60_000, "1 h ago"],
-    [5 * 60 * 60_000 + 59 * 60_000, "5 h ago"],
-    [24 * 60 * 60_000, "1 day ago"],
-    [3 * 24 * 60 * 60_000, "3 days ago"],
-  ])("%d ms → %s", (ms, expected) => {
-    expect(formatAge(ms)).toBe(expected);
+    [0, { unit: "now" }],
+    [59_000, { unit: "now" }],
+    [60_000, { unit: "minutes", count: 1 }],
+    [42 * 60_000, { unit: "minutes", count: 42 }],
+    [60 * 60_000, { unit: "hours", count: 1 }],
+    [5 * 60 * 60_000 + 59 * 60_000, { unit: "hours", count: 5 }],
+    [24 * 60 * 60_000, { unit: "days", count: 1 }],
+    [3 * 24 * 60 * 60_000, { unit: "days", count: 3 }],
+  ])("%d ms → %o", (ms, expected) => {
+    expect(ageParts(ms)).toEqual(expected);
   });
 });

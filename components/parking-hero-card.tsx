@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { MapPin, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { cn } from "@/lib/utils";
@@ -10,7 +11,7 @@ import { ParkingActions } from "./parking-actions";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
 import { ForecastHint } from "./forecast-hint";
-import { formatDistance } from "@/lib/geo";
+import { useFormatDistance, useParkingLabels } from "./use-labels";
 
 export function ParkingHeroCard({
   parking,
@@ -24,6 +25,9 @@ export function ParkingHeroCard({
   now: number;
   distanceKm?: number | null;
 }) {
+  const t = useTranslations("garage");
+  const labels = useParkingLabels();
+  const formatDistance = useFormatDistance();
   return (
     <Link
       href={`/parkings/${encodeURIComponent(parking.id)}`}
@@ -36,7 +40,7 @@ export function ParkingHeroCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="mb-1 inline-flex items-center gap-1.5 rounded-4xl border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
-            Favorite
+            {t("favorite")}
           </p>
           <h3 className="font-heading text-2xl font-bold leading-tight tracking-tight">
             {parking.name}
@@ -80,7 +84,7 @@ export function ParkingHeroCard({
             <DataWarning parking={parking} now={now} size="md" />
           </div>
           <span className="mt-1 text-sm text-muted-foreground">
-            free of {parking.totalSpaces}
+            {t("freeOf", { total: parking.totalSpaces })}
           </span>
           <ForecastHint parking={parking} trend={trend} className="mt-1.5" />
         </div>
@@ -89,15 +93,15 @@ export function ParkingHeroCard({
       <div className="flex flex-wrap items-center gap-1.5">
         <ParkingStatusBadge parking={parking} />
         {parking.category ? (
-          <MetaBadge>{parking.categoryLabel}</MetaBadge>
+          <MetaBadge>{labels.lez(parking)}</MetaBadge>
         ) : null}
-        {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
+        {parking.type ? <MetaBadge>{labels.type(parking)}</MetaBadge> : null}
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-3">
         <ParkingActions parking={parking} variant="compact" />
         <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
-          View details
+          {t("viewDetails")}
           <ChevronRight className="size-4 transition-transform group-hover/card:translate-x-0.5" />
         </span>
       </div>

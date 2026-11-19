@@ -16,6 +16,7 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh; the spinner runs for as long as the request actually takes.
 - **Honest data age** — "City data updated 2 min ago" comes from the feed's own timestamps, not from when the page last asked. A garage whose count is more than 30 minutes old gets a warning and loses its forecast, and if no garage has updated for 15 minutes a banner says the feed has stopped ([lib/freshness.ts](lib/freshness.ts)).
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
+- **Dutch, English and French** — every page exists under `/nl`, `/en` and `/fr`. A first visit picks the browser's language (Dutch if it's none of the three), the choice is remembered, and the `NL · EN · FR` switcher in the header keeps your search, sort and filters — see [Languages](#languages).
 - **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space* and *Map* ([app/manifest.ts](app/manifest.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
 
 ## Forecasting
@@ -37,6 +38,19 @@ predicted free(t + m) = now + K · slope · τ · (1 − e^(−m/τ))
 
 Forecasts exist only for the city-run garages that publish history (see `HISTORY_DATASETS` in [lib/parking-history.ts](lib/parking-history.ts)).
 
+## Languages
+
+Translations use [next-intl](https://next-intl.dev).
+
+- **Where the text lives:** [messages/nl.json](messages/nl.json), [messages/en.json](messages/en.json) and [messages/fr.json](messages/fr.json). Components never contain user-facing text; they look it up with `useTranslations("namespace")`.
+- **Routing:** [i18n/routing.ts](i18n/routing.ts) lists the languages and the default (Dutch). [proxy.ts](proxy.ts) redirects URLs without a language prefix, so old links such as `/parkings/parking-reep` keep working.
+- **Links:** use `Link` and `useRouter` from [i18n/navigation.ts](i18n/navigation.ts), not from `next/link`, so navigation stays in the visitor's language.
+- **Numbers, times and distances** follow the language too (`4.974` vs `4,974`, `1,3 km` vs `1.3 km`). Times are always Ghent time.
+- **Search engines** get `hreflang` links between the three versions of each page, in the page head and in the sitemap, and one share image per language.
+- **Not translated:** garage names, addresses, opening hours and descriptions come straight from the city's feed, in Dutch. The web manifest (install name and shortcuts) has a single language and uses Dutch.
+
+**Adding a language:** add its code to `locales` in `i18n/routing.ts` (plus its name in `LOCALE_LABELS` and its Open Graph code in `OG_LOCALES` in `lib/site.ts`), then copy `messages/en.json` to `messages/<code>.json` and translate it. `pnpm test` fails if a language file is missing a key or uses different `{placeholders}` than the English one.
+
 ## Talking to the city's feeds
 
 Every visitor used to trigger a fresh round of ~20 upstream requests on each page view and each auto-refresh. Now the server keeps a small in-memory cache ([lib/ttl-cache.ts](lib/ttl-cache.ts)), so upstream load depends on time, not on how many people are looking:
@@ -55,6 +69,7 @@ Every visitor used to trigger a fresh round of ~20 upstream requests on each pag
 ## Stack
 
 - **Next.js 16.2** (App Router) on **React 19**
+- **next-intl** for translations and language routing
 - **TypeScript** end-to-end, with Zod schemas at every fetch / storage boundary
 - **Tailwind v4** (CSS-first) + **shadcn/ui** (radix-ui primitives) + `tw-animate-css`
 - **nuqs** for URL-synced search / sort / filters / view
@@ -94,16 +109,24 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ```
 app/                          App Router routes
-  page.tsx                    Overview (server)
+  [locale]/                   Everything a visitor sees, per language
+    layout.tsx                Root layout: <html lang>, providers, metadata
+    page.tsx                  Overview (server)
+    parkings/[id]/            Detail page (server) + loading / error / not-found
+    opengraph-image.tsx       Share preview card, one per language
+    [...rest]/page.tsx        Translated "page not found" for unknown paths
   manifest.ts                 Web app manifest (name, icons, shortcuts)
   icon.svg, apple-icon.png    App icon (source artwork: icon.svg)
-  opengraph-image.tsx         Share preview card, generated at build time
   sitemap.ts, robots.ts       For search engines (previews are not indexed)
-  parkings/[id]/              Detail page (server) + loading / error / not-found
+i18n/                         Language list, language-aware links, request setup
+messages/                     Translations: nl.json, en.json, fr.json
+proxy.ts                      Language detection and redirects
 components/                   UI building blocks
   parking-overview.tsx        Overview client shell (summary / search / sort / filter / view)
   parking-map.tsx             Leaflet map of all parkings (client-only)
   forecast-hint.tsx           One-line forecast for cards / list / map
+  language-switcher.tsx       NL · EN · FR links in the header
+  use-labels.ts               Shared translation helpers (ages, distances, labels)
   parking-actions.tsx         Maps / Waze / Apple Maps / Call / Share row
   parking-hero-card.tsx       Favorite card
   parking-card.tsx            Standard grid card

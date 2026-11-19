@@ -1,6 +1,7 @@
 "use client";
 
 import { Compass, MapPin, Navigation2, Phone, Share2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,13 +46,22 @@ function stopAndCall(phone: string) {
   };
 }
 
-async function handleShare(parking: Parking, e: React.MouseEvent) {
+type Translate = ReturnType<typeof useTranslations>;
+
+// `t` is scoped to the "actions" messages. The shared link keeps the
+// sharer's language; the recipient can switch on arrival.
+async function handleShare(
+  parking: Parking,
+  e: React.MouseEvent,
+  t: Translate,
+  locale: string,
+) {
   e.preventDefault();
   e.stopPropagation();
-  const url = `${window.location.origin}/parkings/${encodeURIComponent(parking.id)}`;
+  const url = `${window.location.origin}/${locale}/parkings/${encodeURIComponent(parking.id)}`;
   const text = parking.hasLiveData
-    ? `${parking.freeSpaces} of ${parking.totalSpaces} spaces free`
-    : `Live availability unavailable (${parking.totalSpaces} total spaces)`;
+    ? t("shareText", { free: parking.freeSpaces, total: parking.totalSpaces })
+    : t("shareTextUnavailable", { total: parking.totalSpaces });
   const data = { title: parking.name, text, url };
   try {
     if (navigator.share && navigator.canShare?.(data) !== false) {
@@ -63,9 +73,9 @@ async function handleShare(parking: Parking, e: React.MouseEvent) {
   }
   try {
     await navigator.clipboard.writeText(url);
-    toast.success("Link copied to clipboard");
+    toast.success(t("copied"));
   } catch {
-    toast.error("Couldn't share or copy link");
+    toast.error(t("shareFailed"));
   }
 }
 
@@ -120,6 +130,8 @@ export function ParkingActions({
   variant = "compact",
   className,
 }: Props) {
+  const t = useTranslations("actions");
+  const locale = useLocale();
   const hasCoords = parking.lat !== null && parking.lng !== null;
   const lat = parking.lat ?? 0;
   const lng = parking.lng ?? 0;
@@ -139,7 +151,7 @@ export function ParkingActions({
             <ActionButton
               size={size}
               onClick={stopAndOpen(googleMapsUrl(lat, lng, parking.name))}
-              ariaLabel="Navigate with Google Maps"
+              ariaLabel={t("navigateWith", { app: "Google Maps" })}
               tooltip={labelTooltip("Google Maps")}
               icon={<MapPin aria-hidden />}
               label={isFull ? "Google Maps" : undefined}
@@ -147,7 +159,7 @@ export function ParkingActions({
             <ActionButton
               size={size}
               onClick={stopAndOpen(wazeUrl(lat, lng))}
-              ariaLabel="Navigate with Waze"
+              ariaLabel={t("navigateWith", { app: "Waze" })}
               tooltip={labelTooltip("Waze")}
               icon={<Navigation2 aria-hidden />}
               label={isFull ? "Waze" : undefined}
@@ -155,7 +167,7 @@ export function ParkingActions({
             <ActionButton
               size={size}
               onClick={stopAndOpen(appleMapsUrl(lat, lng, parking.name))}
-              ariaLabel="Navigate with Apple Maps"
+              ariaLabel={t("navigateWith", { app: "Apple Maps" })}
               tooltip={labelTooltip("Apple Maps")}
               icon={<Compass aria-hidden />}
               label={isFull ? "Apple Maps" : undefined}
@@ -166,19 +178,19 @@ export function ParkingActions({
           <ActionButton
             size={size}
             onClick={stopAndCall(parking.phone)}
-            ariaLabel={`Call ${parking.phone}`}
+            ariaLabel={t("callNumber", { phone: parking.phone })}
             tooltip={parking.phone}
             icon={<Phone aria-hidden />}
-            label={isFull ? "Call" : undefined}
+            label={isFull ? t("call") : undefined}
           />
         ) : null}
         <ActionButton
           size={size}
-          onClick={(e) => void handleShare(parking, e)}
-          ariaLabel="Share this parking"
-          tooltip={labelTooltip("Share")}
+          onClick={(e) => void handleShare(parking, e, t, locale)}
+          ariaLabel={t("shareThis")}
+          tooltip={labelTooltip(t("share"))}
           icon={<Share2 aria-hidden />}
-          label={isFull ? "Share" : undefined}
+          label={isFull ? t("share") : undefined}
         />
       </div>
     </TooltipProvider>

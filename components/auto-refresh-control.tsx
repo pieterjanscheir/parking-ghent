@@ -1,6 +1,7 @@
 "use client";
 
 import { RefreshCw } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,9 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatAge } from "@/lib/freshness";
 import { REFRESH_OPTIONS } from "@/lib/use-auto-refresh";
 import { cn } from "@/lib/utils";
+import { useFormatAge } from "./use-labels";
 
 type Props = {
   intervalMs: number;
@@ -25,11 +26,6 @@ type Props = {
   now: number;
 };
 
-const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: "Europe/Brussels",
-});
 
 export function AutoRefreshControl({
   intervalMs,
@@ -39,6 +35,10 @@ export function AutoRefreshControl({
   dataUpdatedAt,
   now,
 }: Props) {
+  const t = useTranslations("refresh");
+  const tFresh = useTranslations("freshness");
+  const format = useFormatter();
+  const formatAge = useFormatAge();
   const isOn = intervalMs > 0;
 
   return (
@@ -51,19 +51,19 @@ export function AutoRefreshControl({
             isOn ? "bg-primary" : "bg-muted-foreground/50",
           )}
         />
-        <span className="text-xs text-muted-foreground">Auto refresh</span>
+        <span className="text-xs text-muted-foreground">{t("auto")}</span>
       </div>
       <Select
         value={String(intervalMs)}
         onValueChange={(v) => setInterval(Number.parseInt(v, 10))}
       >
-        <SelectTrigger size="sm" className="h-7 w-[120px] text-xs">
+        <SelectTrigger size="sm" className="h-7 w-[140px] text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {REFRESH_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={String(opt.value)}>
-              {opt.label}
+              {t(opt.labelKey)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -73,19 +73,24 @@ export function AutoRefreshControl({
         size="sm"
         variant="outline"
         onClick={refreshNow}
-        aria-label="Refresh now"
+        aria-label={t("refreshNow")}
         className="gap-1.5"
       >
         <RefreshCw
           className={cn("size-3.5", isRefreshing && "motion-safe:animate-spin")}
         />
-        <span>Refresh</span>
+        <span>{t("refresh")}</span>
       </Button>
       {dataUpdatedAt !== null ? (
         <span className="text-xs text-muted-foreground tabular-nums">
-          City data updated{" "}
           <time dateTime={new Date(dataUpdatedAt).toISOString()}>
-            {formatAge(Math.max(0, now - dataUpdatedAt))} ({TIME_FMT.format(dataUpdatedAt)})
+            {tFresh("cityDataUpdated", {
+              age: formatAge(Math.max(0, now - dataUpdatedAt)),
+              time: format.dateTime(dataUpdatedAt, {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            })}
           </time>
         </span>
       ) : null}

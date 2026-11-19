@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { isStale } from "@/lib/freshness";
 import type { HistoryPoint, Trend } from "@/lib/parking-history";
 import { useNow } from "@/lib/use-now";
@@ -22,6 +23,7 @@ export function ParkingHistorySection({
   lastUpdatedAt: number | null;
   serverNow: number;
 }) {
+  const t = useTranslations("history");
   const now = useNow(serverNow);
   const stale = isStale({ lastUpdatedAt }, now);
   return (
@@ -32,10 +34,7 @@ export function ParkingHistorySection({
         totalSpaces={totalSpaces}
       />
       {stale && trend ? (
-        <p className="mt-4 text-xs text-muted-foreground">
-          No forecast right now: this garage&apos;s count hasn&apos;t been
-          updated for a while, so a prediction would be based on old numbers.
-        </p>
+        <p className="mt-4 text-xs text-muted-foreground">{t("noForecast")}</p>
       ) : null}
     </>
   );

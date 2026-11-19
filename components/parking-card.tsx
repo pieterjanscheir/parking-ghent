@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { MapPin } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
@@ -9,7 +10,7 @@ import { DataWarning } from "./live-data-warning";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
 import { ForecastHint } from "./forecast-hint";
-import { formatDistance } from "@/lib/geo";
+import { useFormatDistance, useParkingLabels } from "./use-labels";
 
 export function ParkingCard({
   parking,
@@ -23,6 +24,9 @@ export function ParkingCard({
   now: number;
   distanceKm?: number | null;
 }) {
+  const t = useTranslations("garage");
+  const labels = useParkingLabels();
+  const formatDistance = useFormatDistance();
   return (
     <Link
       href={`/parkings/${encodeURIComponent(parking.id)}`}
@@ -76,7 +80,7 @@ export function ParkingCard({
             <DataWarning parking={parking} now={now} />
           </div>
           <span className="text-xs text-muted-foreground">
-            of {parking.totalSpaces} free
+            {t("ofFree", { total: parking.totalSpaces })}
           </span>
           <ForecastHint parking={parking} trend={trend} className="mt-1" />
         </div>
@@ -85,9 +89,9 @@ export function ParkingCard({
       <div className="flex flex-wrap items-center gap-1.5">
         <ParkingStatusBadge parking={parking} />
         {parking.category ? (
-          <MetaBadge>{parking.categoryLabel}</MetaBadge>
+          <MetaBadge>{labels.lez(parking)}</MetaBadge>
         ) : null}
-        {parking.type ? <MetaBadge>{parking.typeLabel}</MetaBadge> : null}
+        {parking.type ? <MetaBadge>{labels.type(parking)}</MetaBadge> : null}
       </div>
     </Link>
   );

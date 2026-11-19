@@ -1,13 +1,15 @@
 import { AlertTriangle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { dataAgeMs, formatAge, isStale } from "@/lib/freshness";
+import { dataAgeMs, isStale } from "@/lib/freshness";
 import type { Parking } from "@/lib/parkings.schema";
 import { cn } from "@/lib/utils";
+import { useFormatAge } from "./use-labels";
 
 type Size = "sm" | "md";
 
@@ -58,10 +60,11 @@ export function LiveDataWarning({
   size?: Size;
   className?: string;
 }) {
+  const t = useTranslations("freshness");
   return (
     <WarningPill
-      label="No live data"
-      message="Live availability is unavailable right now."
+      label={t("noLiveData")}
+      message={t("noLiveDataDetail")}
       size={size}
       className={className}
     />
@@ -78,11 +81,12 @@ export function StaleDataWarning({
   size?: Size;
   className?: string;
 }) {
-  const age = formatAge(ageMs);
+  const t = useTranslations("freshness");
+  const age = useFormatAge()(ageMs);
   return (
     <WarningPill
-      label={`Updated ${age}`}
-      message={`This count was last updated ${age} — it may no longer be right.`}
+      label={t("updated", { age })}
+      message={t("staleDetail", { age })}
       size={size}
       className={className}
     />

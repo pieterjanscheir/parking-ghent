@@ -13,7 +13,13 @@ export function distanceKm(a: LatLng, b: LatLng): number {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-export function formatDistance(km: number): string {
+// `locale` only affects the decimal separator ("1.3 km" vs "1,3 km").
+export function formatDistance(km: number, locale = "en"): string {
   if (km < 1) return `${Math.round(km * 100) * 10} m`;
-  return `${km < 10 ? km.toFixed(1) : Math.round(km)} km`;
+  const digits = km < 10 ? 1 : 0;
+  const value = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(km);
+  return `${value} km`;
 }

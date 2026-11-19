@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import {
   flexRender,
   getCoreRowModel,
@@ -18,7 +19,7 @@ import { DataWarning } from "./live-data-warning";
 import { ParkingStatusBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
 import { ForecastHint } from "./forecast-hint";
-import { formatDistance } from "@/lib/geo";
+import { useFormatDistance, useParkingLabels } from "./use-labels";
 import {
   Table,
   TableBody,
@@ -79,13 +80,16 @@ export function ParkingListView({
   onSortChange,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations("list");
+  const labels = useParkingLabels();
+  const formatDistance = useFormatDistance();
   const { isFavorite } = useFavorites();
 
   const columns = useMemo<ColumnDef<Parking>[]>(
     () => [
       {
         id: "favorite",
-        header: () => <span className="sr-only">Favorite</span>,
+        header: () => <span className="sr-only">{t("favorite")}</span>,
         enableSorting: false,
         cell: ({ row }) => (
           <FavoriteButton parkingId={row.original.id} size="sm" />
@@ -95,7 +99,7 @@ export function ParkingListView({
       {
         id: "name",
         accessorKey: "name",
-        header: "Name",
+        header: t("name"),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             {isFavorite(row.original.id) ? (
@@ -112,13 +116,13 @@ export function ParkingListView({
         id: "status",
         accessorKey: "isOpen",
         enableSorting: false,
-        header: "Status",
+        header: t("status"),
         cell: ({ row }) => <ParkingStatusBadge parking={row.original} />,
       },
       {
         id: "freeSpaces",
         accessorKey: "freeSpaces",
-        header: "Free",
+        header: t("free"),
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <span
@@ -137,7 +141,7 @@ export function ParkingListView({
       {
         id: "trend",
         enableSorting: false,
-        header: () => <span className="sr-only">Trend</span>,
+        header: () => <span className="sr-only">{t("trend")}</span>,
         cell: ({ row }) => {
           if (!row.original.hasLiveData) return null;
           const trend = trendsById[row.original.id];
@@ -155,7 +159,7 @@ export function ParkingListView({
       {
         id: "freePercent",
         accessorKey: "freePercent",
-        header: "% free",
+        header: t("percentFree"),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <AvailabilityGauge
@@ -176,10 +180,10 @@ export function ParkingListView({
         id: "category",
         accessorKey: "categoryLabel",
         enableSorting: false,
-        header: "LEZ",
+        header: t("lez"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
-            {row.original.categoryLabel}
+            {labels.lez(row.original)}
           </span>
         ),
       },
@@ -187,10 +191,10 @@ export function ParkingListView({
         id: "type",
         accessorKey: "typeLabel",
         enableSorting: false,
-        header: "Type",
+        header: t("type"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
-            {row.original.typeLabel}
+            {labels.type(row.original)}
           </span>
         ),
       },
@@ -198,7 +202,7 @@ export function ParkingListView({
         id: "address",
         accessorKey: "address",
         enableSorting: false,
-        header: "Address",
+        header: t("address"),
         cell: ({ row }) => {
           const d = distances[row.original.id];
           return (
@@ -210,7 +214,10 @@ export function ParkingListView({
         },
       },
     ],
-    [isFavorite, trendsById, distances, now],
+    // `labels` and `formatDistance` are new functions on every render, but
+    // only change with the language — which `t` already tracks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isFavorite, trendsById, distances, now, t],
   );
 
   const sorting = useMemo(() => deriveSorting(sort), [sort]);

@@ -1,20 +1,34 @@
 import { ImageResponse } from "next/og";
-import {
-  BACKGROUND_COLOR,
-  BRAND_BLUE,
-  SHARE_IMAGE,
-  SITE_NAME,
-  SITE_TAGLINE,
-} from "@/lib/site";
+import { hasLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import { routing } from "@/i18n/routing";
+import { BACKGROUND_COLOR, BRAND_BLUE, SITE_NAME } from "@/lib/site";
 
-// The preview card shown when the site is shared in a chat or on social media.
-export const alt = SHARE_IMAGE.alt;
-export const size = { width: SHARE_IMAGE.width, height: SHARE_IMAGE.height };
+// The preview card shown when the site is shared in a chat or on social
+// media — one per language, at /<language>/opengraph-image.
+export const alt = SITE_NAME;
+export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const FEATURES = ["Live availability", "30-minute forecast", "Map", "Near me"];
+type Props = { params: Promise<{ locale: string }> };
 
-export default function Image() {
+// Build the three images once at build time instead of on every request.
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
+
+async function translations(params: Props["params"]) {
+  const { locale } = await params;
+  const safeLocale = hasLocale(routing.locales, locale)
+    ? locale
+    : routing.defaultLocale;
+  return getTranslations({ locale: safeLocale });
+}
+
+export default async function Image({ params }: Props) {
+  const t = await translations(params);
+  const features = t("share.features").split("|");
+
   return new ImageResponse(
     (
       <div
@@ -44,13 +58,13 @@ export default function Image() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ fontSize: 84, fontWeight: 700, letterSpacing: -2, lineHeight: 1.05 }}>
-            Where to park in Ghent
+            {t("overview.title")}
           </div>
-          <div style={{ fontSize: 36, color: "#9d9ea3" }}>{SITE_TAGLINE}</div>
+          <div style={{ fontSize: 36, color: "#9d9ea3" }}>{t("meta.tagline")}</div>
         </div>
 
         <div style={{ display: "flex", gap: 16 }}>
-          {FEATURES.map((feature) => (
+          {features.map((feature) => (
             <div
               key={feature}
               style={{

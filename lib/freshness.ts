@@ -37,12 +37,18 @@ export function newestUpdate(parkings: Timestamped[]): number | null {
   return newest;
 }
 
-export function formatAge(ms: number): string {
+// An age broken into the unit a person would say it in. The wording itself
+// ("3 min ago", "3 min geleden", …) lives in the message files: see
+// `useFormatAge` in components/use-labels.ts.
+export type AgeParts =
+  | { unit: "now" }
+  | { unit: "minutes" | "hours" | "days"; count: number };
+
+export function ageParts(ms: number): AgeParts {
   const minutes = Math.floor(ms / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return { unit: "now" };
+  if (minutes < 60) return { unit: "minutes", count: minutes };
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} h ago`;
-  const days = Math.floor(hours / 24);
-  return days === 1 ? "1 day ago" : `${days} days ago`;
+  if (hours < 24) return { unit: "hours", count: hours };
+  return { unit: "days", count: Math.floor(hours / 24) };
 }

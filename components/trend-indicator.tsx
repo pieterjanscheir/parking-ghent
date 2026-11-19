@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   Tooltip,
   TooltipContent,
@@ -25,12 +26,6 @@ const ICON: Record<Trend["direction"], typeof TrendingUp> = {
   steady: Minus,
 };
 
-const LABEL: Record<Trend["direction"], string> = {
-  rising: "Filling up",
-  falling: "Emptying out",
-  steady: "Holding steady",
-};
-
 const TONE: Record<Trend["direction"], string> = {
   rising: "text-destructive border-destructive/40 bg-destructive/10",
   falling: "text-emerald-300 border-emerald-400/40 bg-emerald-400/10",
@@ -45,24 +40,25 @@ const SIZE_CLASS: Record<Size, string> = {
 // Describe the change only — never the absolute future count. The card next
 // to this tooltip already shows "now"; putting another absolute number here
 // makes the two compete in the reader's head ("wait, is it 249 or 233?").
-function tooltipDetail(trend: Trend, currentFree: number): string {
+// Returns a key in the "forecast" messages plus its placeholder values.
+function tooltipDetail(
+  trend: Trend,
+  currentFree: number,
+): { key: string; values?: Record<string, number> } {
   const f = trend.forecast;
-  const horizon = f.horizonMinutes;
-  if (f.method === "persistence") {
-    return "Too unpredictable right now to forecast a change";
-  }
+  const minutes = f.horizonMinutes;
+  if (f.method === "persistence") return { key: "tipUnpredictable" };
   if (f.minutesUntilFull !== null) {
-    return `Likely full in about ${f.minutesUntilFull} min`;
+    return { key: "tipFullIn", values: { minutes: f.minutesUntilFull } };
   }
   if (trend.direction === "steady") {
-    return `No clear change in the next ${horizon} min`;
+    return { key: "tipNoChange", values: { minutes } };
   }
   const delta = f.predictedFreeSpaces - currentFree;
-  const abs = Math.abs(delta);
-  const word = abs === 1 ? "space" : "spaces";
-  return delta < 0
-    ? `About ${abs} fewer ${word} in the next ${horizon} min`
-    : `About ${abs} more ${word} in the next ${horizon} min`;
+  return {
+    key: delta < 0 ? "tipFewer" : "tipMore",
+    values: { count: Math.abs(delta), minutes },
+  };
 }
 
 // Compact icon-only trend chip for use on cards / list rows. Reuses the same
@@ -74,9 +70,11 @@ export function TrendIndicator({
   size = "sm",
   className,
 }: Props) {
+  const t = useTranslations("forecast");
   const Icon = ICON[trend.direction];
-  const label = LABEL[trend.direction];
-  const detail = tooltipDetail(trend, currentFree);
+  const label = t(trend.direction);
+  const tip = tooltipDetail(trend, currentFree);
+  const detail = t(tip.key, tip.values);
 
   return (
     <TooltipProvider delayDuration={200}>

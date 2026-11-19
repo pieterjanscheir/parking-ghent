@@ -275,16 +275,6 @@ export const SORT_KEYS: readonly SortKey[] = [
 
 export const DEFAULT_SORT: SortKey = "spaces-desc";
 
-export const SORT_LABELS: Record<SortKey, string> = {
-  "spaces-desc": "Most free spaces",
-  distance: "Nearest to me",
-  "percent-desc": "Emptiest (% free)",
-  "name-asc": "Name (A → Z)",
-  "name-desc": "Name (Z → A)",
-  "spaces-asc": "Fewest free spaces",
-  "percent-asc": "Fullest (% free)",
-};
-
 // Can you actually drive there and park right now (as far as we know)?
 export function isUsable(p: Parking): boolean {
   return p.isOpen && p.hasLiveData && p.bucket !== "full";

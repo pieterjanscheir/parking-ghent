@@ -1,0 +1,208 @@
+{
+  "meta": {
+    "tagline": "Live vrije plaatsen in de Gentse parkings",
+    "description": "Live parkeerbezetting voor Gent — zie waar je kunt parkeren voor je vertrekt.",
+    "garageTitle": "Parking {name}",
+    "garageFallbackTitle": "Parking",
+    "garageDescription": "Live vrije plaatsen en een kortetermijnvoorspelling voor parking {name} in Gent."
+  },
+  "common": {
+    "open": "Open",
+    "closed": "Gesloten",
+    "insideLez": "Binnen LEZ",
+    "outsideLez": "Buiten LEZ",
+    "types": {
+      "carPark": "Parkeergarage",
+      "offStreetParkingGround": "Parkeerterrein"
+    },
+    "backToOverview": "Terug naar overzicht",
+    "tryAgain": "Opnieuw proberen"
+  },
+  "header": {
+    "home": "Ghent Parking — startpagina",
+    "liveData": "Live data · Stad Gent",
+    "language": "Taal"
+  },
+  "footer": {
+    "builtBy": "Gemaakt door",
+    "dataSource": "Data: open data portaal stad.gent"
+  },
+  "overview": {
+    "title": "Waar parkeren in Gent",
+    "intro": "Live vrije plaatsen in de parkings van de stad, met een kortetermijnvoorspelling zodat je weet wat je kunt verwachten als je aankomt.",
+    "stats": {
+      "openNow": "Nu open",
+      "withSpace": "Met plaats",
+      "freeSpaces": "Vrije plaatsen",
+      "mostSpace": "Meeste plaats",
+      "mostSpaceDetail": "{count} vrij"
+    },
+    "feedStopped": "De parkeerdata van de stad is {age} voor het laatst bijgewerkt.",
+    "feedStoppedDetail": "De aantallen hieronder dateren van toen en kloppen mogelijk niet meer.",
+    "favorites": "Favoriete parkings",
+    "searchPlaceholder": "Zoek op naam of straat…",
+    "searchLabel": "Zoek parkings op naam of straat",
+    "openWithSpace": "Open met plaats",
+    "nearMe": "In mijn buurt",
+    "locating": "Locatie bepalen…",
+    "sortBy": "Sorteren op",
+    "viewMode": "Weergave",
+    "viewCards": "Kaartjes",
+    "viewList": "Lijst",
+    "viewMap": "Kaart",
+    "noDataTitle": "Live data is tijdelijk niet beschikbaar",
+    "noDataBody": "De parkeerdata van de stad bevatte geen parkings. Dit is meestal binnen een minuut opgelost.",
+    "noMatchesTitle": "Geen resultaten",
+    "noMatchesBody": "Probeer je zoekopdracht of filters te wissen.",
+    "clearSearchAndFilters": "Zoekopdracht en filters wissen",
+    "forecastNote": "Voorspellingen zijn er voor de stadsparkings die recente historiek publiceren. Ze trekken de laatste 20 minuten door en worden per parking getoetst aan de voorbije uren; zie ze als een aanwijzing, niet als een garantie.",
+    "locationDenied": "Locatietoegang geweigerd — we tonen de meeste vrije plaatsen.",
+    "locationUnavailable": "Je locatie kon niet worden bepaald."
+  },
+  "sort": {
+    "spaces-desc": "Meeste vrije plaatsen",
+    "distance": "Dichtst bij mij",
+    "percent-desc": "Leegst (% vrij)",
+    "name-asc": "Naam (A → Z)",
+    "name-desc": "Naam (Z → A)",
+    "spaces-asc": "Minste vrije plaatsen",
+    "percent-asc": "Volst (% vrij)"
+  },
+  "filters": {
+    "title": "Filters",
+    "clearAll": "Alles wissen",
+    "status": "Status",
+    "lez": "Lage-emissiezone",
+    "type": "Type",
+    "availability": "Beschikbaarheid",
+    "available": "Beschikbaar",
+    "almostFull": "Bijna volzet",
+    "full": "Volzet"
+  },
+  "garage": {
+    "favorite": "Favoriet",
+    "viewDetails": "Details bekijken",
+    "ofFree": "van {total} vrij",
+    "freeOf": "vrij van {total}"
+  },
+  "freshness": {
+    "ageNow": "zonet",
+    "ageMinutes": "{count} min geleden",
+    "ageHours": "{count} u geleden",
+    "ageDays": "{count, plural, one {# dag geleden} other {# dagen geleden}}",
+    "cityDataUpdated": "Stadsdata bijgewerkt {age} ({time})",
+    "updated": "Bijgewerkt {age}",
+    "noLiveData": "Geen live data",
+    "noLiveDataDetail": "Live beschikbaarheid is momenteel niet beschikbaar.",
+    "staleDetail": "Dit aantal is {age} voor het laatst bijgewerkt — het klopt mogelijk niet meer.",
+    "countLastUpdated": "Aantal laatst bijgewerkt {age}"
+  },
+  "refresh": {
+    "auto": "Automatisch verversen",
+    "every30s": "Elke 30 s",
+    "every1min": "Elke minuut",
+    "every5min": "Elke 5 min",
+    "off": "Uit",
+    "refresh": "Verversen",
+    "refreshNow": "Nu verversen"
+  },
+  "forecast": {
+    "fullIn": "Wellicht volzet over ~{minutes} min",
+    "hardToPredict": "Moeilijk te voorspellen nu",
+    "stable": "Stabiel de komende {minutes} min",
+    "freeIn": "~{count} vrij over {minutes} min",
+    "rising": "Loopt vol",
+    "falling": "Loopt leeg",
+    "steady": "Blijft stabiel",
+    "tipUnpredictable": "Nu te onvoorspelbaar om een verandering te voorspellen",
+    "tipFullIn": "Wellicht volzet over ongeveer {minutes} min",
+    "tipNoChange": "Geen duidelijke verandering de komende {minutes} min",
+    "tipFewer": "Ongeveer {count, plural, one {# plaats} other {# plaatsen}} minder de komende {minutes} min",
+    "tipMore": "Ongeveer {count, plural, one {# plaats} other {# plaatsen}} meer de komende {minutes} min",
+    "confidenceHigh": "Hoge betrouwbaarheid",
+    "confidenceMedium": "Matige betrouwbaarheid",
+    "confidenceLow": "Lage betrouwbaarheid",
+    "badgeErratic": "Te grillig om te voorspellen · wellicht {lo}–{hi} vrij over {minutes} min",
+    "badgeSteady": "Over {minutes} min: geen duidelijke verandering · wellicht {lo}–{hi} vrij",
+    "badgeFewer": "Over {minutes} min: ~{count} vrij · {delta} minder dan nu",
+    "badgeMore": "Over {minutes} min: ~{count} vrij · {delta} meer dan nu",
+    "accuracyTrend": "Zat er de voorbije uren op {minutes} min gemiddeld ~{spaces} plaatsen naast ({percent}% beter dan uitgaan van geen verandering)",
+    "accuracyPersistence": "De trend volgen deed het hier recent slechter dan uitgaan van geen verandering",
+    "accuracyNone": "Nog te weinig historiek om de nauwkeurigheid te meten"
+  },
+  "history": {
+    "title": "Recente bezetting",
+    "summary": "{samples} metingen · laatste {minutes} min · {from} → {to}",
+    "forecastSuffix": "voorspelling komende 60 min",
+    "now": "nu",
+    "inMinutes": "Over {minutes} min",
+    "minFree": "Min. vrij",
+    "maxFree": "Max. vrij",
+    "capacity": "Capaciteit",
+    "empty": "Nog geen historiek beschikbaar.",
+    "none": "Geen recente historiek beschikbaar voor deze parking.",
+    "tooltipForecast": "{time} · voorspelling",
+    "tooltipForecastValue": "≈ {count} vrij (wellicht {lo}–{hi}) van {total}",
+    "tooltipValue": "{free} / {total} vrij · {percent}% bezet",
+    "noForecast": "Nu geen voorspelling: het aantal van deze parking is al een tijd niet bijgewerkt, dus een voorspelling zou op oude cijfers steunen."
+  },
+  "detail": {
+    "spacesFree": "van {total} plaatsen vrij",
+    "occupied": "{percent}% momenteel bezet",
+    "unavailable": "Live bezetting is momenteel niet beschikbaar.",
+    "openingHours": "Openingsuren",
+    "operator": "Uitbater",
+    "type": "Type",
+    "lez": "Lage-emissiezone",
+    "website": "Website bezoeken",
+    "mapTitle": "Kaart van {name}"
+  },
+  "list": {
+    "favorite": "Favoriet",
+    "name": "Naam",
+    "status": "Status",
+    "free": "Vrij",
+    "trend": "Trend",
+    "percentFree": "% vrij",
+    "lez": "LEZ",
+    "type": "Type",
+    "address": "Adres"
+  },
+  "map": {
+    "freeOf": "{free} van {total} vrij",
+    "unavailable": "Live aantal niet beschikbaar",
+    "away": "op {distance}",
+    "youAreHere": "Je bent hier",
+    "viewDetails": "Details bekijken →"
+  },
+  "actions": {
+    "navigateWith": "Navigeren met {app}",
+    "call": "Bellen",
+    "callNumber": "Bel {phone}",
+    "share": "Delen",
+    "shareThis": "Deze parking delen",
+    "shareText": "{free} van {total} plaatsen vrij",
+    "shareTextUnavailable": "Live beschikbaarheid niet beschikbaar ({total} plaatsen in totaal)",
+    "copied": "Link gekopieerd naar klembord",
+    "shareFailed": "Delen of kopiëren van de link is mislukt"
+  },
+  "favorites": {
+    "add": "Toevoegen aan favorieten",
+    "remove": "Verwijderen uit favorieten",
+    "full": "Favorietenlijst is vol (max. {max})",
+    "limit": "Maximaal {max} favorieten — verwijder er eerst een"
+  },
+  "errors": {
+    "title": "Er ging iets mis",
+    "body": "We konden de parkeerdata niet laden. Probeer het opnieuw.",
+    "garageTitle": "Deze parking kon niet worden geladen",
+    "garageBody": "Probeer het opnieuw — de open data API is mogelijk tijdelijk niet beschikbaar.",
+    "notFoundTitle": "Pagina niet gevonden",
+    "notFoundBody": "We konden die pagina niet vinden.",
+    "garageNotFoundTitle": "Parking niet gevonden",
+    "garageNotFoundBody": "We konden geen parking met dat ID vinden."
+  },
+  "share": {
+    "features": "Live beschikbaarheid|Voorspelling 30 min|Kaart|In mijn buurt"
+  }
+}
