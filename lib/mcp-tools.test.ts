@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { GHENT, STRASBOURG } from "./cities/info";
 import type { DirectoryEntry } from "./directory";
 import type { Trend } from "./forecast";
 import type { Snapshot } from "./history-archive";
@@ -7,6 +8,7 @@ import {
   ToolInputError,
   findParking,
   getGarage,
+  listCities,
   listGarages,
   typicalAvailability,
   type Sources,
@@ -83,6 +85,7 @@ const trend = (minutesUntilFull: number | null): Trend =>
   }) as Trend;
 
 const sources = (over: Partial<Sources> = {}): Sources => ({
+  city: GHENT,
   parkings: [near, middle, far],
   extras: [ride],
   trends: {},
@@ -233,7 +236,7 @@ describe("typicalAvailability", () => {
       expect.objectContaining({ id: "middle", usually_free_spaces: 230, measured_on_days: 2, total_spaces: 400 }),
       expect.objectContaining({ id: "near", usually_free_spaces: 30, measured_on_days: 2 }),
     ]);
-    expect(result).toMatchObject({ weekday: "sat", hour: "14:00 (time in Ghent)", measuring_since: "2026-11-07" });
+    expect(result).toMatchObject({ weekday: "sat", hour: "14:00 (local time)", measuring_since: "2026-11-07" });
   });
 
   it("can answer for one garage", () => {
@@ -260,5 +263,70 @@ describe("typicalAvailability", () => {
     expect(getGarage(sources({ profile: thursday }), { garage: "near" })).toMatchObject({
       usually_free_at_this_hour: { free_spaces: 90, measured_on_days: 1 },
     });
+  });
+});
+
+describe("another city", () => {
+  // Three car parks around Strasbourg's cathedral, as the plug-in delivers them.
+  const base = { isInsideLez: false, evChargers: 0, evMaxKw: null, note: null, openingHours: "", operator: "", address: "" };
+  const gutenberg = garage({ ...base, id: "parking-gutenberg", name: "Parking Gutenberg", lat: 48.5805, lng: 7.7478, websiteUrl: "https://www.strasbourg.eu/lieu/gutenberg" });
+  const austerlitz = garage({ ...base, id: "parking-austerlitz", name: "Parking Austerlitz", lat: 48.5775, lng: 7.7527, freeSpaces: 300 });
+  const rotonde = garage({ ...base, id: "parking-rotonde", name: "Parking Rotonde", lat: 48.5915, lng: 7.7262 });
+  const strasbourg = (over: Partial<Sources> = {}) =>
+    sources({ city: STRASBOURG, parkings: [gutenberg, austerlitz, rotonde], extras: [], ...over });
+  const CATHEDRAL = { lat: 48.5818, lng: 7.7509 };
+
+  it("answers with unknown, not no, for what its data doesn't say", () => {
+    const [first] = listGarages(strasbourg(), {}).garages_with_live_count;
+    expect(first).toMatchObject({
+      city: "Strasbourg",
+      park_and_ride: null,
+      free_of_charge: null,
+      ev_charge_points: null,
+      inside_low_emission_zone: null,
+      forecast: null,
+      usually_free_at_this_hour: null,
+    });
+    expect(listGarages(strasbourg(), {}).source).toBe(
+      "Eurométropole de Strasbourg open data (Licence Ouverte), via https://example.org",
+    );
+  });
+
+  it("links to the city's own page when this site has none", () => {
+    expect(getGarage(strasbourg(), { garage: "gutenberg" }).url).toBe("https://www.strasbourg.eu/lieu/gutenberg");
+    expect(getGarage(strasbourg(), { garage: "austerlitz" }).url).toBeNull();
+  });
+
+  it("finds the best garage for coordinates in that city", () => {
+    const result = findParking(strasbourg(), { ...CATHEDRAL, destination: "Cathédrale" });
+    expect(result).toMatchObject({ city: "Strasbourg", see_on_the_website: null });
+    expect(result.best_choice?.id).toBe("parking-gutenberg");
+    // The data doesn't say which car parks are Park & Ride: none is named.
+    expect(result.nearest_park_and_ride).toBeNull();
+  });
+
+  it("asks for coordinates, and only ones in that city", () => {
+    expect(() => findParking(strasbourg(), { destination: "Cathédrale" })).toThrow(/knows no places by name/);
+    // A point in Ghent is not a destination in Strasbourg.
+    expect(() => findParking(strasbourg(), { lat: 51.05, lng: 3.72 })).toThrow(/in or around Strasbourg \(about 48\.58, 7\.75\)/);
+  });
+
+  it("says it keeps no history there", () => {
+    expect(typicalAvailability(strasbourg(), { weekday: "sat", hour: 14 })).toMatchObject({
+      city: "Strasbourg",
+      garages: [],
+      note: expect.stringMatching(/keeps no history for Strasbourg/),
+    });
+  });
+});
+
+describe("listCities", () => {
+  it("lists the cities and what is known about each", () => {
+    const { cities, default_city } = listCities("https://example.org");
+    expect(default_city).toBe("ghent");
+    expect(cities.map((c) => [c.id, c.forecast_for_the_next_hour, c.well_known_places_by_name, c.pages_on_this_site])).toEqual([
+      ["ghent", true, true, true],
+      ["strasbourg", false, false, false],
+    ]);
   });
 });

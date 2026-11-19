@@ -1,22 +1,23 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
+import { getCity } from "@/lib/cities";
+import { CITY_IDS, type CityId } from "@/lib/cities/info";
 import { WEEKDAYS } from "@/lib/history-profile";
-import { fetchProfile } from "@/lib/history-profile-store";
 import {
   ToolInputError,
   findParking,
   getGarage,
+  listCities,
   listGarages,
   typicalAvailability,
   type Sources,
 } from "@/lib/mcp-tools";
-import { fetchAllTrends } from "@/lib/parking-history";
-import { fetchAllParkings } from "@/lib/parkings";
 import { SITE_NAME } from "@/lib/site";
 
 // An MCP server (Model Context Protocol, "Streamable HTTP"): lets an AI
-// assistant ask this site where to park in Ghent. Add <site>/api/mcp as a
+// assistant ask this site where to park — in Ghent, and in the other cities
+// it has a plug-in for (lib/cities). Add <site>/api/mcp as a
 // connector in the assistant; no key needed, everything here is public data.
 //
 // Stateless: every POST is answered on its own with plain JSON, so nothing is
@@ -31,31 +32,46 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type, Accept, Mcp-Protocol-Version, Mcp-Session-Id",
 } as const;
 
-async function sources(request: Request): Promise<Sources> {
+const siteOf = (request: Request) => new URL(request.url).origin;
+
+async function sources(request: Request, cityId: CityId | undefined): Promise<Sources> {
+  const city = getCity(cityId);
   // The live list is needed; the forecast and the weekly pattern are extras
   // an answer can do without.
   const [{ parkings, extras }, trends, profile] = await Promise.all([
-    fetchAllParkings(),
-    fetchAllTrends().catch(() => ({})),
-    fetchProfile().catch(() => null),
+    city.live(),
+    city.trends().catch(() => ({})),
+    city.profile().catch(() => null),
   ]);
-  return { parkings, extras, trends, profile, now: Date.now(), siteUrl: new URL(request.url).origin };
+  return { city, parkings, extras, trends, profile, now: Date.now(), siteUrl: siteOf(request) };
 }
+
+const asText = (result: unknown) => ({
+  content: [{ type: "text" as const, text: JSON.stringify(result, null, 1) }],
+});
 
 // Runs one tool: the result as JSON text, or a message the assistant can act
 // on when the question was wrong or the city's feed is down.
-async function answer<T>(request: Request, run: (src: Sources) => T) {
+async function answer<T>(
+  request: Request,
+  cityId: CityId | undefined,
+  run: (src: Sources) => T,
+) {
   try {
-    const result = run(await sources(request));
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 1) }] };
+    return asText(run(await sources(request, cityId)));
   } catch (err) {
     const text =
       err instanceof ToolInputError
         ? err.message
-        : "The City of Ghent's parking feed could not be read just now. Try again in a minute.";
+        : `The live parking feed for ${getCity(cityId).name} could not be read just now. Try again in a minute.`;
     return { content: [{ type: "text" as const, text }], isError: true };
   }
 }
+
+const CITY = z
+  .enum(CITY_IDS)
+  .optional()
+  .describe("Which city. Ghent when left out; list_cities says which others exist.");
 
 const READ_ONLY = { readOnlyHint: true, openWorldHint: true } as const;
 
@@ -63,12 +79,25 @@ function buildServer(request: Request): McpServer {
   const server = new McpServer({ name: SITE_NAME, version: "1.0.0" });
 
   server.registerTool(
+    "list_cities",
+    {
+      title: "Cities this server knows",
+      description:
+        "The cities these tools can answer for (Ghent in Belgium, Strasbourg in France) and what is known about each: live free spaces everywhere, a forecast and the usual weekly pattern only where the site keeps history.",
+      inputSchema: {},
+      annotations: READ_ONLY,
+    },
+    () => asText(listCities(siteOf(request))),
+  );
+
+  server.registerTool(
     "list_garages",
     {
-      title: "Parking garages in Ghent, live",
+      title: "Parking garages, live",
       description:
-        "Every public car park in Ghent (Belgium) with its live number of free spaces, a forecast for the next hour where there is one, and facts such as Park & Ride, free of charge and EV charging. Car parks for which the city publishes no count are listed separately.",
+        "Every public car park in a city (Ghent by default) with its live number of free spaces, a forecast for the next hour where there is one, and facts such as Park & Ride, free of charge and EV charging where the city's data has them. Car parks for which the city publishes no count are listed separately.",
       inputSchema: {
+        city: CITY,
         only_with_space: z
           .boolean()
           .optional()
@@ -76,53 +105,56 @@ function buildServer(request: Request): McpServer {
       },
       annotations: READ_ONLY,
     },
-    (input) => answer(request, (src) => listGarages(src, input)),
+    (input) => answer(request, input.city, (src) => listGarages(src, input)),
   );
 
   server.registerTool(
     "find_parking",
     {
-      title: "Best garage for a destination in Ghent",
+      title: "Best garage for a destination",
       description:
-        "Where to park for a destination in Ghent: one recommended garage (the nearest that is open, has room and isn't about to fill up), why the nearest was passed over if it was, other garages with space, walking time, and the nearest Park & Ride. Give a well-known place by name (Gravensteen, Korenmarkt, Vooruit, UZ Gent, Gent-Sint-Pieters…) or coordinates for anything else, such as a street address you have geocoded.",
+        "Where to park for a destination: one recommended garage (the nearest that is open, has room and isn't about to fill up), why the nearest was passed over if it was, other garages with space, walking time, and the nearest Park & Ride. In Ghent, give a well-known place by name (Gravensteen, Korenmarkt, Vooruit, UZ Gent, Gent-Sint-Pieters…); for anything else, and for every destination in another city, give coordinates you have geocoded.",
       inputSchema: {
-        destination: z.string().max(120).optional().describe("A well-known place in Ghent, by name."),
+        city: CITY,
+        destination: z.string().max(120).optional().describe("A well-known place in Ghent by name, or a label for the coordinates."),
         lat: z.number().optional().describe("Latitude of the destination (with lng)."),
         lng: z.number().optional().describe("Longitude of the destination (with lat)."),
       },
       annotations: READ_ONLY,
     },
-    (input) => answer(request, (src) => findParking(src, input)),
+    (input) => answer(request, input.city, (src) => findParking(src, input)),
   );
 
   server.registerTool(
     "get_garage",
     {
-      title: "One car park in Ghent",
+      title: "One car park",
       description:
-        "Everything about one car park in Ghent: live free spaces, forecast for the next hour, what is usual at this hour, opening hours, address, position, operator and the city's own remarks.",
+        "Everything known about one car park: live free spaces, address and position, and for Ghent also the forecast for the next hour, what is usual at this hour, opening hours, operator and the city's own remarks.",
       inputSchema: {
+        city: CITY,
         garage: z.string().max(120).describe('Name or id, for example "Vrijdagmarkt" or "Sint-Pietersplein".'),
       },
       annotations: READ_ONLY,
     },
-    (input) => answer(request, (src) => getGarage(src, input)),
+    (input) => answer(request, input.city, (src) => getGarage(src, input)),
   );
 
   server.registerTool(
     "typical_availability",
     {
-      title: "How full Ghent's garages usually are",
+      title: "How full the garages usually are",
       description:
-        "For planning ahead: how many spaces are usually free in each garage at a given hour of the week (for example Saturday 14:00), from this site's own measurements. Most room first.",
+        "For planning ahead: how many spaces are usually free in each garage at a given hour of the week (for example Saturday 14:00), from this site's own measurements. Most room first. Ghent only for now.",
       inputSchema: {
+        city: CITY,
         weekday: z.enum(WEEKDAYS).describe("Day of the week."),
         hour: z.number().int().min(0).max(23).describe("Hour of the day in Ghent, 0 to 23."),
         garage: z.string().max(120).optional().describe("Only this garage (name or id)."),
       },
       annotations: READ_ONLY,
     },
-    (input) => answer(request, (src) => typicalAvailability(src, input)),
+    (input) => answer(request, input.city, (src) => typicalAvailability(src, input)),
   );
 
   return server;

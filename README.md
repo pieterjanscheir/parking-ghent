@@ -204,12 +204,29 @@ curl -H "Authorization: Bearer dev" http://localhost:3000/api/cron/snapshot
 
 Usage on Vercel, per month: about 4,300 scheduled calls, 4,300 file writes, 4,300 file reads and roughly 300 MB read back from storage. That is small next to what a Pro plan includes for Blob, but check Vercel's current Blob pricing before relying on that.
 
+## Cities
+
+The website is about Ghent. Underneath, a city is a plug-in ([lib/cities/](lib/cities)): a few facts ([info.ts](lib/cities/info.ts)) and a loader that turns the city's feed into the same garage list Ghent uses ([index.ts](lib/cities/index.ts)). Whatever is built on that list then works for the city unchanged; so far that is the MCP server.
+
+| City | Live free spaces | Forecast, usual pattern | Park & Ride, price, charging, low-emission zone | Pages on this site |
+| :--- | :--- | :--- | :--- | :--- |
+| Ghent | yes | yes | yes | yes |
+| Strasbourg | yes, 35 car parks ([lib/cities/strasbourg.ts](lib/cities/strasbourg.ts)) | no | not in its data | no (MCP only) |
+
+- **Unknown is not "no".** Where a city's data doesn't say whether a car park is free, has chargers, is a Park & Ride or lies in the low-emission zone, the tools answer `null`, never `false`.
+- **Strasbourg** comes from the Eurométropole's open data (Licence Ouverte): one list with free spaces, one with addresses and positions, joined on the car park's id. Its feed labels local time as UTC; the clock digits are read as the time in Strasbourg ([lib/zoned-time.ts](lib/zoned-time.ts)).
+- **No history is recorded for Strasbourg**: no extra scheduled work or storage. It gets a forecast and "a typical day" only if that is switched on later.
+- **To add a city:** add its id and facts to `info.ts`, write a loader that returns `Parking[]`, and register it in `index.ts`. Give its feed a test with real sample records, as Strasbourg has.
+
 ## MCP server
 
 `/api/mcp` is an [MCP](https://modelcontextprotocol.io) server ("Streamable HTTP"), so an AI assistant can use this site's data and rules directly ([app/api/mcp/route.ts](app/api/mcp/route.ts), [lib/mcp-tools.ts](lib/mcp-tools.ts)). No key: everything it returns is public data.
 
+Every tool takes an optional `city` (`ghent` by default, or `strasbourg`).
+
 | Tool | What it answers |
 | :--- | :--- |
+| `list_cities` | Which cities the tools know and how much they know about each. |
 | `list_garages` | Every car park with its live free spaces, forecast and facts (Park & Ride, free, EV charging). `only_with_space` narrows it to garages known to have room. |
 | `find_parking` | The best garage for a destination: a well-known place by name, or coordinates. Says why the nearest was passed over, lists other garages with space and the nearest Park & Ride. |
 | `get_garage` | One car park in detail: live count, forecast, what is usual at this hour, opening hours, position, the city's remark. |
@@ -346,6 +363,8 @@ lib/
   history-profile.ts          The weekly pattern: usual free spaces per hour of the week
   history-profile-store.ts    Building and reading that pattern (server)
   mcp-tools.ts                What the MCP endpoint answers with
+  cities/                     City plug-ins: facts, loaders, Strasbourg's feed
+  zoned-time.ts               Clock time in a time zone → a moment
   parking-bans.ts             The city's temporary parking bans near a spot
   pay-machines.ts             The nearest on-street pay machine
   transit-stops.ts            Bus and tram stops near a spot

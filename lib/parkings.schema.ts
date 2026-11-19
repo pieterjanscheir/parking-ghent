@@ -132,7 +132,7 @@ function parseTimestamp(raw: string): number | null {
   return Number.isNaN(ms) ? null : ms;
 }
 
-function bucketFor(
+export function bucketFor(
   isOpen: boolean,
   freePercent: number,
 ): Parking["bucket"] {

@@ -1,8 +1,9 @@
-import { knownPlaces, normalizeSearch, searchKnownPlaces } from "./destinations";
+import { CITY_INFO, inBounds, type CityInfo } from "./cities/info";
+import { normalizeSearch } from "./destinations";
 import type { DirectoryEntry } from "./directory";
 import type { Trend } from "./forecast";
 import { isStale } from "./freshness";
-import { distanceKm, formatLatLng, parseLatLng, walkingMinutes, type LatLng } from "./geo";
+import { distanceKm, formatLatLng, walkingMinutes, type LatLng } from "./geo";
 import { WEEKDAYS, ghentHour, typicalAt, type Profile, type Weekday } from "./history-profile";
 import type { Parking } from "./parkings.schema";
 import { minutesLeftUntilFull, nearestParkAndRide, suggestGarage } from "./recommend";
@@ -13,6 +14,8 @@ import { minutesLeftUntilFull, nearestParkAndRide, suggestGarage } from "./recom
 // network or a protocol.
 
 export type Sources = {
+  // Which city the question is about.
+  city: CityInfo;
   parkings: Parking[];
   // Car parks the city lists without a live count.
   extras: DirectoryEntry[];
@@ -27,7 +30,11 @@ export type Sources = {
 // assistant, which can correct itself.
 export class ToolInputError extends Error {}
 
-const garageUrl = (src: Sources, id: string) => `${src.siteUrl}/en/parkings/${encodeURIComponent(id)}`;
+// The car park's page on this site, where the city has pages here.
+const pageUrl = (src: Sources, id: string) =>
+  src.city.hasPages ? `${src.siteUrl}/en/parkings/${encodeURIComponent(id)}` : null;
+
+const sourceLine = (src: Sources) => `${src.city.source}, via ${src.siteUrl}`;
 
 function forecastOf(p: Parking, src: Sources) {
   const trend = src.trends[p.id];
@@ -46,9 +53,11 @@ function forecastOf(p: Parking, src: Sources) {
 function liveGarage(p: Parking, src: Sources) {
   const today = ghentHour(src.now);
   const typical = typicalAt(src.profile, p.id, today.weekday, today.hour);
+  const { knows } = src.city;
   return {
     id: p.id,
     name: p.name,
+    city: src.city.name,
     address: p.address || null,
     open: p.isOpen,
     // null when the city's feed has no usable count for this garage.
@@ -59,11 +68,12 @@ function liveGarage(p: Parking, src: Sources) {
     count_is_current: p.hasLiveData && !isStale(p, src.now),
     forecast: forecastOf(p, src),
     usually_free_at_this_hour: typical ? { free_spaces: typical.free, measured_on_days: typical.days } : null,
-    park_and_ride: p.parkAndRide,
-    free_of_charge: p.isFree,
-    ev_charge_points: p.evChargers,
-    inside_low_emission_zone: p.isInsideLez,
-    url: garageUrl(src, p.id),
+    // null where this city's data doesn't say: unknown, not "no".
+    park_and_ride: knows.parkAndRide ? p.parkAndRide : null,
+    free_of_charge: knows.price ? p.isFree : null,
+    ev_charge_points: knows.charging ? p.evChargers : null,
+    inside_low_emission_zone: knows.lowEmissionZone ? p.isInsideLez : null,
+    url: pageUrl(src, p.id) ?? (p.websiteUrl || null),
   };
 }
 
@@ -78,7 +88,7 @@ function carParkWithoutCount(e: DirectoryEntry, src: Sources) {
     park_and_ride: e.parkAndRide,
     free_of_charge: e.isFree,
     ev_charge_points: e.evChargers,
-    url: garageUrl(src, e.id),
+    url: pageUrl(src, e.id),
   };
 }
 
@@ -88,6 +98,7 @@ const hasSpace = (p: Parking, src: Sources) =>
 export function listGarages(src: Sources, input: { only_with_space?: boolean }) {
   const live = input.only_with_space ? src.parkings.filter((p) => hasSpace(p, src)) : src.parkings;
   return {
+    city: src.city.name,
     asked_at: new Date(src.now).toISOString(),
     garages_with_live_count: [...live]
       .sort((a, b) => b.freeSpaces - a.freeSpaces)
@@ -96,7 +107,7 @@ export function listGarages(src: Sources, input: { only_with_space?: boolean }) 
     car_parks_without_live_count: input.only_with_space
       ? []
       : src.extras.map((e) => carParkWithoutCount(e, src)),
-    source: "City of Ghent open data, via " + src.siteUrl,
+    source: sourceLine(src),
   };
 }
 
@@ -144,7 +155,9 @@ export function getGarage(src: Sources, input: { garage: string }) {
       city_remark: extra.note?.en ?? extra.note?.nl ?? null,
     };
   }
-  throw new ToolInputError(`No car park called "${input.garage}". Known car parks: ${allNames(src)}.`);
+  throw new ToolInputError(
+    `No car park called "${input.garage}" in ${src.city.name}. Known car parks: ${allNames(src)}.`,
+  );
 }
 
 const PASS_REASON = {
@@ -155,30 +168,36 @@ const PASS_REASON = {
   fillingUp: "is likely to be full soon",
 } as const;
 
-function resolvePlace(input: { destination?: string; lat?: number; lng?: number }): LatLng & { name: string } {
+function resolvePlace(
+  city: CityInfo,
+  input: { destination?: string; lat?: number; lng?: number },
+): LatLng & { name: string } {
+  const around = `in or around ${city.name} (about ${city.center.lat.toFixed(2)}, ${city.center.lng.toFixed(2)})`;
   if (input.lat !== undefined || input.lng !== undefined) {
     const point =
-      input.lat !== undefined && input.lng !== undefined
-        ? parseLatLng(`${input.lat},${input.lng}`)
+      input.lat !== undefined && input.lng !== undefined && Number.isFinite(input.lat + input.lng)
+        ? { lat: input.lat, lng: input.lng }
         : null;
-    if (!point) {
-      throw new ToolInputError("lat and lng must both be given and lie in or around Ghent (about 51.05, 3.72).");
+    if (!point || !inBounds(point, city.bounds)) {
+      throw new ToolInputError(`lat and lng must both be given and lie ${around}.`);
     }
     return { name: input.destination?.trim() || formatLatLng(point), ...point };
   }
   const text = input.destination?.trim() ?? "";
-  const place = text ? searchKnownPlaces(text, 1)[0] : undefined;
+  const place = city.findPlace(text);
   if (!place) {
-    const known = knownPlaces().map((p) => p.name).join(", ");
+    const names = city.placeNames();
     throw new ToolInputError(
-      `"${text}" is not a place this tool knows by name. Pass lat and lng instead, or one of: ${known}.`,
+      names.length > 0
+        ? `"${text}" is not a place this tool knows by name. Pass lat and lng instead, or one of: ${names.join(", ")}.`
+        : `For ${city.name} this tool knows no places by name. Pass lat and lng of the destination, ${around}.`,
     );
   }
   return { name: place.name, lat: place.lat, lng: place.lng };
 }
 
 export function findParking(src: Sources, input: { destination?: string; lat?: number; lng?: number }) {
-  const place = resolvePlace(input);
+  const place = resolvePlace(src.city, input);
   const suggestion = suggestGarage(src.parkings, place, src.trends, src.now);
   const withDistance = (p: Parking) => {
     const km = distanceKm(place, { lat: p.lat!, lng: p.lng! });
@@ -194,11 +213,14 @@ export function findParking(src: Sources, input: { destination?: string; lat?: n
     .map(withDistance)
     .sort((a, b) => a.distance_m - b.distance_m)
     .slice(0, 3);
-  const ride = nearestParkAndRide(src.parkings, src.extras, place, src.now);
+  const ride = src.city.knows.parkAndRide
+    ? nearestParkAndRide(src.parkings, src.extras, place, src.now)
+    : null;
   const passed = suggestion?.passedOver ?? null;
   const link = new URLSearchParams({ dest: place.name, at: formatLatLng(place), sort: "distance" });
 
   return {
+    city: src.city.name,
     destination: { name: place.name, lat: place.lat, lng: place.lng },
     // The nearest garage that is open, has a current count and comfortable
     // room, and isn't forecast to fill up within half an hour.
@@ -206,9 +228,10 @@ export function findParking(src: Sources, input: { destination?: string; lat?: n
     why_not_the_nearest: passed ? `${passed.parking.name} is closer but ${PASS_REASON[passed.reason]}.` : null,
     other_garages_with_space: others,
     nearest_park_and_ride: ride
-      ? { id: ride.id, name: ride.name, distance_m: Math.round(ride.km * 1000), url: garageUrl(src, ride.id) }
+      ? { id: ride.id, name: ride.name, distance_m: Math.round(ride.km * 1000), url: pageUrl(src, ride.id) }
       : null,
-    see_on_the_website: `${src.siteUrl}/en?${link}`,
+    see_on_the_website: src.city.hasPages ? `${src.siteUrl}/en?${link}` : null,
+    source: sourceLine(src),
   };
 }
 
@@ -241,17 +264,39 @@ export function typicalAvailability(
       // On how many different days this hour was measured: with one or two,
       // treat it as an indication only.
       measured_on_days: typical!.days,
-      url: garageUrl(src, p.id),
+      url: pageUrl(src, p.id),
     }))
     .sort((a, b) => b.usually_free_spaces - a.usually_free_spaces);
   return {
+    city: src.city.name,
     weekday: input.weekday,
-    hour: `${String(input.hour).padStart(2, "0")}:00 (time in Ghent)`,
+    hour: `${String(input.hour).padStart(2, "0")}:00 (local time)`,
     garages: rows,
     measuring_since: src.profile?.from ?? null,
-    note:
-      rows.length === 0
+    note: !src.city.knows.typical
+      ? `This site keeps no history for ${src.city.name} yet, so it cannot say what is usual there. Live counts are available through list_garages.`
+      : rows.length === 0
         ? "No measurements for this hour of the week yet. The site has only been keeping its own history for a short while."
         : "Medians of this site's own measurements over at most the last four weeks. A pattern, not a promise.",
+  };
+}
+
+// Which cities the tools can answer for, and how much they know about each.
+export function listCities(siteUrl: string) {
+  return {
+    cities: Object.values(CITY_INFO).map((city) => ({
+      id: city.id,
+      name: city.name,
+      country: city.country,
+      centre: city.center,
+      live_free_spaces: true,
+      forecast_for_the_next_hour: city.knows.forecast,
+      usual_pattern_per_hour_of_the_week: city.knows.typical,
+      well_known_places_by_name: city.placeNames().length > 0,
+      pages_on_this_site: city.hasPages,
+      source: city.source,
+    })),
+    default_city: "ghent",
+    site: siteUrl,
   };
 }
