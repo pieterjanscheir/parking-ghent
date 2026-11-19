@@ -18,6 +18,7 @@ Originally a technical-interview take-home ([ASSIGNMENT.md](ASSIGNMENT.md)); sin
 - **Auto-refresh** — visibility-aware polling (default 60 s) with manual refresh; the spinner runs for as long as the request actually takes.
 - **Honest data age** — "City data updated 2 min ago" comes from the feed's own timestamps, not from when the page last asked. A garage whose count is more than 30 minutes old gets a warning and loses its forecast, and if no garage has updated for 15 minutes a banner says the feed has stopped ([lib/freshness.ts](lib/freshness.ts)).
 - **Live-data warning** when a garage returns `-1` free spaces, and a clear message when the feed is down.
+- **Its own history** — a scheduled job saves every garage's count every 10 minutes, because the city only publishes the last few hours. Collecting only, for now — see [Our own history archive](#our-own-history-archive).
 - **Five languages** — Dutch, English, French, German and Spanish; every page exists under `/nl`, `/en`, `/fr`, `/de` and `/es`. A first visit picks the browser's language (Dutch if it's none of the five), the choice is remembered, and the language menu in the header keeps your search, sort, filters and destination — see [Languages](#languages).
 - **Installable on a phone** — "Add to Home Screen" opens it in its own window under a parking-sign icon, with long-press shortcuts to *Garages with space* and *Map* ([app/manifest.ts](app/manifest.ts)). Shared links get a preview card, and search engines get a sitemap of every garage page.
 
@@ -80,6 +81,54 @@ Every visitor used to trigger a fresh round of ~20 upstream requests on each pag
 - Each upstream call times out after 4 s and is retried once ([lib/upstream.ts](lib/upstream.ts)); a failure is remembered for 5 s so an outage isn't hammered.
 - The cache lives in the server instance's memory, so each running instance keeps its own copy. That's enough at this scale and needs no extra service.
 
+## Our own history archive
+
+The city publishes only the last ~3 hours of occupancy, and only for nine garages. That is enough for a short-term trend, not for "how full is this garage usually on a Saturday afternoon?". History can't be collected afterwards, so the app keeps its own record ([lib/history-archive.ts](lib/history-archive.ts)):
+
+- **Every 10 minutes** a scheduled job ([vercel.json](vercel.json) → [app/api/cron/snapshot/route.ts](app/api/cron/snapshot/route.ts)) saves the live count of every garage.
+- **One text file per UTC day**, one snapshot per line: `history/v1/2026/2026-11-19.jsonl`. About 130 KB a day, under 50 MB a year.
+- **Nothing is made up.** If the city feed can't be read, that slot is skipped. A garage without a live count is stored as `null`, not as zero.
+- **No lost or duplicate lines.** A second run in the same 10 minutes changes nothing, and a file is only replaced if it is still the version that was read.
+
+One line of a day's file:
+
+```json
+{"t":1795089535,"g":{"parking-reep":{"f":212,"c":455,"u":1795089383,"o":1}}}
+```
+
+| Key | Meaning |
+| --- | --- |
+| `t` | When the snapshot was taken (Unix time, seconds) |
+| `g` | Readings by garage id, the same id as in `/parkings/<id>` |
+| `f` | Free spaces, or `null` when the feed had no live count |
+| `c` | Capacity (total spaces) |
+| `u` | When the feed last updated this count (Unix time, seconds), or `null` |
+| `o` | `1` open, `0` closed |
+
+The archive only collects for now. Showing "usually busy at this hour" and a better forecast come once there are a few weeks of data.
+
+### Switching it on
+
+The archive is off until storage is configured; the rest of the app is unaffected.
+
+| Variable | Set by | Purpose |
+| --- | --- | --- |
+| `BLOB_READ_WRITE_TOKEN` | Vercel, when a (private) Blob store is connected to the project | Where the files are kept |
+| `CRON_SECRET` | You, in the project's environment variables | Vercel sends it with every scheduled call; the route refuses anything else |
+| `HISTORY_ARCHIVE_DIR` | You, optional | Keep the files in a local folder instead (development, self-hosting) |
+
+On Vercel, scheduled jobs only run on the production deployment. To try it locally:
+
+```bash
+HISTORY_ARCHIVE_DIR=.data CRON_SECRET=dev pnpm dev
+```
+
+```bash
+curl -H "Authorization: Bearer dev" http://localhost:3000/api/cron/snapshot
+```
+
+Usage on Vercel, per month: about 4,300 scheduled calls, 4,300 file writes, 4,300 file reads and roughly 300 MB read back from storage. That is small next to what a Pro plan includes for Blob, but check Vercel's current Blob pricing before relying on that.
+
 ## Stack
 
 - **Next.js 16.2** (App Router) on **React 19**
@@ -92,6 +141,7 @@ Every visitor used to trigger a fresh round of ~20 upstream requests on each pag
 - **Leaflet** + **react-leaflet** for the overview map (OpenStreetMap tiles)
 - **sonner** for toasts
 - **lucide-react** for icons
+- **Vercel Blob** + a Vercel cron job for the history archive
 - **Vitest** for unit tests
 - Fonts: **Geist** (headings + mono), **Raleway** (body) via `next/font/google`
 
@@ -129,12 +179,14 @@ app/                          App Router routes
     parkings/[id]/            Detail page (server) + loading / error / not-found
     opengraph-image.tsx       Share preview card, one per language
     [...rest]/page.tsx        Translated "page not found" for unknown paths
+  api/cron/snapshot/route.ts  Scheduled job: save the current counts to the archive
   manifest.ts                 Web app manifest (name, icons, shortcuts)
   icon.svg, apple-icon.png    App icon (source artwork: icon.svg)
   sitemap.ts, robots.ts       For search engines (previews are not indexed)
 i18n/                         Language list, language-aware links, request setup
 messages/                     Translations: one JSON file per language
 proxy.ts                      Language detection and redirects
+vercel.json                   Schedule for the history snapshot (every 10 minutes)
 components/                   UI building blocks
   parking-overview.tsx        Overview client shell (summary / search / sort / filter / view)
   parking-map.tsx             Leaflet map of all parkings (client-only)
@@ -166,6 +218,9 @@ lib/
   parkings.ts                 Server fetchers + sort / filter helpers
   parkings.schema.ts          Zod schema + Parking type + normaliser
   parking-history.ts          History fetcher
+  history-archive.ts          Our own history: snapshot format, day files, append
+  archive-store.ts            Where the archive lives: Vercel Blob, a folder, or memory
+  cron-auth.ts                Checks that a scheduled call really comes from Vercel
   ttl-cache.ts                In-memory cache with a strict time-to-live
   upstream.ts                 Portal fetch with timeout + one retry
   freshness.ts                Data-age and staleness helpers
