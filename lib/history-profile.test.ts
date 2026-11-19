@@ -120,8 +120,10 @@ describe("rebuildProfile", () => {
     store.files.set(dayFile(dayKey(THU_18)), line(THU_18, 230));
     store.files.set(dayFile(dayKey(THU_18 - WEEK)), line(THU_18 - WEEK, 210));
     // Exactly four weeks back still counts: at midnight today's own file is
-    // empty, and this is the fourth full day of its weekday.
-    store.files.set(dayFile(dayKey(THU_18 - 4 * WEEK)), line(THU_18 - 4 * WEEK, 190));
+    // empty, and this is the fourth full day of its weekday. That Thursday
+    // was still summer time, so 18:00 in Ghent was an hour earlier in UTC.
+    const fourWeeksAgo = THU_18 - 4 * WEEK - 60 * MIN;
+    store.files.set(dayFile(dayKey(fourWeeksAgo)), line(fourWeeksAgo, 190));
     // Five weeks back: too old to count.
     store.files.set(dayFile(dayKey(THU_18 - 5 * WEEK)), line(THU_18 - 5 * WEEK, 1));
     store.files.set(PROFILE_FILE, "an older pattern");
