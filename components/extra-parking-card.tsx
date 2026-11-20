@@ -3,6 +3,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { noteFor, type DirectoryEntry } from "@/lib/directory";
 import { FacilityBadges } from "./facility-badges";
+import { StayPrice, type StayPriceInfo } from "./stay-price";
 import { useFormatDistance } from "./use-labels";
 
 // A car park the city lists but that publishes no live count: a Park & Ride
@@ -12,11 +13,14 @@ export function ExtraParkingCard({
   entry,
   distanceKm = null,
   walking = false,
+  stay = null,
 }: {
   entry: DirectoryEntry;
   distanceKm?: number | null;
   // The distance is to the visitor's destination: show walking time too.
   walking?: boolean;
+  // What the visitor's chosen stay costs here, as on the live cards.
+  stay?: StayPriceInfo | null;
 }) {
   const t = useTranslations("extras");
   const locale = useLocale();
@@ -47,6 +51,7 @@ export function ExtraParkingCard({
         ) : null}
       </p>
       {note ? <p className="line-clamp-2 text-xs text-muted-foreground">{note}</p> : null}
+      {stay ? <StayPrice {...stay} /> : null}
       <div className="mt-auto flex flex-wrap items-center gap-1.5">
         <FacilityBadges
           parkAndRide={entry.parkAndRide}

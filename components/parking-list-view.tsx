@@ -30,7 +30,8 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useFavorites } from "@/lib/favorites";
-import type { SortKey } from "@/lib/parkings";
+import type { Costs, SortKey } from "@/lib/parkings";
+import { StayPrice } from "./stay-price";
 
 type Props = {
   parkings: Parking[];
@@ -42,6 +43,10 @@ type Props = {
   now: number;
   sort: SortKey;
   onSortChange: (next: SortKey) => void;
+  // What the visitor's chosen stay costs in each garage (euro cents, null
+  // when unknown), and how long that stay is.
+  costs: Costs;
+  stayMinutes: number;
 };
 
 // Map TanStack header click → SortKey for the URL
@@ -52,12 +57,16 @@ const SORT_KEY_MAP: Record<
   name: { asc: "name-asc", desc: "name-desc" },
   freeSpaces: { asc: "spaces-asc", desc: "spaces-desc" },
   freePercent: { asc: "percent-asc", desc: "percent-desc" },
+  // Dearest first isn't a question anyone asks.
+  price: { asc: "cheapest", desc: "cheapest" },
 };
 
 function deriveSorting(sort: SortKey): SortingState {
   switch (sort) {
     case "distance":
       return [];
+    case "cheapest":
+      return [{ id: "price", desc: false }];
     case "name-asc":
       return [{ id: "name", desc: false }];
     case "name-desc":
@@ -81,9 +90,12 @@ export function ParkingListView({
   now,
   sort,
   onSortChange,
+  costs,
+  stayMinutes,
 }: Props) {
   const router = useRouter();
   const t = useTranslations("list");
+  const tTariffs = useTranslations("tariffs");
   const labels = useParkingLabels();
   const formatDistance = useFormatDistance();
   const { isFavorite } = useFavorites();
@@ -180,6 +192,15 @@ export function ParkingListView({
         ),
       },
       {
+        id: "price",
+        // Unknown prices last; the rows arrive sorted anyway.
+        accessorFn: (row) => costs[row.id] ?? Number.POSITIVE_INFINITY,
+        header: tTariffs("priceColumn", { hours: stayMinutes / 60 }),
+        cell: ({ row }) => (
+          <StayPrice cost={costs[row.original.id]} minutes={stayMinutes} showUnknown short className="text-sm" />
+        ),
+      },
+      {
         id: "category",
         accessorKey: "categoryLabel",
         enableSorting: false,
@@ -220,7 +241,7 @@ export function ParkingListView({
     // `labels` and `formatDistance` are new functions on every render, but
     // only change with the language — which `t` already tracks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isFavorite, trendsById, distances, walking, now, t],
+    [isFavorite, trendsById, distances, walking, now, t, costs, stayMinutes, tTariffs],
   );
 
   const sorting = useMemo(() => deriveSorting(sort), [sort]);

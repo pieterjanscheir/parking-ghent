@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { wallClockToEpoch } from "./zoned-time";
+import { wallClockAt, wallClockToEpoch } from "./zoned-time";
 
 describe("wallClockToEpoch", () => {
   it("reads a winter clock time in Paris as one hour ahead of UTC", () => {
@@ -27,5 +27,29 @@ describe("wallClockToEpoch", () => {
   it("returns null for anything else", () => {
     expect(wallClockToEpoch("", "Europe/Paris")).toBeNull();
     expect(wallClockToEpoch("19/11/2026 18:30", "Europe/Paris")).toBeNull();
+  });
+});
+
+describe("wallClockAt", () => {
+  it("gives the local date, time and weekday", () => {
+    // 20 November 2026, 14:05 UTC: a Friday, 15:05 in Brussels.
+    expect(wallClockAt(Date.UTC(2026, 10, 20, 14, 5), "Europe/Brussels")).toEqual({
+      year: 2026,
+      month: 11,
+      day: 20,
+      hour: 15,
+      minute: 5,
+      weekday: 5,
+    });
+  });
+
+  it("turns the date over at local midnight, not at UTC midnight", () => {
+    const clock = wallClockAt(Date.UTC(2026, 10, 20, 23, 30), "Europe/Brussels");
+    expect([clock.day, clock.hour, clock.weekday]).toEqual([21, 0, 6]);
+  });
+
+  it("is the reverse of wallClockToEpoch", () => {
+    const ms = wallClockToEpoch("2026-07-01T09:00:00", "Europe/Brussels")!;
+    expect(wallClockAt(ms, "Europe/Brussels")).toMatchObject({ month: 7, day: 1, hour: 9, minute: 0 });
   });
 });

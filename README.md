@@ -118,6 +118,25 @@ The live feed has 15 garages. Four more of the city's datasets fill in the rest:
 - **The charge-point map layer** uses the full `laadpalen-gent` list, grouped per post, and is only fetched (`/api/chargers`) when a visitor switches the layer on.
 - All of these are optional. If one fails, the live garages are shown as before, and the failing list is retried once a minute rather than on every page view.
 
+## Parking rates
+
+"What does two hours cost, and where is it cheapest?" None of the city's datasets carries a rate, so the rates are kept by hand in [lib/tariffs.ts](lib/tariffs.ts), copied from each operator's own page.
+
+- **Where they come from.** The City of Ghent's garages (Ramen, Reep, Sint-Michiels, Vrijdagmarkt, Savaan, Sint-Pietersplein, Tolhuis, Ledeberg, Het Getouw, The Loop B & C and D): each garage's page on stad.gent, checked against the city's *Retributiereglement voor het parkeren in parkeergarages* (the version valid from 1 October 2026; its Saturday table is newer than the one still on the garage pages). The free Park & Ride sites: the city's [Park & Ride page](https://stad.gent/nl/mobiliteit-openbare-werken/parkeren/park-and-ride-pr). Kouter and Center parking: Interparking's pages. Every entry carries its source URL and the date it was checked, and the garage page shows both.
+- **Left out on purpose: unknown stays unknown.** Gent Zuid (Interparking's page lists 15 minutes €0.70 but one hour €2.60, which no simple per-quarter rate fits), Dok Noord, Zuiderpoort and Leopoldskazerne (Indigo publishes only "indicative" prices for an entry at the moment you look), the two NMBS station car parks Gent-Sint-Pieters and Gent-Dampoort (B-Parking; the page could not be read) and P+R Galveston. They show no price, sort last under "Cheapest", and the MCP tools answer `null` for them, never 0.
+- **What a stay costs** ([`stayCost`](lib/tariffs.ts)): every run of hours inside one band (day 7–19 h by weekday, night 19–7 h) is charged on that band's table, in the operator's indivisible slices (half hours at the city, quarters at Interparking); every 24 hours from arrival cost at most the daily maximum, and a longer stay starts counting again. Free minutes on leaving (7 at the city garages, not at Vrijdagmarkt) and Ledeberg's and Het Getouw's Sunday rate on public holidays are included. Times are Ghent time, summer time included ([lib/zoned-time.ts](lib/zoned-time.ts)).
+- **An estimate.** Operators don't publish how their machines split a stay that crosses 7:00 or 19:00, event rates (Gentse Feesten, Lichtfestival …) and discount cards (Pcard) are not included, and the site says so next to every price.
+- **On the site:** "Cheapest for your stay" in the sort menu and a length-of-stay menu (1 to 24 hours, `?sort=cheapest&stay=240` in the URL); each card and the list show what that stay costs arriving now. With the low-emission-zone filter ("Inside LEZ") that is "cheapest inside the LEZ". The car parks without a live count drop out of that filter, because the city's data doesn't say which zone they are in. A garage page shows the rate table, the daily maximum, the notes, the source and the date.
+- **For assistants:** `list_garages` and `find_parking` give each car park a `price` (1, 2, 4, 8 and 24 hours from now), `get_garage` the full `rates`, and `cheapest_parking` ranks the car parks for a stay (see [MCP server](#mcp-server)). Other cities have no rates (`knows.rates` in [lib/cities/info.ts](lib/cities/info.ts)).
+
+**Updating the rates.** The city indexes its rates every year on the first Wednesday of February, and changes them by council decision in between ("Tarieven sinds …" on the garage pages).
+
+1. Open each entry's `sourceUrl` in [lib/tariffs.ts](lib/tariffs.ts) and compare the tables, slice by slice. For the city garages also read the newest *Retributiereglement* linked from the [garages page](https://stad.gent/nl/mobiliteit-openbare-werken/parkeren/parkings-gent) (under "Reglementen"): it is the legal text and wins over the web pages.
+2. Change the amounts (in cents), and set `CHECKED_ON` (or that entry's `checkedOn`) to the day you checked. A rate you could not confirm on the operator's own page is removed, not guessed: the car park then shows no price.
+3. Run `pnpm test`: [lib/tariffs.test.ts](lib/tariffs.test.ts) prices real stays (a weekday afternoon, a Saturday, an evening across 19:00, a night, 24 and 48 hours, the change to winter time) against the published tables, so update those amounts too.
+
+To add a car park, key it by the id the site uses: the live feed's id (`parking-reep`) or the directory's (`p-kouter`, `pr-muide`), as shown in its page's URL.
+
 ## Straight from the browser
 
 Some questions have a different answer for every visitor and every minute, so there is nothing to cache on a server. For those the visitor's browser asks the city's open data portal itself; the portal allows that from any site. Nothing runs on our server for them.
@@ -243,6 +262,7 @@ Every tool takes an optional `city` (`ghent` by default, or `strasbourg`).
 | `find_parking` | The best garage for a destination: a well-known place by name, or coordinates. Says why the nearest was passed over, lists other garages with space and the nearest Park & Ride. |
 | `get_garage` | One car park in detail: live count, forecast, what is usual at this hour, opening hours, position, the city's remark. |
 | `typical_availability` | Planning ahead: how many spaces are usually free in each garage at an hour of the week (`weekday`, `hour`). |
+| `cheapest_parking` | The cheapest car parks for a stay (`stay_minutes`, optional `arrive_at` in Ghent time), optionally only inside or outside the low-emission zone or with space now. Car parks without known rates are named under `price_unknown`. Ghent only — see [Parking rates](#parking-rates). |
 
 - **To connect:** add `https://<your-domain>/api/mcp` as a custom connector in the assistant (in Claude: Settings → Connectors → Add custom connector).
 - **Same rules as the website.** A count that is missing or more than 30 minutes old is marked as such and gets no forecast; "best choice" uses the same rules as the panel on the overview.

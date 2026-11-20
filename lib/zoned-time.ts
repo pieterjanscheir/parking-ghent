@@ -20,6 +20,31 @@ const partsOf = (ms: number, timeZone: string) => {
   return Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
 };
 
+export type WallClock = {
+  year: number;
+  // 1–12.
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  // 0 = Sunday … 6 = Saturday, as Date#getUTCDay.
+  weekday: number;
+};
+
+// A moment → what the clocks in the zone show. The reverse of
+// wallClockToEpoch.
+export function wallClockAt(ms: number, timeZone: string): WallClock {
+  const asUtc = new Date(partsOf(ms, timeZone));
+  return {
+    year: asUtc.getUTCFullYear(),
+    month: asUtc.getUTCMonth() + 1,
+    day: asUtc.getUTCDate(),
+    hour: asUtc.getUTCHours(),
+    minute: asUtc.getUTCMinutes(),
+    weekday: asUtc.getUTCDay(),
+  };
+}
+
 // How far the zone's clocks are ahead of UTC at a moment, in ms.
 const offsetAt = (ms: number, timeZone: string) => partsOf(ms, timeZone) - ms;
 

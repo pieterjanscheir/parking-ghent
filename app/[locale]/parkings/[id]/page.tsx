@@ -288,6 +288,7 @@ export default async function ParkingDetailPage({ params }: Props) {
           evChargers={parking.evChargers}
           evMaxKw={parking.evMaxKw}
           note={parking.note}
+          tariffId={parking.id}
         />
 
         {parking.parkAndRide && parking.lat !== null && parking.lng !== null ? (

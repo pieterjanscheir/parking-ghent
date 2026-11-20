@@ -6,6 +6,7 @@ import type { Snapshot } from "./history-archive";
 import { buildProfile } from "./history-profile";
 import {
   ToolInputError,
+  cheapestParking,
   findParking,
   getGarage,
   listCities,
@@ -185,6 +186,97 @@ describe("getGarage", () => {
   it("says which car parks exist when the name is unknown", () => {
     expect(() => getGarage(sources(), { garage: "Nowhere" })).toThrow(ToolInputError);
     expect(() => getGarage(sources(), { garage: "Nowhere" })).toThrow(/Vrijdagmarkt, Sint-Michiels, Savaan, Watersportbaan/);
+  });
+});
+
+describe("prices", () => {
+  // The same garages under the ids the city's feed gives them, so the rate
+  // table (lib/tariffs.ts) applies.
+  const vrijdagmarkt = garage({ id: "parking-vrijdagmarkt" });
+  const ledeberg = garage({ id: "parking-ledeberg", name: "Ledeberg", isInsideLez: false, freeSpaces: 200 });
+  const savaan = garage({ id: "parking-savaan", name: "Savaan", freeSpaces: 0, bucket: "full" });
+  const zuid: DirectoryEntry = { ...ride, id: "p-zuid", name: "Zuid", parkAndRide: false, isFree: null, note: null };
+  const priced = (over: Partial<Sources> = {}) =>
+    sources({ parkings: [vrijdagmarkt, ledeberg, savaan], extras: [ride, zuid], ...over });
+
+  it("gives what a stay from now costs, with where the rates come from", () => {
+    const [, first] = listGarages(priced(), {}).garages_with_live_count;
+    expect(first.id).toBe("parking-vrijdagmarkt");
+    // Thursday 14:00: 2 hours at €1.50 a half hour. 8 hours run into the
+    // night: 5 hours by day (€15) and 3 at the night rate (€6).
+    expect(first.price).toMatchObject({
+      free: false,
+      cost_from_now_eur: { "1h": 3, "2h": 6, "4h": 12, "8h": 15 + 6, "24h": 31 },
+      operator: "Mobiliteitsbedrijf Gent",
+      source_url: "https://stad.gent/nl/mobiliteit-openbare-werken/parkeren/parkings-gent/parking-vrijdagmarkt",
+      checked_on: "2026-11-20",
+    });
+  });
+
+  it("leaves the price unknown where there are no rates, never free", () => {
+    expect(listGarages(sources(), {}).garages_with_live_count[0].price).toBeNull();
+    const [, unknown] = listGarages(priced(), {}).car_parks_without_live_count;
+    expect(unknown).toMatchObject({ id: "p-zuid", free_of_charge: null, price: null });
+  });
+
+  it("gives the operator's full rates for one garage", () => {
+    const { rates } = getGarage(priced(), { garage: "vrijdagmarkt" });
+    expect(rates).toMatchObject({
+      free: false,
+      max_per_24_hours_eur: 31,
+      free_minutes_when_leaving_at_once: 0,
+      source_url: "https://stad.gent/nl/mobiliteit-openbare-werken/parkeren/parkings-gent/parking-vrijdagmarkt",
+    });
+    expect(rates?.bands?.map((band) => band.applies)).toEqual([
+      "Mon–Fri, Sun 07:00–19:00",
+      "Sat 07:00–19:00",
+      "every night 19:00–07:00",
+    ]);
+    expect(getGarage(priced(), { garage: "Watersportbaan" }).rates).toMatchObject({ free: true, free_up_to_hours: null });
+  });
+
+  describe("cheapestParking", () => {
+    it("puts the free Park & Ride first, then the cheapest garage, and names the unknown ones", () => {
+      const result = cheapestParking(priced(), { stay_minutes: 120 });
+      expect(result.cheapest.map((row) => [row.id, row.cost_eur])).toEqual([
+        ["pr-watersportbaan", 0],
+        ["parking-ledeberg", 2.4],
+        ["parking-savaan", 5],
+        ["parking-vrijdagmarkt", 6],
+      ]);
+      expect(result.price_unknown).toEqual(["Zuid"]);
+      expect(result.arrive_at).toBe("2026-11-19T13:00:00.000Z");
+    });
+
+    it("answers 'cheapest inside the low-emission zone'", () => {
+      const result = cheapestParking(priced(), { stay_minutes: 120, inside_low_emission_zone: true });
+      expect(result.cheapest.map((row) => row.id)).toEqual(["parking-savaan", "parking-vrijdagmarkt"]);
+      expect(result.note).toMatch(/without a live count are left out/);
+    });
+
+    it("can leave out garages without room", () => {
+      const result = cheapestParking(priced(), { stay_minutes: 120, inside_low_emission_zone: true, only_with_space: true });
+      expect(result.cheapest.map((row) => row.id)).toEqual(["parking-vrijdagmarkt"]);
+    });
+
+    it("prices a stay at a later time, read as Ghent time", () => {
+      // Saturday 21 November, 10:00: the Saturday rate.
+      const result = cheapestParking(priced(), { stay_minutes: 120, arrive_at: "2026-11-21T10:00", inside_low_emission_zone: true });
+      expect(result.arrive_at).toBe("2026-11-21T09:00:00.000Z");
+      expect(result.cheapest.find((row) => row.id === "parking-vrijdagmarkt")?.cost_eur).toBe(8);
+    });
+
+    it("refuses a stay or a time it can't read", () => {
+      expect(() => cheapestParking(priced(), { stay_minutes: 0 })).toThrow(ToolInputError);
+      expect(() => cheapestParking(priced(), { stay_minutes: 60, arrive_at: "tomorrow" })).toThrow(/arrive_at/);
+    });
+
+    it("says so in a city without rates instead of calling anything cheapest", () => {
+      const result = cheapestParking(sources({ city: STRASBOURG, parkings: [vrijdagmarkt], extras: [] }), { stay_minutes: 60 });
+      expect(result.cheapest).toEqual([]);
+      expect(result.price_unknown).toEqual(["Vrijdagmarkt"]);
+      expect(result.note).toMatch(/knows no parking rates for Strasbourg/);
+    });
   });
 });
 
@@ -407,6 +499,8 @@ describe("a city that only lists its car parks", () => {
       park_and_ride: false,
       // Unknown, not "paid".
       free_of_charge: null,
+      // No rates known for Antwerp.
+      price: null,
       ev_charge_points: 13,
       // No page on this site: the operator's own.
       url: "https://www.interparking.be/nl/parkeren/antwerpen/arenberg/",

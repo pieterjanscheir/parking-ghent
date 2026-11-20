@@ -214,6 +214,32 @@ describe("sortParkings — availability-first", () => {
   });
 });
 
+describe("sortParkings — cheapest", () => {
+  const list = [
+    p({ id: "unknown-big", freeSpaces: 400 }),
+    p({ id: "dear", freeSpaces: 50 }),
+    p({ id: "cheap-closed", isOpen: false, bucket: "closed" }),
+    p({ id: "cheap", freeSpaces: 10 }),
+    p({ id: "cheap-roomy", freeSpaces: 90 }),
+  ];
+  // Two hours on a weekday afternoon, in cents.
+  const costs = { dear: 600, "cheap-closed": 200, cheap: 240, "cheap-roomy": 240, "unknown-big": null };
+
+  it("puts the cheapest open garage first and unknown prices last", () => {
+    expect(sortParkings(list, "cheapest", null, costs).map((x) => x.id)).toEqual([
+      "cheap-roomy",
+      "cheap",
+      "dear",
+      "cheap-closed",
+      "unknown-big",
+    ]);
+  });
+
+  it("treats a garage missing from the costs as unknown", () => {
+    expect(sortParkings(list, "cheapest", null, { dear: 600 })[0].id).toBe("dear");
+  });
+});
+
 describe("sortParkings — distance", () => {
   const here = { lat: 51.054, lng: 3.72 };
   const list = [
@@ -331,7 +357,21 @@ describe("combineSources", () => {
 
   it("returns the car parks the live feed doesn't cover, with their charge points", () => {
     const { extras } = combineSources([savaan, ledeberg], directory, chargePoints);
-    expect(extras).toEqual([entry({ evChargers: 1, evMaxKw: 22 })]);
+    // Kouter is in the rate table (lib/tariffs.ts) as paid.
+    expect(extras).toEqual([entry({ evChargers: 1, evMaxKw: 22, isFree: false })]);
+  });
+
+  it("takes free or paid from the rate table where the city's data doesn't say", () => {
+    const oostakker = entry({ id: "pr-oostakker", name: "Oostakker", parkAndRide: true, lat: 51.09, lng: 3.77 });
+    const zuid = entry({ id: "p-zuid", name: "Zuid", lat: 51.0419, lng: 3.7266 });
+    const { extras } = combineSources([], [oostakker, zuid], []);
+    expect(extras.map((e) => [e.id, e.isFree])).toEqual([
+      ["pr-oostakker", true],
+      // Not in the table: still unknown.
+      ["p-zuid", null],
+    ]);
+    const loop = p({ id: "pr-loopexpo", name: "P+R The Loop", isFree: false });
+    expect(combineSources([loop], [], []).parkings[0].isFree).toBe(true);
   });
 
   it("keeps a garage's own Park & Ride mark when the directory is unavailable", () => {
@@ -417,6 +457,20 @@ describe("sortExtras", () => {
     expect(sortExtras([zuid, kouter, muide], null).map((e) => e.id)).toEqual([
       "pr-muide",
       "p-kouter",
+      "p-zuid",
+    ]);
+  });
+
+  it("sorts cheapest first when there are costs, unknown prices last", () => {
+    const costs = { "pr-muide": 0, "p-kouter": 560, "p-zuid": null };
+    expect(sortExtras([zuid, kouter, muide], null, costs).map((e) => e.id)).toEqual([
+      "pr-muide",
+      "p-kouter",
+      "p-zuid",
+    ]);
+    expect(sortExtras([zuid, kouter, muide], null, { "p-kouter": 560 }).map((e) => e.id)).toEqual([
+      "p-kouter",
+      "pr-muide",
       "p-zuid",
     ]);
   });

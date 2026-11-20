@@ -11,6 +11,7 @@ import { DataWarning } from "./live-data-warning";
 import { ParkingStatusBadge, MetaBadge } from "./parking-status-badge";
 import { TrendIndicator } from "./trend-indicator";
 import { ForecastHint } from "./forecast-hint";
+import { StayPrice, type StayPriceInfo } from "./stay-price";
 import { useFormatDistance, useParkingLabels } from "./use-labels";
 
 export function ParkingCard({
@@ -19,6 +20,7 @@ export function ParkingCard({
   now,
   distanceKm = null,
   walking = false,
+  stay = null,
 }: {
   parking: Parking;
   trend: Trend | null;
@@ -27,6 +29,8 @@ export function ParkingCard({
   distanceKm?: number | null;
   // The distance is to the visitor's destination: show walking time too.
   walking?: boolean;
+  // What the visitor's chosen stay costs here.
+  stay?: StayPriceInfo | null;
 }) {
   const t = useTranslations("garage");
   const labels = useParkingLabels();
@@ -109,6 +113,7 @@ export function ParkingCard({
           evChargers={parking.evChargers}
         />
       </div>
+      {stay ? <StayPrice {...stay} className="-mt-1" /> : null}
     </Link>
   );
 }

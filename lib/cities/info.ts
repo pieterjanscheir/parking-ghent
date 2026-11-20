@@ -39,6 +39,10 @@ export type CityInfo = {
     parkAndRide: boolean;
     // Whether a car park is free of charge.
     price: boolean;
+    // What a stay costs, from the operators' rates this site keeps by hand
+    // (lib/tariffs.ts). Even where true, a car park missing from that table
+    // has an unknown price.
+    rates: boolean;
     // How many charge points a car park has.
     charging: boolean;
     // Whether a car park lies inside the low-emission zone.
@@ -70,6 +74,7 @@ export const GHENT: CityInfo = {
     price: true,
     charging: true,
     lowEmissionZone: true,
+    rates: true,
     forecast: true,
     typical: true,
   },
@@ -96,6 +101,7 @@ export const STRASBOURG: CityInfo = {
     liveCounts: true,
     parkAndRide: false,
     price: false,
+    rates: false,
     charging: false,
     lowEmissionZone: false,
     forecast: false,
@@ -122,6 +128,7 @@ function mcpOnly(
     knows: {
       ...city.knows,
       price: false,
+      rates: false,
       charging: false,
       lowEmissionZone: false,
       forecast: false,
