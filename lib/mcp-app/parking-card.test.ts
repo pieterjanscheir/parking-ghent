@@ -7,10 +7,11 @@ describe("parking card (MCP App)", () => {
     expect(MCP_APP_MIME_TYPE).toBe("text/html;profile=mcp-app");
   });
 
-  it("is one self-contained page that loads nothing from elsewhere", () => {
+  it("is one self-contained page that loads only the site's fonts", () => {
     expect(PARKING_CARD_HTML.startsWith("<!doctype html>")).toBe(true);
     expect(PARKING_CARD_HTML).not.toMatch(/<script[^>]+src=/);
-    expect(PARKING_CARD_HTML).not.toMatch(/<link[^>]+href=/);
+    const hrefs = [...PARKING_CARD_HTML.matchAll(/<link[^>]+href="([^"]+)"/g)].map((m) => new URL(m[1]).origin);
+    expect(new Set(hrefs)).toEqual(new Set(["https://fonts.googleapis.com", "https://fonts.gstatic.com"]));
   });
 
   it("has a script that parses", () => {

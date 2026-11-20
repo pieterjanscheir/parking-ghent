@@ -168,7 +168,7 @@ function buildServer(request: Request): McpServer {
     (input) => answer(request, input.city, (src) => typicalAvailability(src, input)),
   );
 
-  // The card itself: one self-contained HTML page, no network access needed.
+  // The card itself: one self-contained HTML page; only the fonts come from elsewhere.
   server.registerResource(
     "parking-card",
     PARKING_CARD_URI,
@@ -179,7 +179,13 @@ function buildServer(request: Request): McpServer {
           uri: uri.href,
           mimeType: MCP_APP_MIME_TYPE,
           text: PARKING_CARD_HTML,
-          _meta: { ui: { prefersBorder: false, csp: {} } },
+          // The card draws its own frame; it loads only the site's fonts.
+          _meta: {
+            ui: {
+              prefersBorder: false,
+              csp: { resourceDomains: ["https://fonts.googleapis.com", "https://fonts.gstatic.com"] },
+            },
+          },
         },
       ],
     }),
