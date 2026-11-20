@@ -38,3 +38,12 @@ export function byFreeSpaces(parkings: Parking[], now: number): Parking[] {
     return a.name.localeCompare(b.name);
   });
 }
+
+// What the map may show: a count only while it is current, like the totals
+// above the list. An old count is handed over as "no count", so its marker
+// says "?" rather than a number nobody should rely on.
+export function withCurrentCounts(parkings: Parking[], now: number): Parking[] {
+  return parkings.map((p) =>
+    p.hasLiveData && isStale(p, now) ? { ...p, hasLiveData: false, bucket: "closed" as const } : p,
+  );
+}

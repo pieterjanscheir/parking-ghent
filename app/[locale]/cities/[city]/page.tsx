@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CityNav } from "@/components/city-nav";
 import { CityOverview } from "@/components/city-overview";
+import { CityRefresh } from "@/components/city-refresh";
 import { redirect } from "@/i18n/navigation";
 import { getCity } from "@/lib/cities";
 import { isCityId } from "@/lib/cities/pages";
@@ -48,6 +49,8 @@ export default async function CityPage({ params }: Props) {
     const t = await getTranslations("cities");
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+        {/* Keeps asking, so the page comes back by itself once the feed does. */}
+        <CityRefresh />
         <CityNav current={id} />
         <h1 className="mt-6 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
           {t("title", { city: t(`names.${id}`) })}

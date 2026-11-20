@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Parking } from "../parkings.schema";
-import { OTHER_CITY_IDS, byFreeSpaces, cityPath, citySummary, isCityId } from "./pages";
+import { OTHER_CITY_IDS, byFreeSpaces, cityPath, citySummary, isCityId, withCurrentCounts } from "./pages";
 
 const NOW = Date.UTC(2026, 10, 20, 9, 0, 0);
 const MINUTE = 60_000;
@@ -47,6 +47,18 @@ describe("city pages", () => {
 
   it("is all zeroes for a city that only lists its car parks", () => {
     expect(citySummary([], NOW)).toEqual({ carParks: 0, open: 0, withSpace: 0, freeSpaces: 0 });
+  });
+
+  it("hands the map an old count as no count, and leaves current ones alone", () => {
+    const fresh = carPark({ id: "fresh", freeSpaces: 100, bucket: "available" });
+    const old = carPark({ id: "old", freeSpaces: 70, bucket: "available", lastUpdatedAt: NOW - 45 * MINUTE });
+    const none = carPark({ id: "none", hasLiveData: false, bucket: "closed" });
+    const [a, b, c] = withCurrentCounts([fresh, old, none], NOW);
+    expect(a).toBe(fresh);
+    expect(b).toMatchObject({ id: "old", hasLiveData: false, bucket: "closed" });
+    expect(c).toBe(none);
+    // The list itself is not changed: its card shows the old count with a warning.
+    expect(old.hasLiveData).toBe(true);
   });
 
   it("sorts by room, with car parks without a usable count last", () => {

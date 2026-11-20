@@ -5,7 +5,7 @@
 import { ExternalLink, MapPin, Navigation2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import type { CityInfo } from "@/lib/cities/info";
-import { byFreeSpaces, citySummary } from "@/lib/cities/pages";
+import { byFreeSpaces, citySummary, withCurrentCounts } from "@/lib/cities/pages";
 import type { DirectoryEntry } from "@/lib/directory";
 import { newestUpdate } from "@/lib/freshness";
 import type { Parking } from "@/lib/parkings.schema";
@@ -154,8 +154,11 @@ export function CityOverview({
   const sorted = byFreeSpaces(parkings, now);
   const summary = citySummary(parkings, now);
   const updatedAt = newestUpdate(parkings);
+  // The map shows a count only while it is current, like the totals above:
+  // an old one becomes "?" on the marker and "No live count" in its popup.
+  const onMap = withCurrentCounts(parkings, now);
   const freeOf = Object.fromEntries(
-    parkings
+    onMap
       .filter((p) => p.hasLiveData)
       .map((p) => [p.id, tMap("freeOf", { free: p.freeSpaces, total: p.totalSpaces })]),
   );
@@ -188,7 +191,7 @@ export function CityOverview({
 
       <div className="mt-6">
         <CityMap
-          parkings={parkings}
+          parkings={onMap}
           extras={extras}
           center={[city.center.lat, city.center.lng]}
           label={t("mapLabel", { city: name })}

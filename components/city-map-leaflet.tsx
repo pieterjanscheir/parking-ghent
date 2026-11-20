@@ -10,11 +10,16 @@ import { extraMarkerIcon, markerIcon, OSM_ATTRIBUTION, OSM_TILE_URL } from "./le
 
 function FitAll({ points }: { points: [number, number][] }) {
   const map = useMap();
+  // The counts refresh every minute and arrive as new lists. The view is
+  // only fitted again when a car park's place changed, so a refresh never
+  // undoes the visitor's own zoom or pan.
+  const where = points.map(([lat, lng]) => `${lat},${lng}`).join(";");
   useEffect(() => {
-    if (points.length > 1) {
-      map.fitBounds(L.latLngBounds(points), { padding: [28, 28], maxZoom: 15, animate: false });
+    const spots = where.split(";").map((spot) => spot.split(",").map(Number) as [number, number]);
+    if (spots.length > 1) {
+      map.fitBounds(L.latLngBounds(spots), { padding: [28, 28], maxZoom: 15, animate: false });
     }
-  }, [map, points]);
+  }, [map, where]);
   useEffect(() => {
     // The container gets its final size after mount; keep Leaflet in sync.
     const observer = new ResizeObserver(() => map.invalidateSize());
