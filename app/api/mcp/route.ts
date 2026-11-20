@@ -13,6 +13,7 @@ import {
   typicalAvailability,
   type Sources,
 } from "@/lib/mcp-tools";
+import { MCP_APP_MIME_TYPE, PARKING_CARD_HTML, PARKING_CARD_URI } from "@/lib/mcp-app/parking-card";
 import { SITE_NAME } from "@/lib/site";
 
 // An MCP server (Model Context Protocol, "Streamable HTTP"): lets an AI
@@ -46,9 +47,16 @@ async function sources(request: Request, cityId: CityId | undefined): Promise<So
   return { city, parkings, extras, trends, profile, now: Date.now(), siteUrl: siteOf(request) };
 }
 
+// The JSON as text for the model, and the same object as structured content
+// for the card (lib/mcp-app) the host may draw next to the answer.
 const asText = (result: unknown) => ({
   content: [{ type: "text" as const, text: JSON.stringify(result, null, 1) }],
+  structuredContent: result as Record<string, unknown>,
 });
+
+// Tools whose answer is drawn as a card by hosts that support MCP Apps.
+// Both keys: the current one and the older flat one some hosts still read.
+const WITH_CARD = { ui: { resourceUri: PARKING_CARD_URI }, "ui/resourceUri": PARKING_CARD_URI } as const;
 
 // Runs one tool: the result as JSON text, or a message the assistant can act
 // on when the question was wrong or the city's feed is down.
@@ -104,6 +112,7 @@ function buildServer(request: Request): McpServer {
           .describe("Only garages that are open and have free spaces according to a current count."),
       },
       annotations: READ_ONLY,
+      _meta: WITH_CARD,
     },
     (input) => answer(request, input.city, (src) => listGarages(src, input)),
   );
@@ -121,6 +130,7 @@ function buildServer(request: Request): McpServer {
         lng: z.number().optional().describe("Longitude of the destination (with lat)."),
       },
       annotations: READ_ONLY,
+      _meta: WITH_CARD,
     },
     (input) => answer(request, input.city, (src) => findParking(src, input)),
   );
@@ -136,6 +146,7 @@ function buildServer(request: Request): McpServer {
         garage: z.string().max(120).describe('Name or id, for example "Vrijdagmarkt" or "Sint-Pietersplein".'),
       },
       annotations: READ_ONLY,
+      _meta: WITH_CARD,
     },
     (input) => answer(request, input.city, (src) => getGarage(src, input)),
   );
@@ -155,6 +166,29 @@ function buildServer(request: Request): McpServer {
       annotations: READ_ONLY,
     },
     (input) => answer(request, input.city, (src) => typicalAvailability(src, input)),
+  );
+
+  // The card itself: one self-contained HTML page; only the fonts come from elsewhere.
+  server.registerResource(
+    "parking-card",
+    PARKING_CARD_URI,
+    { title: "Parking card", mimeType: MCP_APP_MIME_TYPE },
+    (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: MCP_APP_MIME_TYPE,
+          text: PARKING_CARD_HTML,
+          // The card draws its own frame; it loads only the site's fonts.
+          _meta: {
+            ui: {
+              prefersBorder: false,
+              csp: { resourceDomains: ["https://fonts.googleapis.com", "https://fonts.gstatic.com"] },
+            },
+          },
+        },
+      ],
+    }),
   );
 
   return server;

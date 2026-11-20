@@ -247,6 +247,7 @@ Every tool takes an optional `city` (`ghent` by default, or `strasbourg`).
 - **To connect:** add `https://<your-domain>/api/mcp` as a custom connector in the assistant (in Claude: Settings → Connectors → Add custom connector).
 - **Same rules as the website.** A count that is missing or more than 30 minutes old is marked as such and gets no forecast; "best choice" uses the same rules as the panel on the overview.
 - **Stateless.** Each request is answered on its own with plain JSON: no sessions, no open connections. One call is one function run and reads the same cached feeds as the pages.
+- **A card, not just text.** `find_parking`, `list_garages` and `get_garage` also return their answer as structured content and point to a small card ([lib/mcp-app/parking-card.ts](lib/mcp-app/parking-card.ts), an [MCP App](https://github.com/modelcontextprotocol/ext-apps)). Assistants that support MCP Apps, such as Claude, draw it next to the answer: free spaces with a bar, walking time, forecast, badges, and Route / Details buttons. The card copies the website's look (same tokens, fonts, gauge rings and badges, light and dark) and is one self-contained HTML page that loads only the site's Google Fonts; others still get the JSON text.
 - **Street addresses** are not looked up here: the assistant passes coordinates for anything that isn't one of the well-known places.
 - **Limits:** request bodies over 64 KB are refused. There is no rate limit; the endpoint is public, like the pages.
 

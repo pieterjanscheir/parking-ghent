@@ -79,6 +79,7 @@ function liveGarage(p: Parking, src: Sources) {
     free_of_charge: knows.price ? p.isFree : null,
     ev_charge_points: knows.charging ? p.evChargers : null,
     inside_low_emission_zone: knows.lowEmissionZone ? p.isInsideLez : null,
+    position: p.lat !== null && p.lng !== null ? { lat: p.lat, lng: p.lng } : null,
     url: pageUrl(src, p.id) ?? (p.websiteUrl || null),
   };
 }
@@ -160,7 +161,6 @@ export function getGarage(src: Sources, input: { garage: string }) {
       opening_hours: live.openingHours || null,
       operator: live.operator || null,
       phone: live.phone,
-      position: live.lat !== null && live.lng !== null ? { lat: live.lat, lng: live.lng } : null,
       city_remark: live.note?.en ?? live.note?.nl ?? null,
     };
   }
@@ -242,7 +242,10 @@ export function findParking(src: Sources, input: { destination?: string; lat?: n
   const uncounted = src.extras
     .map((e) => {
       const km = distanceKm(place, e);
-      return { ...carParkWithoutCount(e, src), distance_m: Math.round(km * 1000), walking_minutes: walkingMinutes(km) };
+      return {
+        ...carParkWithoutCount(e, src),
+        position: { lat: e.lat, lng: e.lng },
+        distance_m: Math.round(km * 1000), walking_minutes: walkingMinutes(km) };
     })
     .sort((a, b) => a.distance_m - b.distance_m)
     .slice(0, NEAREST_WITHOUT_COUNT);
