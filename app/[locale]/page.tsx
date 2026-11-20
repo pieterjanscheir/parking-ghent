@@ -3,6 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { fetchAllParkings, serverClock } from "@/lib/parkings";
 import { fetchAllTrends } from "@/lib/parking-history";
 import { languageAlternates } from "@/lib/site";
+import { CityNav } from "@/components/city-nav";
 import { ParkingOverview } from "@/components/parking-overview";
 
 type Props = { params: Promise<{ locale: string }> };
@@ -29,11 +30,17 @@ export default async function Home({ params }: Props) {
     fetchAllTrends(),
   ]);
   return (
-    <ParkingOverview
-      parkings={parkings}
-      extras={extras}
-      trendsById={trendsById}
-      serverNow={serverClock()}
-    />
+    <>
+      {/* The way to the other cities; lined up with the overview below. */}
+      <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+        <CityNav current="ghent" />
+      </div>
+      <ParkingOverview
+        parkings={parkings}
+        extras={extras}
+        trendsById={trendsById}
+        serverNow={serverClock()}
+      />
+    </>
   );
 }

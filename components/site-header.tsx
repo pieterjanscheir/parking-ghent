@@ -3,6 +3,7 @@ import { CircleParking } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { LanguageSwitcher } from "./language-switcher";
+import { LiveDataLabel } from "./live-data-label";
 import { ParkedLink } from "./parked-link";
 import { SettingsMenu } from "./settings-menu";
 
@@ -24,10 +25,7 @@ export function SiteHeader() {
           </span>
         </Link>
         <div className="flex items-center gap-2 sm:gap-4">
-          <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:inline-flex">
-            <span className="size-1.5 motion-safe:animate-pulse rounded-full bg-emerald-400" aria-hidden />
-            {t("liveData")}
-          </span>
+          <LiveDataLabel />
           {/* Reads the URL's search params, which needs a Suspense boundary
               on pages that are rendered ahead of time. */}
           <Suspense fallback={null}>

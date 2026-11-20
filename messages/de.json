@@ -28,7 +28,8 @@
   "footer": {
     "builtBy": "Erstellt von",
     "dataSource": "Daten: Open-Data-Portal stad.gent",
-    "mcp": "Für KI-Assistenten (MCP)"
+    "mcp": "Für KI-Assistenten (MCP)",
+    "cities": "Städte"
   },
   "overview": {
     "title": "Parken in Gent",
@@ -450,6 +451,40 @@
     "note3": "Bekannte Orte funktionieren mit ihrem Namen. Für eine Straßenadresse übergibt der Assistent selbst Koordinaten.",
     "note4": "Die Namen und Beschreibungen der Tools selbst sind auf Englisch; der Assistent antwortet in Ihrer Sprache.",
     "example4": "Welche Parkhäuser in Hasselt haben gerade Platz?",
-    "note5": "Neben Gent hat der Assistent Live-Zählungen für Hasselt und Straßburg. Für Antwerpen, Brüssel, Lüttich und Namur weiß er, wo die Parkhäuser liegen und wie groß sie sind, nicht wie voll. Außerhalb von Gent gibt es noch keine Prognose, kein übliches Muster und keine Suche nach Ortsnamen, und diese Website hat keine Seiten für diese Städte."
+    "note5": "Neben Gent hat der Assistent Live-Zählungen für Hasselt und Straßburg. Für Antwerpen, Brüssel, Lüttich und Namur weiß er, wo die Parkhäuser liegen und wie groß sie sind, nicht wie voll. Außerhalb von Gent gibt es noch keine Prognose, kein übliches Muster und keine Suche nach Ortsnamen; diese Website zeigt jede dieser Städte auf einer Seite."
+  },
+  "cities": {
+    "navLabel": "Stadt",
+    "names": {
+      "ghent": "Gent",
+      "hasselt": "Hasselt",
+      "antwerp": "Antwerpen",
+      "brussels": "Brüssel",
+      "liege": "Lüttich",
+      "namur": "Namur",
+      "strasbourg": "Straßburg"
+    },
+    "title": "Parken in {city}",
+    "introLive": "Derzeit freie Plätze in den Parkhäusern von {city}, die mit dem meisten Platz zuerst.",
+    "introList": "{city} veröffentlicht, wo die Parkhäuser liegen und wie groß sie sind, nicht wie voll. Diese Seite zeigt daher keine Live-Zählungen: nur, wo man parken kann.",
+    "statCarParks": "Parkhäuser",
+    "statOpen": "Jetzt geöffnet",
+    "statWithSpace": "Mit Platz",
+    "statFreeSpaces": "Freie Plätze",
+    "mapLabel": "Karte der Parkhäuser in {city}",
+    "liveTitle": "Parkhäuser mit Live-Zählung",
+    "listTitle": "{count, plural, one {# Parkhaus} other {# Parkhäuser}}",
+    "listTitleBeside": "Weitere Parkhäuser",
+    "route": "Route",
+    "website": "Website",
+    "source": "Daten: {publisher}.",
+    "notOpenData": "{city} veröffentlicht diese Zählungen nicht als offene Daten: Sie stammen von der Parkseite der Stadt und können ohne Ankündigung ausfallen.",
+    "ghentOnly": "Eine Prognose, das übliche Muster pro Stunde, Anfahrtsrouten und eine Seite pro Parkhaus gibt es nur für Gent, wo diese Website eigene Verlaufsdaten führt.",
+    "unavailable": "Die Parkhäuser von {city} konnten gerade nicht geladen werden. Versuchen Sie es in einer Minute erneut.",
+    "indexTitle": "Städte",
+    "indexIntro": "Diese Website begann mit Gent und kennt die Stadt am besten. Für sechs weitere Städte zeigt sie die Parkhäuser, mit live freien Plätzen, wo die Stadt sie bereitstellt.",
+    "kindGhent": "Live freie Plätze, Prognose, Anfahrtsrouten, Park & Ride und mehr",
+    "kindLive": "Live freie Plätze",
+    "kindList": "Parkhäuser mit Größe und Lage, ohne Live-Zählung"
   }
 }

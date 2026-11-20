@@ -28,7 +28,8 @@
   "footer": {
     "builtBy": "Gemaakt door",
     "dataSource": "Data: open data portaal stad.gent",
-    "mcp": "Voor AI-assistenten (MCP)"
+    "mcp": "Voor AI-assistenten (MCP)",
+    "cities": "Steden"
   },
   "overview": {
     "title": "Waar parkeren in Gent",
@@ -450,6 +451,40 @@
     "note3": "Bekende plaatsen werken op naam. Voor een straatadres geeft de assistent zelf coördinaten door.",
     "note4": "De namen en beschrijvingen van de tools zelf zijn in het Engels; de assistent antwoordt in jouw taal.",
     "example4": "Welke parkings in Hasselt hebben nu plaats?",
-    "note5": "Naast Gent heeft de assistent live tellingen voor Hasselt en Straatsburg. Voor Antwerpen, Brussel, Luik en Namen weet hij waar de parkings liggen en hoe groot ze zijn, niet hoe vol. Buiten Gent is er nog geen verwachting, gebruikelijk patroon of zoeken op plaatsnaam, en deze site heeft geen pagina’s voor die steden."
+    "note5": "Naast Gent heeft de assistent live tellingen voor Hasselt en Straatsburg. Voor Antwerpen, Brussel, Luik en Namen weet hij waar de parkings liggen en hoe groot ze zijn, niet hoe vol. Buiten Gent is er nog geen verwachting, gebruikelijk patroon of zoeken op plaatsnaam; deze site toont elk van die steden op één pagina."
+  },
+  "cities": {
+    "navLabel": "Stad",
+    "names": {
+      "ghent": "Gent",
+      "hasselt": "Hasselt",
+      "antwerp": "Antwerpen",
+      "brussels": "Brussel",
+      "liege": "Luik",
+      "namur": "Namen",
+      "strasbourg": "Straatsburg"
+    },
+    "title": "Parkeren in {city}",
+    "introLive": "Vrije plaatsen van dit moment in de parkings van {city}, met de meeste plaats eerst.",
+    "introList": "{city} publiceert waar de parkings liggen en hoe groot ze zijn, niet hoe vol. Deze pagina toont dus geen live tellingen: alleen waar je kunt parkeren.",
+    "statCarParks": "Parkings",
+    "statOpen": "Nu open",
+    "statWithSpace": "Met plaats",
+    "statFreeSpaces": "Vrije plaatsen",
+    "mapLabel": "Kaart van de parkings in {city}",
+    "liveTitle": "Parkings met een live telling",
+    "listTitle": "{count, plural, one {# parking} other {# parkings}}",
+    "listTitleBeside": "Andere parkings",
+    "route": "Route",
+    "website": "Website",
+    "source": "Data: {publisher}.",
+    "notOpenData": "{city} publiceert deze tellingen niet als open data: ze komen van de parkeerpagina van de stad zelf en kunnen zonder aankondiging wegvallen.",
+    "ghentOnly": "Een verwachting, het gebruikelijke patroon per uur, aanrijroutes en een pagina per parking zijn er alleen voor Gent, waar deze site zelf historiek bijhoudt.",
+    "unavailable": "De parkings van {city} konden nu niet geladen worden. Probeer het over een minuut opnieuw.",
+    "indexTitle": "Steden",
+    "indexIntro": "Deze site begon met Gent en kent die stad het best. Voor zes andere steden toont ze de parkings, met live vrije plaatsen waar de stad die aanbiedt.",
+    "kindGhent": "Live vrije plaatsen, verwachting, aanrijroutes, Park & Ride en meer",
+    "kindLive": "Live vrije plaatsen",
+    "kindList": "Parkings met grootte en ligging, geen live telling"
   }
 }

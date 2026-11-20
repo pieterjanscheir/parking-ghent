@@ -1,4 +1,5 @@
 import { CITY_INFO, inBounds, type CityInfo } from "./cities/info";
+import { cityPath } from "./cities/pages";
 import { normalizeSearch } from "./destinations";
 import type { DirectoryEntry } from "./directory";
 import type { Trend } from "./forecast";
@@ -324,7 +325,10 @@ export function listCities(siteUrl: string) {
       forecast_for_the_next_hour: city.knows.forecast,
       usual_pattern_per_hour_of_the_week: city.knows.typical,
       well_known_places_by_name: city.placeNames().length > 0,
+      // Whether each car park has its own page here (Ghent only).
       pages_on_this_site: city.hasPages,
+      // The city's page on this site.
+      overview_page: `${siteUrl}/en${cityPath(city.id) === "/" ? "" : cityPath(city.id)}`,
       source: city.source,
     })),
     default_city: "ghent",

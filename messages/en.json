@@ -28,7 +28,8 @@
   "footer": {
     "builtBy": "Built by",
     "dataSource": "Data: stad.gent open data portal",
-    "mcp": "For AI assistants (MCP)"
+    "mcp": "For AI assistants (MCP)",
+    "cities": "Cities"
   },
   "overview": {
     "title": "Where to park in Ghent",
@@ -450,6 +451,40 @@
     "note3": "Well-known places work by name. For a street address the assistant passes coordinates itself.",
     "note4": "The tools' own names and descriptions are in English; the assistant answers in your language.",
     "example4": "Which car parks in Hasselt have space right now?",
-    "note5": "Besides Ghent, the assistant has live counts for Hasselt and Strasbourg. For Antwerp, Brussels, Liège and Namur it knows where the car parks are and how big, not how full. Outside Ghent there is no forecast, usual pattern or place search by name yet, and this site has no pages for those cities."
+    "note5": "Besides Ghent, the assistant has live counts for Hasselt and Strasbourg. For Antwerp, Brussels, Liège and Namur it knows where the car parks are and how big, not how full. Outside Ghent there is no forecast, usual pattern or place search by name yet; this site shows each of those cities on one page."
+  },
+  "cities": {
+    "navLabel": "City",
+    "names": {
+      "ghent": "Ghent",
+      "hasselt": "Hasselt",
+      "antwerp": "Antwerp",
+      "brussels": "Brussels",
+      "liege": "Liège",
+      "namur": "Namur",
+      "strasbourg": "Strasbourg"
+    },
+    "title": "Parking in {city}",
+    "introLive": "Free spaces right now in the car parks of {city}, most room first.",
+    "introList": "{city} publishes where its car parks are and how big, not how full they are. So this page shows no live counts: only where you can park.",
+    "statCarParks": "Car parks",
+    "statOpen": "Open now",
+    "statWithSpace": "With space",
+    "statFreeSpaces": "Free spaces",
+    "mapLabel": "Map of the car parks in {city}",
+    "liveTitle": "Car parks with a live count",
+    "listTitle": "{count, plural, one {# car park} other {# car parks}}",
+    "listTitleBeside": "Other car parks",
+    "route": "Route",
+    "website": "Website",
+    "source": "Data: {publisher}.",
+    "notOpenData": "{city} does not publish these counts as open data: they come from the city’s own parking page and can stop working without notice.",
+    "ghentOnly": "A forecast, the usual pattern per hour, routes in and a page per car park exist for Ghent only, where this site keeps its own history.",
+    "unavailable": "The car parks of {city} could not be loaded just now. Try again in a minute.",
+    "indexTitle": "Cities",
+    "indexIntro": "This site started with Ghent and knows it best. For six more cities it shows the car parks, with live free spaces where the city provides them.",
+    "kindGhent": "Live free spaces, forecast, routes in, Park & Ride and more",
+    "kindLive": "Live free spaces",
+    "kindList": "Car parks with size and location, no live count"
   }
 }

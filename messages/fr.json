@@ -28,7 +28,8 @@
   "footer": {
     "builtBy": "Réalisé par",
     "dataSource": "Données : portail open data stad.gent",
-    "mcp": "Pour les assistants IA (MCP)"
+    "mcp": "Pour les assistants IA (MCP)",
+    "cities": "Villes"
   },
   "overview": {
     "title": "Où se garer à Gand",
@@ -450,6 +451,40 @@
     "note3": "Les lieux connus fonctionnent par leur nom. Pour une adresse, l’assistant transmet lui-même des coordonnées.",
     "note4": "Les noms et descriptions des outils sont en anglais ; l’assistant répond dans votre langue.",
     "example4": "Quels parkings à Hasselt ont de la place en ce moment ?",
-    "note5": "Outre Gand, l’assistant dispose de comptages en direct pour Hasselt et Strasbourg. Pour Anvers, Bruxelles, Liège et Namur, il sait où se trouvent les parkings et leur capacité, pas leur taux d’occupation. En dehors de Gand, il n’y a pas encore de prévision, de profil habituel ni de recherche par nom de lieu, et ce site n’a pas de pages pour ces villes."
+    "note5": "Outre Gand, l’assistant dispose de comptages en direct pour Hasselt et Strasbourg. Pour Anvers, Bruxelles, Liège et Namur, il sait où se trouvent les parkings et leur capacité, pas leur taux d’occupation. En dehors de Gand, il n’y a pas encore de prévision, de profil habituel ni de recherche par nom de lieu ; ce site présente chacune de ces villes sur une page."
+  },
+  "cities": {
+    "navLabel": "Ville",
+    "names": {
+      "ghent": "Gand",
+      "hasselt": "Hasselt",
+      "antwerp": "Anvers",
+      "brussels": "Bruxelles",
+      "liege": "Liège",
+      "namur": "Namur",
+      "strasbourg": "Strasbourg"
+    },
+    "title": "Se garer à {city}",
+    "introLive": "Places libres en ce moment dans les parkings de {city}, les plus dégagés d’abord.",
+    "introList": "{city} publie l’emplacement et la capacité de ses parkings, pas leur taux d’occupation. Cette page n’affiche donc aucun comptage en direct : seulement où se garer.",
+    "statCarParks": "Parkings",
+    "statOpen": "Ouverts",
+    "statWithSpace": "Avec de la place",
+    "statFreeSpaces": "Places libres",
+    "mapLabel": "Carte des parkings de {city}",
+    "liveTitle": "Parkings avec comptage en direct",
+    "listTitle": "{count, plural, one {# parking} other {# parkings}}",
+    "listTitleBeside": "Autres parkings",
+    "route": "Itinéraire",
+    "website": "Site web",
+    "source": "Données : {publisher}.",
+    "notOpenData": "{city} ne publie pas ces comptages en données ouvertes : ils proviennent de la page de stationnement de la ville et peuvent cesser de fonctionner sans préavis.",
+    "ghentOnly": "La prévision, le profil habituel par heure, les itinéraires d’accès et une page par parking n’existent que pour Gand, où ce site conserve son propre historique.",
+    "unavailable": "Les parkings de {city} n’ont pas pu être chargés pour l’instant. Réessayez dans une minute.",
+    "indexTitle": "Villes",
+    "indexIntro": "Ce site a commencé par Gand et c’est la ville qu’il connaît le mieux. Pour six autres villes, il montre les parkings, avec les places libres en direct là où la ville les fournit.",
+    "kindGhent": "Places libres en direct, prévision, itinéraires d’accès, Park & Ride et plus",
+    "kindLive": "Places libres en direct",
+    "kindList": "Parkings avec capacité et emplacement, sans comptage en direct"
   }
 }
