@@ -422,6 +422,31 @@
     "bar": "{time} : environ {free} libres",
     "source": "D’après les mesures de ce site, toutes les 10 minutes depuis le {since}. Une tendance, pas une promesse."
   },
+  "longTerm": {
+    "title": "Jour par jour",
+    "pickRange": "Période",
+    "ranges": {
+      "weeks": "4 semaines",
+      "months": "3 mois",
+      "year": "1 an"
+    },
+    "notEnough": "Pas encore assez d'historique. Ce site mesure ce parking depuis le {since} ; le graphique jour par jour apparaît après {needed} jours complets de mesures ({count, plural, =0 {aucun pour l'instant} one {# pour l'instant} other {# pour l'instant}}).",
+    "busiestDay": "Jour le plus chargé : {date}, occupé à {percent} % à {time}.",
+    "fullDays": "Complet à un moment donné sur {full} des {count, plural, one {# jour complet} other {# jours complets}}.",
+    "averageAll": "En moyenne occupé à {percent} % pendant la journée.",
+    "legendPeak": "Moment le plus chargé",
+    "legendAverage": "Moyenne en journée",
+    "legendPartial": "Jour incomplet",
+    "tableDate": "Date",
+    "percentAt": "occupé à {percent} % à {time}",
+    "tooltipPeak": "Le plus chargé : occupé à {percent} % à {time} ({free} sur {total} libres)",
+    "tooltipAverage": "Moyenne en journée : occupé à {percent} %",
+    "tooltipFull": "Complet pendant {hours} h {minutes} min",
+    "tooltipReadings": "{count, plural, one {Sur la base de # mesure} other {Sur la base de # mesures}}",
+    "partial": "jour incomplet",
+    "noReadings": "Aucune mesure",
+    "source": "D'après les propres mesures de ce site, toutes les 10 minutes depuis le {since}. Barres : le moment le plus chargé de chaque jour. Ligne : la moyenne entre {from} et {to}. Les barres plus claires sont des jours encore en cours ou avec des trous dans les mesures."
+  },
   "mcpPage": {
     "title": "Ghent Parking pour les assistants IA",
     "intro": "Ce site dispose d’un serveur MCP. Connectez-le à un assistant comme Claude et demandez simplement où vous garer à Gand : l’assistant lit les mêmes données en direct et suit les mêmes règles que ce site.",

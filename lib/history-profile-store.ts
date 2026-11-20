@@ -1,5 +1,5 @@
 import { getArchiveStore, type ArchiveStore } from "./archive-store";
-import { dayFile, dayKey, parseDay } from "./history-archive";
+import { dayFile, dayKey, parseDay, type Snapshot } from "./history-archive";
 import { buildProfile, parseProfile, type Profile } from "./history-profile";
 import { cached } from "./ttl-cache";
 
@@ -24,24 +24,40 @@ export function isProfileRun(now: number): boolean {
   return minuteOfDay < 10 || (minuteOfDay >= 180 && minuteOfDay < 190);
 }
 
-export async function rebuildProfile(
-  store: ArchiveStore,
-  now: number,
-): Promise<{ days: number; garages: number }> {
+// The day files the nightly run works from, read once and shared by the
+// weekly pattern and the long-term summary (lib/history-summary-store.ts).
+export type RecentDays = {
+  // UTC days, newest first: today and the 28 days before.
+  days: string[];
+  // How many of them had a file.
+  found: number;
+  snapshots: Snapshot[];
+};
+
+export async function readRecentDays(store: ArchiveStore, now: number): Promise<RecentDays> {
   // Today's file is only partly filled (at midnight it is empty), so four
   // full weeks reach one file further back: today plus the 28 days before.
   const days = Array.from({ length: PROFILE_DAYS + 1 }, (_, back) => dayKey(now - back * DAY_MS));
   const files = await Promise.all(days.map((day) => store.read(dayFile(day))));
-  const snapshots = files.flatMap((file) => (file ? parseDay(file.text) : []));
+  return {
+    days,
+    found: files.filter((file) => file !== null).length,
+    snapshots: files.flatMap((file) => (file ? parseDay(file.text) : [])),
+  };
+}
+
+export async function rebuildProfile(
+  store: ArchiveStore,
+  now: number,
+  recent?: RecentDays,
+): Promise<{ days: number; garages: number }> {
+  const { found, snapshots } = recent ?? (await readRecentDays(store, now));
   const profile = buildProfile(snapshots, now);
   // Replace whatever is there: the pattern is derived data, and a second run
   // writing at the same moment would have written the same thing.
   const existing = await store.read(PROFILE_FILE);
   await store.write(PROFILE_FILE, JSON.stringify(profile), existing?.version ?? null);
-  return {
-    days: files.filter((file) => file !== null).length,
-    garages: Object.keys(profile.garages).length,
-  };
+  return { days: found, garages: Object.keys(profile.garages).length };
 }
 
 export async function readProfile(store: ArchiveStore): Promise<Profile | null> {

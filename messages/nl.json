@@ -422,6 +422,31 @@
     "bar": "{time}: ongeveer {free} vrij",
     "source": "Uit de eigen metingen van deze site, om de 10 minuten sinds {since}. Een patroon, geen belofte."
   },
+  "longTerm": {
+    "title": "Dag per dag",
+    "pickRange": "Periode",
+    "ranges": {
+      "weeks": "4 weken",
+      "months": "3 maanden",
+      "year": "1 jaar"
+    },
+    "notEnough": "Nog niet genoeg geschiedenis. Deze site meet deze parking sinds {since}; de grafiek dag per dag verschijnt na {needed} volledige meetdagen ({count, plural, =0 {nog geen} one {tot nu toe #} other {tot nu toe #}}).",
+    "busiestDay": "Drukste dag: {date}, {percent}% bezet om {time}.",
+    "fullDays": "Op een moment vol op {full} van {count, plural, one {# volledige dag} other {# volledige dagen}}.",
+    "averageAll": "Overdag gemiddeld {percent}% bezet.",
+    "legendPeak": "Drukste moment",
+    "legendAverage": "Gemiddelde overdag",
+    "legendPartial": "Onvolledige dag",
+    "tableDate": "Datum",
+    "percentAt": "{percent}% bezet om {time}",
+    "tooltipPeak": "Drukst: {percent}% bezet om {time} ({free} van {total} vrij)",
+    "tooltipAverage": "Gemiddeld overdag: {percent}% bezet",
+    "tooltipFull": "Vol gedurende {hours} u {minutes} min",
+    "tooltipReadings": "{count, plural, one {Op basis van # meting} other {Op basis van # metingen}}",
+    "partial": "onvolledige dag",
+    "noReadings": "Geen metingen",
+    "source": "Uit de eigen metingen van deze site, om de 10 minuten sinds {since}. Staven: het drukste moment van elke dag. Lijn: het gemiddelde tussen {from} en {to}. Lichtere staven zijn dagen die nog bezig waren of gaten in de metingen hadden."
+  },
   "mcpPage": {
     "title": "Ghent Parking voor AI-assistenten",
     "intro": "Deze site heeft een MCP-server. Koppel die aan een assistent zoals Claude en vraag gewoon waar je in Gent kunt parkeren: de assistent leest dezelfde live gegevens en volgt dezelfde regels als deze site.",

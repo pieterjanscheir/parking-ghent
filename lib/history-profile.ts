@@ -74,8 +74,16 @@ function median(values: number[]): number {
 // Works the pattern out from raw snapshots. Each day counts once per hour
 // (the average of that hour's readings), and the usual value is the median
 // over the days: one football night doesn't shift "a typical Thursday".
+//
+// The arithmetic is done on the share of the garage that is free, each
+// reading against its own capacity, and only turned into spaces at the end,
+// against the latest capacity. Some garages report a capacity that changes:
+// in November 2026 B-Park Gent Sint-Pieters had at least 963 spaces one
+// evening and 400 the next morning, B-Park Dampoort 90 at night and 120 the
+// next day. The median of the counts themselves mixed those and gave
+// "usually 963 free" of 400.
 export function buildProfile(snapshots: Snapshot[], now: number): Profile {
-  // garage → slot → Ghent date → that hour's readings.
+  // garage → slot → Ghent date → that hour's free shares (0–1).
   const readings = new Map<string, Map<number, Map<string, number[]>>>();
   const capacity = new Map<string, { at: number; c: number }>();
   let from: string | null = null;
@@ -86,15 +94,16 @@ export function buildProfile(snapshots: Snapshot[], now: number): Profile {
     const slot = slotOf(weekday, hour);
     for (const [id, reading] of Object.entries(snapshot.g)) {
       // No count, a closed garage, or a count the feed stopped updating.
-      if (reading.f === null || reading.o === 0) continue;
+      if (reading.f === null || reading.o === 0 || reading.c <= 0) continue;
       if (reading.u !== null && snapshot.t - reading.u > FROZEN_AFTER_S) continue;
       let slots = readings.get(id);
       if (!slots) readings.set(id, (slots = new Map()));
       let days = slots.get(slot);
       if (!days) slots.set(slot, (days = new Map()));
+      const share = Math.min(reading.f, reading.c) / reading.c;
       const values = days.get(date);
-      if (values) values.push(reading.f);
-      else days.set(date, [reading.f]);
+      if (values) values.push(share);
+      else days.set(date, [share]);
       const known = capacity.get(id);
       if (!known || snapshot.t >= known.at) capacity.set(id, { at: snapshot.t, c: reading.c });
       if (from === null || date < from) from = date;
@@ -104,16 +113,17 @@ export function buildProfile(snapshots: Snapshot[], now: number): Profile {
 
   const garages: Profile["garages"] = {};
   for (const [id, slots] of readings) {
+    const c = capacity.get(id)?.c ?? 0;
     const f: (number | null)[] = Array(SLOT_COUNT).fill(null);
     const n: number[] = Array(SLOT_COUNT).fill(0);
     for (const [slot, days] of slots) {
       const dayAverages = [...days.values()].map(
         (values) => values.reduce((sum, value) => sum + value, 0) / values.length,
       );
-      f[slot] = Math.round(median(dayAverages));
+      f[slot] = Math.round(median(dayAverages) * c);
       n[slot] = dayAverages.length;
     }
-    garages[id] = { c: capacity.get(id)?.c ?? 0, f, n };
+    garages[id] = { c, f, n };
   }
   return { v: 1, builtAt: Math.floor(now / 1000), from, to, garages };
 }
@@ -144,7 +154,10 @@ export function typicalAt(
   const garage = profile?.garages[garageId];
   const slot = slotOf(weekday, hour);
   const free = garage?.f[slot] ?? null;
-  return garage && free !== null ? { hour, free, days: garage.n[slot] } : null;
+  if (!garage || free === null) return null;
+  // A pattern built before the shares above could hold more free spaces
+  // than the garage has; never pass that on.
+  return { hour, free: garage.c > 0 ? Math.min(free, garage.c) : free, days: garage.n[slot] };
 }
 
 // The hours of one day of the week that have data, in order.

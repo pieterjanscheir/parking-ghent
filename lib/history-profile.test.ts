@@ -69,6 +69,31 @@ describe("buildProfile", () => {
     expect(typicalAt(buildProfile(snapshots, THU_18), "reep", 3, 18)).toEqual({ hour: 18, free: 180, days: 1 });
   });
 
+  it("never gives more free spaces than the garage has when its capacity changes", () => {
+    // B-Park Gent Sint-Pieters on 19–20 November 2026: the feed's capacity
+    // was at least 963 in the evening and 400 the next morning. Measured as
+    // shares, the evening's 963 of 1,000 free is "96 % free", 385 of 400.
+    const pieters = (ms: number, f: number, c: number): Snapshot => ({
+      t: Math.floor(ms / 1000),
+      g: { gentstpieters: { f, c, u: null, o: 1 } },
+    });
+    const profile = buildProfile(
+      [pieters(THU_18 + 4 * 60 * MIN, 963, 1000), pieters(THU_18 + 7 * WEEK + 4 * 60 * MIN, 373, 400)],
+      THU_18 + 7 * WEEK + 5 * 60 * MIN,
+    );
+    expect(profile.garages.gentstpieters.c).toBe(400);
+    // Thursday 22:00 in Ghent: the median of 96.3 % and 93.25 % free.
+    expect(typicalAt(profile, "gentstpieters", 3, 22)?.free).toBe(Math.round(((0.963 + 0.9325) / 2) * 400));
+    const most = Math.max(...profile.garages.gentstpieters.f.map((f) => f ?? 0));
+    expect(most).toBeLessThanOrEqual(400);
+  });
+
+  it("caps a pattern built before that at the garage's capacity", () => {
+    const old = buildProfile([snap(THU_18, 200)], THU_18);
+    old.garages.reep.f[slotOf(3, 18)] = 963;
+    expect(typicalAt(old, "reep", 3, 18)?.free).toBe(455);
+  });
+
   it("is empty without snapshots", () => {
     expect(buildProfile([], THU_18)).toEqual({ v: 1, builtAt: Math.floor(THU_18 / 1000), from: null, to: null, garages: {} });
   });

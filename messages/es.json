@@ -422,6 +422,31 @@
     "bar": "{time}: unas {free} libres",
     "source": "Según las mediciones propias de este sitio, cada 10 minutos desde el {since}. Un patrón, no una promesa."
   },
+  "longTerm": {
+    "title": "Día a día",
+    "pickRange": "Periodo",
+    "ranges": {
+      "weeks": "4 semanas",
+      "months": "3 meses",
+      "year": "1 año"
+    },
+    "notEnough": "Todavía no hay suficiente historial. Este sitio mide este aparcamiento desde el {since}; el gráfico día a día aparece tras {needed} días completos de mediciones ({count, plural, =0 {ninguno por ahora} one {# por ahora} other {# por ahora}}).",
+    "busiestDay": "Día más lleno: {date}, ocupado al {percent} % a las {time}.",
+    "fullDays": "Lleno en algún momento en {full} de {count, plural, one {# día completo} other {# días completos}}.",
+    "averageAll": "De media, ocupado al {percent} % durante el día.",
+    "legendPeak": "Momento más lleno",
+    "legendAverage": "Media durante el día",
+    "legendPartial": "Día incompleto",
+    "tableDate": "Fecha",
+    "percentAt": "ocupado al {percent} % a las {time}",
+    "tooltipPeak": "Más lleno: ocupado al {percent} % a las {time} ({free} de {total} libres)",
+    "tooltipAverage": "Media durante el día: ocupado al {percent} %",
+    "tooltipFull": "Lleno durante {hours} h {minutes} min",
+    "tooltipReadings": "{count, plural, one {Basado en # medición} other {Basado en # mediciones}}",
+    "partial": "día incompleto",
+    "noReadings": "Sin mediciones",
+    "source": "A partir de las mediciones propias de este sitio, cada 10 minutos desde el {since}. Barras: el momento más lleno de cada día. Línea: la media entre las {from} y las {to}. Las barras más claras son días que aún estaban en curso o tenían huecos en las mediciones."
+  },
   "mcpPage": {
     "title": "Ghent Parking para asistentes de IA",
     "intro": "Este sitio tiene un servidor MCP. Conéctalo a un asistente como Claude y pregunta sin más dónde aparcar en Gante: el asistente lee los mismos datos en directo y sigue las mismas reglas que este sitio.",

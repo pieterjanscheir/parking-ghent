@@ -422,6 +422,31 @@
     "bar": "{time}: etwa {free} frei",
     "source": "Aus den eigenen Messungen dieser Website, alle 10 Minuten seit dem {since}. Ein Muster, kein Versprechen."
   },
+  "longTerm": {
+    "title": "Tag für Tag",
+    "pickRange": "Zeitraum",
+    "ranges": {
+      "weeks": "4 Wochen",
+      "months": "3 Monate",
+      "year": "1 Jahr"
+    },
+    "notEnough": "Noch nicht genug Verlauf. Diese Seite misst dieses Parkhaus seit dem {since}; das Diagramm Tag für Tag erscheint nach {needed} vollständigen Messtagen ({count, plural, =0 {bisher keiner} one {bisher #} other {bisher #}}).",
+    "busiestDay": "Vollster Tag: {date}, um {time} zu {percent} % belegt.",
+    "fullDays": "Zeitweise voll an {full} von {count, plural, one {# vollständigen Tag} other {# vollständigen Tagen}}.",
+    "averageAll": "Tagsüber im Schnitt zu {percent} % belegt.",
+    "legendPeak": "Vollster Moment",
+    "legendAverage": "Durchschnitt tagsüber",
+    "legendPartial": "Unvollständiger Tag",
+    "tableDate": "Datum",
+    "percentAt": "um {time} zu {percent} % belegt",
+    "tooltipPeak": "Am vollsten: um {time} zu {percent} % belegt ({free} von {total} frei)",
+    "tooltipAverage": "Durchschnitt tagsüber: zu {percent} % belegt",
+    "tooltipFull": "Voll für {hours} Std. {minutes} Min.",
+    "tooltipReadings": "{count, plural, one {Auf Grundlage von # Messung} other {Auf Grundlage von # Messungen}}",
+    "partial": "unvollständiger Tag",
+    "noReadings": "Keine Messungen",
+    "source": "Aus den eigenen Messungen dieser Seite, alle 10 Minuten seit dem {since}. Balken: der vollste Moment jedes Tages. Linie: der Durchschnitt zwischen {from} und {to}. Hellere Balken sind Tage, die noch liefen oder Lücken in den Messungen hatten."
+  },
   "mcpPage": {
     "title": "Ghent Parking für KI-Assistenten",
     "intro": "Diese Website hat einen MCP-Server. Verbinden Sie ihn mit einem Assistenten wie Claude und fragen Sie einfach, wo Sie in Gent parken können: Der Assistent liest dieselben Live-Daten und folgt denselben Regeln wie diese Website.",

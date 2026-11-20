@@ -165,7 +165,7 @@ One line of a day's file:
 | `u` | When the feed last updated this count (Unix time, seconds), or `null` |
 | `o` | `1` open, `0` closed |
 
-The archive only collects for now. Showing "usually busy at this hour" and a better forecast come once there are a few weeks of data.
+Two things are worked out from it every night: the weekly pattern ("usually busy at this hour", below) and a long-term summary, one line per garage per day, kept for as long as the archive exists ([The long-term summary](#the-long-term-summary)). The archive started on 19 November 2026; that day has one reading around 13:00 UTC and then a gap until 19:40, so it shows as a partial day.
 
 ### The weekly pattern
 
@@ -173,13 +173,46 @@ The archive only collects for now. Showing "usually busy at this hour" and a bet
 
 - **One value per garage per hour of the week** (168 hours, Ghent time). Each day counts once per hour (the average of that hour's readings); the usual value is the median over the days of the last four weeks, so one concert night doesn't shift "a typical Thursday".
 - **Only real measurements count.** Readings without a count, from a closed garage, or from a count the feed stopped updating are left out.
+- **Worked out as shares, so never more free than the garage has.** The B-Park garages at the stations report a capacity that changes: in November 2026 Gent Sint-Pieters had at least 963 spaces one evening and 400 the next morning, Dampoort 90 at night and 120 by day. A median of the counts mixed those and gave "usually 963 free" of 400. Each reading is now taken as the share free against its own capacity, and the usual share is turned back into spaces against the latest capacity (`c`). A pattern file built before that is capped at `c` when it is read.
 - **It says how much it is based on.** Every value carries the number of days behind it ("measured on 1 day so far"), and the page says since when the site has been measuring.
-- **Built once a night, not on page views.** The scheduled job that saves the snapshots also reads the last 29 day files (today and the 28 days before) on its first run of the UTC day (and once more at 03:00) and saves the result as one small file, `history/v1/profile.json` (about 15 KB) ([lib/history-profile-store.ts](lib/history-profile-store.ts)). That is about 60 extra storage operations a day (29 day files read twice a night), next to the 288 the snapshots already use.
+- **Built once a night, not on page views.** The scheduled job that saves the snapshots also reads the last 29 day files (today and the 28 days before) on its first run of the UTC day (and once more at 03:00) and saves the result as one small file, `history/v1/profile.json` (about 15 KB) ([lib/history-profile-store.ts](lib/history-profile-store.ts)). That is about 60 extra storage operations a day (29 day files read twice a night, plus reading and writing the pattern), next to the 288 the snapshots already use.
 - **Pages only read that one file.** `/api/typical` serves it and the CDN keeps it for six hours; a server instance reads it from storage at most once every three hours.
 - **To build it right away** (after the first deploy, or after changing the calculation), call the job with `?profile=1`:
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" "https://<your-domain>/api/cron/snapshot?profile=1"
+```
+
+### The long-term summary
+
+"How full was this garage, day by day, over the last months?" A garage page shows it as a chart with a choice of 4 weeks, 3 months or a year ([components/long-term-history.tsx](components/long-term-history.tsx)): one bar per day for its busiest moment, a line for the daytime average, and in words the busiest day, on how many days it was full and the overall daytime average. The numbers come from one small file, `history/v1/daily.json` ([lib/history-summary.ts](lib/history-summary.ts), [lib/history-summary-store.ts](lib/history-summary-store.ts)):
+
+```json
+{"v":1,"builtAt":1795143609,"from":"2026-11-19","to":"2026-11-20",
+ "garages":{"parking-vrijdagmarkt":{"2026-11-20":[144,602,15,860,46,1,6]}}}
+```
+
+| Position | Meaning |
+| --- | --- |
+| 1 `n` | Readings the day is based on (open, with a current count) |
+| 2 `c` | Capacity at the busiest reading |
+| 3 `lo` | Free spaces at the busiest reading: the fewest of the day |
+| 4 `at` | When that was, Ghent clock time in minutes after midnight (860 = 14:20) |
+| 5 `avg` | Average share occupied between 07:00 and 23:00, in % (`null` without daytime readings) |
+| 6 `full` | Readings with under 5 % free (× 10 = minutes full) |
+| 7 `tight` | Readings with under 20 % free, the full ones included |
+
+- **Days in Ghent, shares per reading.** A day runs from midnight to midnight in Ghent (138 or 150 readings when the clocks change). "Busiest" is the reading with the largest share occupied, each against its own capacity, so a garage whose reported capacity changes (see above) is still compared fairly.
+- **Partial days are marked, never shown as quiet.** A day with more than two hours without a count (the day still in progress, the evening the archive started, an outage) is drawn lighter, and left out of "busiest day", "full on … days" and the average.
+- **It accumulates.** The nightly run summarises the Ghent days in the 29 files it already read for the weekly pattern and merges them into the file: those days are replaced, every other day is kept as it was. A day therefore stays long after its file has left the four weeks. The first Ghent day in the files is skipped, because its first hour or two lie in the file before. Running it twice changes nothing.
+- **Small.** About 40 bytes per garage per day: around 200 KB for a year of 15 garages (about 35 KB compressed). `/api/daily?garage=<id>` serves one garage's days (about 15 KB a year), kept by the CDN for six hours ("none yet" for ten minutes).
+- **Cheap.** It reads no day files of its own: one read and one write of `daily.json` per nightly run, about 4 storage operations a day.
+- **Never in the way.** If the summary fails, the snapshot is still saved and the pattern still built; the response says what went wrong and the next nightly run tries again. A `daily.json` that can't be read is never overwritten (it holds days no longer read every night); rebuild it instead.
+- **Shown from a week on.** Until a garage has 7 complete days, its page says since when it is measured and how many complete days there are so far.
+- **To build it from every stored day file** (the first time, or after changing the calculation), call the job with `?summary=1`. It starts at the archive's first day (19 November 2026) unless given `&from=YYYY-MM-DD`, and reads four weeks of files at a time: about 365 reads for a year of archive, once.
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" "https://<your-domain>/api/cron/snapshot?summary=1"
 ```
 
 ### Switching it on
@@ -202,7 +235,7 @@ HISTORY_ARCHIVE_DIR=.data CRON_SECRET=dev pnpm dev
 curl -H "Authorization: Bearer dev" http://localhost:3000/api/cron/snapshot
 ```
 
-Usage on Vercel, per month: about 4,300 scheduled calls, 4,300 file writes, 4,300 file reads and roughly 300 MB read back from storage. That is small next to what a Pro plan includes for Blob, but check Vercel's current Blob pricing before relying on that.
+Usage on Vercel, per month: about 4,300 scheduled calls, 4,400 file writes, 6,200 file reads (the nightly pattern and summary included) and roughly 500 MB read back from storage (about 280 MB for the snapshots, 230 MB for the four weeks read twice a night). That is small next to what a Pro plan includes for Blob, but check Vercel's current Blob pricing before relying on that.
 
 ## Cities
 

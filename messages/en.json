@@ -422,6 +422,31 @@
     "bar": "{time}: about {free} free",
     "source": "From this site's own measurements, every 10 minutes since {since}. A pattern, not a promise."
   },
+  "longTerm": {
+    "title": "Day by day",
+    "pickRange": "Period",
+    "ranges": {
+      "weeks": "4 weeks",
+      "months": "3 months",
+      "year": "1 year"
+    },
+    "notEnough": "Not enough history yet. This site started measuring this garage on {since}; the day-by-day chart appears after {needed} complete days of measurements ({count, plural, =0 {none so far} one {# so far} other {# so far}}).",
+    "busiestDay": "Busiest day: {date}, {percent}% full at {time}.",
+    "fullDays": "Full at some point on {full} of {count, plural, one {# complete day} other {# complete days}}.",
+    "averageAll": "On average {percent}% full during the day.",
+    "legendPeak": "Busiest moment",
+    "legendAverage": "Daytime average",
+    "legendPartial": "Partial day",
+    "tableDate": "Date",
+    "percentAt": "{percent}% full at {time}",
+    "tooltipPeak": "Busiest: {percent}% full at {time} ({free} of {total} free)",
+    "tooltipAverage": "Daytime average: {percent}% full",
+    "tooltipFull": "Full for {hours} h {minutes} min",
+    "tooltipReadings": "{count, plural, one {Based on # reading} other {Based on # readings}}",
+    "partial": "partial day",
+    "noReadings": "No measurements",
+    "source": "From this site's own measurements, every 10 minutes since {since}. Bars: each day's busiest moment. Line: the average between {from} and {to}. Lighter bars are days that were still in progress or had gaps in the measurements."
+  },
   "mcpPage": {
     "title": "Ghent Parking for AI assistants",
     "intro": "This site has an MCP server. Connect it to an assistant such as Claude and simply ask where to park in Ghent: the assistant reads the same live data and follows the same rules as this site.",
