@@ -194,6 +194,8 @@ describe("findParking", () => {
     expect(result.destination.name).toBe("Gravensteen");
     expect(result.best_choice).toMatchObject({ id: "near", walking_minutes: expect.any(Number) });
     expect(result.best_choice!.distance_m).toBeLessThan(200);
+    // Where it is, so a card can offer a route to it.
+    expect(result.best_choice!.position).toEqual({ lat: expect.any(Number), lng: expect.any(Number) });
     expect(result.why_not_the_nearest).toBeNull();
     expect(result.other_garages_with_space.map((g) => g.id)).toEqual(["middle", "far"]);
     expect(result.nearest_park_and_ride).toMatchObject({ id: "pr-watersportbaan" });
