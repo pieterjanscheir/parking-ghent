@@ -7,6 +7,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import {
   parseAsArrayOf,
   parseAsBoolean,
+  parseAsNumberLiteral,
   parseAsString,
   parseAsStringEnum,
   useQueryState,
@@ -15,6 +16,7 @@ import { toast } from "sonner";
 import {
   AlertTriangle,
   CircleCheck,
+  Clock,
   LayoutGrid,
   List,
   LocateFixed,
@@ -53,6 +55,7 @@ import {
 } from "@/lib/parkings";
 import type { DirectoryEntry } from "@/lib/directory";
 import { nearestParkAndRide, suggestGarage } from "@/lib/recommend";
+import { DEFAULT_STAY, STAY_OPTIONS, stayCosts } from "@/lib/tariffs";
 import type { Parking } from "@/lib/parkings.schema";
 import type { Trend } from "@/lib/parking-history";
 import { cn } from "@/lib/utils";
@@ -96,6 +99,8 @@ const SORT_PARSER = parseAsStringEnum([...SORT_KEYS]).withDefault(DEFAULT_SORT);
 const VIEW_PARSER = parseAsStringEnum([...VIEW_VALUES]).withDefault("cards");
 const ARRAY_PARSER = parseAsArrayOf(parseAsString).withDefault([]);
 const BOOL_PARSER = parseAsBoolean.withDefault(false);
+// How long the visitor means to stay, in minutes: what the prices are for.
+const STAY_PARSER = parseAsNumberLiteral(STAY_OPTIONS).withDefault(DEFAULT_STAY);
 const Q_OPTIONS = { defaultValue: "", clearOnDefault: true } as const;
 
 export function ParkingOverview({
@@ -110,6 +115,7 @@ export function ParkingOverview({
   const tCommon = useTranslations("common");
   const tDestination = useTranslations("destination");
   const tExtras = useTranslations("extras");
+  const tTariffs = useTranslations("tariffs");
   const format = useFormatter();
   const formatAge = useFormatAge();
   const labels = useParkingLabels();
@@ -126,6 +132,7 @@ export function ParkingOverview({
   const [typeFilter, setTypeFilter] = useQueryState("type", ARRAY_PARSER);
   const [bucketFilter, setBucketFilter] = useQueryState("bucket", ARRAY_PARSER);
   const [featureFilter, setFeatureFilter] = useQueryState("has", ARRAY_PARSER);
+  const [stay, setStay] = useQueryState("stay", STAY_PARSER);
   // The map's "Charge points" layer.
   const [showChargers, setShowChargers] = useQueryState("ev", BOOL_PARSER);
   // Where the visitor is heading. Kept in the URL (name + coordinates) so
@@ -223,9 +230,18 @@ export function ParkingOverview({
     [q, onlyAvailable, filterValue],
   );
 
+  // What the chosen stay costs in each car park, arriving now. Recomputed as
+  // the clock moves, since the rates change at 7:00 and 19:00.
+  const costs = useMemo(
+    () => stayCosts([...parkings, ...extras].map((place) => place.id), now, stay),
+    [parkings, extras, now, stay],
+  );
+  const cheapest = sort === "cheapest";
+  const stayFor = (id: string) => ({ cost: costs[id] ?? null, minutes: stay, showUnknown: cheapest });
+
   const filteredRest = useMemo(
-    () => sortParkings(filterParkings(rest, filters), sort, origin),
-    [rest, filters, sort, origin],
+    () => sortParkings(filterParkings(rest, filters), sort, origin, costs),
+    [rest, filters, sort, origin, costs],
   );
 
   // The map shows everything that matches, favorites included.
@@ -256,8 +272,8 @@ export function ParkingOverview({
   }, [parkings, extras, origin, trendsById, now]);
 
   const filteredExtras = useMemo(
-    () => sortExtras(filterExtras(extras, filters), origin),
-    [extras, filters, origin],
+    () => sortExtras(filterExtras(extras, filters), origin, cheapest ? costs : null),
+    [extras, filters, origin, cheapest, costs],
   );
 
   const updateFilters = (next: Partial<ParkingFiltersValue>) => {
@@ -455,7 +471,28 @@ export function ParkingOverview({
                 <SelectItem key={key} value={key}>
                   {key === "distance" && destination
                     ? tDestination("nearestToDestination")
-                    : tSort(key)}
+                    : key === "cheapest"
+                      ? tTariffs("sortCheapest")
+                      : tSort(key)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={String(stay)}
+            onValueChange={(v) => {
+              const next = Number(v);
+              setStay(next === DEFAULT_STAY ? null : (next as typeof stay));
+            }}
+          >
+            <SelectTrigger size="sm" className="w-[120px]" aria-label={tTariffs("stayLabel")}>
+              <Clock className="size-3.5 text-muted-foreground" aria-hidden />
+              <SelectValue placeholder={tTariffs("stayLabel")} />
+            </SelectTrigger>
+            <SelectContent>
+              {STAY_OPTIONS.map((minutes) => (
+                <SelectItem key={minutes} value={String(minutes)}>
+                  {tTariffs("stayOption", { hours: minutes / 60 })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -542,6 +579,8 @@ export function ParkingOverview({
           now={now}
           sort={sort}
           onSortChange={(s) => setSort(s === DEFAULT_SORT ? null : s)}
+          costs={costs}
+          stayMinutes={stay}
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -553,6 +592,7 @@ export function ParkingOverview({
               now={now}
               distanceKm={distances[p.id]}
               walking={hasDestination}
+              stay={stayFor(p.id)}
             />
           ))}
         </div>
@@ -571,6 +611,7 @@ export function ParkingOverview({
                 entry={entry}
                 distanceKm={distances[entry.id]}
                 walking={hasDestination}
+                stay={stayFor(entry.id)}
               />
             ))}
           </div>
@@ -578,6 +619,7 @@ export function ParkingOverview({
       ) : null}
 
       <p className="mt-8 text-xs text-muted-foreground">{t("forecastNote")}</p>
+      <p className="mt-2 text-xs text-muted-foreground">{tTariffs("overviewNote")}</p>
     </div>
   );
 }

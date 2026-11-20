@@ -88,6 +88,7 @@ export function ExtraParkingDetail({
           evChargers={entry.evChargers}
           evMaxKw={entry.evMaxKw}
           note={entry.note}
+          tariffId={entry.id}
         />
 
         {entry.parkAndRide ? <OnwardTravel lat={entry.lat} lng={entry.lng} /> : null}

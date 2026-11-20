@@ -10,6 +10,7 @@ const TOOLS = [
   "list_garages",
   "find_parking",
   "get_garage",
+  "cheapest_parking",
   "typical_availability",
   "list_cities",
 ] as const;
@@ -35,6 +36,7 @@ export default async function McpPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("mcpPage");
+  const tTariffs = await getTranslations("tariffs");
   const heading = "mt-10 font-heading text-lg font-semibold tracking-tight";
 
   return (
@@ -64,7 +66,10 @@ export default async function McpPage({ params }: Props) {
             <dt>
               <code className="font-mono text-sm font-semibold">{tool}</code>
             </dt>
-            <dd className="mt-1 text-sm text-muted-foreground">{t(`tools.${tool}`)}</dd>
+            <dd className="mt-1 text-sm text-muted-foreground">
+              {/* Described with the rest of the rates feature (messages: "tariffs"). */}
+              {tool === "cheapest_parking" ? tTariffs("mcpTool") : t(`tools.${tool}`)}
+            </dd>
           </div>
         ))}
       </dl>

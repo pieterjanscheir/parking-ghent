@@ -6,6 +6,7 @@ import { CITY_IDS, type CityId } from "@/lib/cities/info";
 import { WEEKDAYS } from "@/lib/history-profile";
 import {
   ToolInputError,
+  cheapestParking,
   findParking,
   getGarage,
   listCities,
@@ -91,7 +92,7 @@ function buildServer(request: Request): McpServer {
     {
       title: "Cities this server knows",
       description:
-        "The cities these tools can answer for and what is known about each. Live free spaces: Ghent and Hasselt in Belgium, Strasbourg in France. Car parks with their size and place but no live count: Antwerp, Brussels, Liège and Namur. A forecast and the usual weekly pattern only for Ghent, where the site keeps history.",
+        "The cities these tools can answer for and what is known about each. Live free spaces: Ghent and Hasselt in Belgium, Strasbourg in France. Car parks with their size and place but no live count: Antwerp, Brussels, Liège and Namur. A forecast and the usual weekly pattern only for Ghent, where the site keeps history. Parking rates (what a stay costs) only for Ghent.",
       inputSchema: {},
       annotations: READ_ONLY,
     },
@@ -103,7 +104,7 @@ function buildServer(request: Request): McpServer {
     {
       title: "Parking garages, live",
       description:
-        "Every public car park in a city (Ghent by default) with its live number of free spaces, a forecast for the next hour where there is one, and facts such as Park & Ride, free of charge and EV charging where the city's data has them. Car parks for which the city publishes no count are listed separately; for some cities that is all of them (see list_cities).",
+        "Every public car park in a city (Ghent by default) with its live number of free spaces, a forecast for the next hour where there is one, and facts such as Park & Ride, free of charge and EV charging where the city's data has them. In Ghent, `price` gives what 1 to 24 hours from now cost where the operator's rates are known; null means unknown, not free. Car parks for which the city publishes no count are listed separately; for some cities that is all of them (see list_cities).",
       inputSchema: {
         city: CITY,
         only_with_space: z
@@ -140,7 +141,7 @@ function buildServer(request: Request): McpServer {
     {
       title: "One car park",
       description:
-        "Everything known about one car park: live free spaces, address and position, and for Ghent also the forecast for the next hour, what is usual at this hour, opening hours, operator and the city's own remarks.",
+        "Everything known about one car park: live free spaces, address and position, and for Ghent also the forecast for the next hour, what is usual at this hour, opening hours, operator, the city's own remarks and the operator's rates (day and night tables, daily maximum, source page and the date they were checked; null where not known).",
       inputSchema: {
         city: CITY,
         garage: z.string().max(120).describe('Name or id, for example "Vrijdagmarkt" or "Sint-Pietersplein".'),
@@ -149,6 +150,31 @@ function buildServer(request: Request): McpServer {
       _meta: WITH_CARD,
     },
     (input) => answer(request, input.city, (src) => getGarage(src, input)),
+  );
+
+  server.registerTool(
+    "cheapest_parking",
+    {
+      title: "Cheapest car park for a stay",
+      description:
+        "Which car parks cost least for a stay of a given length, arriving now or at a given time: cheapest first, with the estimated cost in euros from each operator's published rates (day and night rates, daily maximum, stays past midnight). Can be limited to car parks inside or outside the low-emission zone, or to those with space now. Car parks whose rates aren't known are listed by name under price_unknown, never as free. Ghent only; other cities have no rates.",
+      inputSchema: {
+        city: CITY,
+        stay_minutes: z.number().int().min(1).max(10080).describe("How long the car stays, in minutes (at most a week)."),
+        arrive_at: z
+          .string()
+          .max(40)
+          .optional()
+          .describe('When the car arrives: "2026-11-21T14:00" in Ghent time, or with an offset. Now when left out.'),
+        inside_low_emission_zone: z
+          .boolean()
+          .optional()
+          .describe("true: only car parks inside the low-emission zone; false: only those outside it."),
+        only_with_space: z.boolean().optional().describe("Only garages that are open and have free spaces according to a current count."),
+      },
+      annotations: READ_ONLY,
+    },
+    (input) => answer(request, input.city, (src) => cheapestParking(src, input)),
   );
 
   server.registerTool(

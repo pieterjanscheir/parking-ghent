@@ -1,6 +1,8 @@
 import { Bus, Info, Tag, Zap } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { localizedNote, type LocalizedNote } from "@/lib/directory";
+import { tariffFor } from "@/lib/tariffs";
+import { TariffDetails } from "./tariff-details";
 
 type Props = {
   parkAndRide: boolean;
@@ -8,21 +10,35 @@ type Props = {
   evChargers: number;
   evMaxKw: number | null;
   note: LocalizedNote | null;
+  // The car park's id, to look up its rates (lib/tariffs.ts).
+  tariffId?: string;
 };
 
 const TERM =
   "inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground";
 
-// The practical facts on a car park's page: price (when known), Park & Ride,
-// charging, and the city's own remark. Renders nothing when there are none.
-export function ParkingFacilities({ parkAndRide, isFree, evChargers, evMaxKw, note }: Props) {
+// The practical facts on a car park's page: price (the operator's rates
+// where we have them, else free or paid when known), Park & Ride, charging,
+// and the city's own remark. Renders nothing when there are none.
+export function ParkingFacilities({ parkAndRide, isFree, evChargers, evMaxKw, note, tariffId }: Props) {
   const t = useTranslations("facilities");
+  const tTariffs = useTranslations("tariffs");
   const locale = useLocale();
   const remark = localizedNote(note, locale);
-  if (!parkAndRide && isFree === null && evChargers === 0 && !remark) return null;
+  const tariff = tariffId ? tariffFor(tariffId) : null;
+  if (!tariff && !parkAndRide && isFree === null && evChargers === 0 && !remark) return null;
   return (
     <dl className="mt-8 grid gap-5 sm:grid-cols-2">
-      {isFree !== null ? (
+      {tariff ? (
+        <div className="sm:col-span-2">
+          <dt className={TERM}>
+            <Tag className="size-3.5" aria-hidden /> {tTariffs("ratesTitle")}
+          </dt>
+          <dd className="mt-2">
+            <TariffDetails entry={tariff} />
+          </dd>
+        </div>
+      ) : isFree !== null ? (
         <div>
           <dt className={TERM}>
             <Tag className="size-3.5" aria-hidden /> {t("priceLabel")}

@@ -8,6 +8,16 @@ import { distanceKm, formatLatLng, walkingMinutes, type LatLng } from "./geo";
 import { WEEKDAYS, ghentHour, typicalAt, type Profile, type Weekday } from "./history-profile";
 import type { Parking } from "./parkings.schema";
 import { minutesLeftUntilFull, nearestParkAndRide, suggestGarage } from "./recommend";
+import {
+  rateColumns,
+  stayCost,
+  tariffFor,
+  weekdayRuns,
+  type RateColumn,
+  type TariffEntry,
+  type TariffNote,
+} from "./tariffs";
+import { wallClockToEpoch } from "./zoned-time";
 
 // What the MCP endpoint (app/api/mcp) answers with: the same data and the
 // same rules as the website, as plain objects an AI assistant can read.
@@ -56,6 +66,109 @@ function forecastOf(p: Parking, src: Sources) {
   return { expected_free_spaces: expected, likely_full_in_minutes: untilFull };
 }
 
+// --- Prices ------------------------------------------------------------------
+
+const euros = (cents: number | null) => (cents === null ? null : cents / 100);
+
+// Stays the price summary gives a cost for, in hours.
+const EXAMPLE_STAYS = [1, 2, 4, 8, 24] as const;
+
+const NOTE_TEXT: Record<TariffNote, string> = {
+  events:
+    "Rates can differ during big events (Gentse Feesten, Lichtfestival, Winterfeesten, Braderie Publique); those are not included.",
+  holidays: "On Belgian public holidays the daytime rate is the Sunday rate (included).",
+  pcard: "Pcard customers get 25% off; not included.",
+  registration:
+    "Free only when the number plate is registered within 72 hours at a P+R pillar in the centre (Zuid, Kouter or Korenmarkt); otherwise the normal rates apply on leaving.",
+};
+
+// The rate table entry for a car park, where this city has one. null means
+// the price is unknown: never read it as "free".
+function tariffOf(src: Sources, id: string): TariffEntry | null {
+  return src.city.knows.rates ? tariffFor(id) : null;
+}
+
+// What a stay costs here (euro cents), or null when unknown.
+function costAt(src: Sources, id: string, arrival: number, minutes: number): number | null {
+  const entry = tariffOf(src, id);
+  return entry ? stayCost(entry.tariff, arrival, minutes) : null;
+}
+
+// What staying 1, 2, 4, 8 or 24 hours from now costs, and where the rates
+// come from. For every car park in a list.
+function priceSummary(src: Sources, id: string) {
+  const entry = tariffOf(src, id);
+  if (!entry) return null;
+  const cost_from_now_eur: Record<string, number | null> = {};
+  for (const hours of EXAMPLE_STAYS) {
+    cost_from_now_eur[`${hours}h`] = euros(stayCost(entry.tariff, src.now, hours * 60));
+  }
+  return {
+    free: entry.tariff.kind === "free",
+    // null: a price for that length isn't known.
+    cost_from_now_eur,
+    operator: entry.operator,
+    source_url: entry.sourceUrl,
+    checked_on: entry.checkedOn,
+  };
+}
+
+const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const hh = (hour: number) => `${String(hour).padStart(2, "0")}:00`;
+
+function whenApplies(column: RateColumn, dayStart: number, dayEnd: number): string {
+  if (column.period === "always") return "around the clock";
+  if (column.period === "night") return `every night ${hh(dayEnd)}–${hh(dayStart)}`;
+  const days = weekdayRuns(column.weekdays)
+    .map(([a, b]) => (a === b ? WEEKDAY_NAMES[a] : `${WEEKDAY_NAMES[a]}–${WEEKDAY_NAMES[b]}`))
+    .join(", ");
+  return `${days}${column.holidays ? " and public holidays" : ""} ${hh(dayStart)}–${hh(dayEnd)}`;
+}
+
+// The operator's full rates, for one car park.
+function ratesOf(src: Sources, id: string) {
+  const entry = tariffOf(src, id);
+  if (!entry) return null;
+  const { tariff } = entry;
+  const notes = entry.notes.map((note) => NOTE_TEXT[note]);
+  if (tariff.kind === "free") {
+    return {
+      free: true,
+      free_up_to_hours: tariff.maxMinutes === undefined ? null : tariff.maxMinutes / 60,
+      notes,
+      operator: entry.operator,
+      source_url: entry.sourceUrl,
+      checked_on: entry.checkedOn,
+    };
+  }
+  const [dayStart, dayEnd] =
+    tariff.schedule.kind === "day-night" ? [tariff.schedule.dayStartHour, tariff.schedule.dayEndHour] : [0, 0];
+  return {
+    free: false,
+    // Each band's table: the price after 1, 2, 3 … slices of the given
+    // length, then the band's maximum. Times are Ghent time.
+    bands: rateColumns(tariff).map((column) => {
+      const ladder = tariff.bands[column.band];
+      return {
+        applies: whenApplies(column, dayStart, dayEnd),
+        slice_minutes: ladder.sliceMinutes,
+        ...(ladder.prices
+          ? { price_eur_after_slices: ladder.prices.map((cents) => cents / 100) }
+          : { price_eur_per_slice: (ladder.perSlice ?? 0) / 100 }),
+        max_eur: ladder.cap / 100,
+      };
+    }),
+    max_per_24_hours_eur: tariff.dailyCap / 100,
+    free_minutes_when_leaving_at_once: tariff.graceMinutes,
+    how_a_stay_is_charged:
+      "Each run of hours inside one band is charged on that band's table; every 24 hours from arrival cost at most max_per_24_hours_eur, and a longer stay starts counting again. cheapest_parking does this sum.",
+    notes,
+    operator: entry.operator,
+    source_url: entry.sourceUrl,
+    checked_on: entry.checkedOn,
+  };
+}
+
 function liveGarage(p: Parking, src: Sources) {
   const today = ghentHour(src.now);
   const typical = typicalAt(src.profile, p.id, today.weekday, today.hour);
@@ -77,6 +190,9 @@ function liveGarage(p: Parking, src: Sources) {
     // null where this city's data doesn't say: unknown, not "no".
     park_and_ride: knows.parkAndRide ? p.parkAndRide : null,
     free_of_charge: knows.price ? p.isFree : null,
+    // What a stay starting now costs, from the operator's published rates;
+    // null where they aren't known.
+    price: priceSummary(src, p.id),
     ev_charge_points: knows.charging ? p.evChargers : null,
     inside_low_emission_zone: knows.lowEmissionZone ? p.isInsideLez : null,
     position: p.lat !== null && p.lng !== null ? { lat: p.lat, lng: p.lng } : null,
@@ -96,6 +212,7 @@ function carParkWithoutCount(e: DirectoryEntry, src: Sources) {
     park_and_ride: knows.parkAndRide ? e.parkAndRide : null,
     // null where it isn't known.
     free_of_charge: e.isFree,
+    price: priceSummary(src, e.id),
     // Where a city's data isn't complete on this, a number means "at least
     // these" and nothing means unknown, not none.
     ev_charge_points: knows.charging ? e.evChargers : e.evChargers > 0 ? e.evChargers : null,
@@ -162,6 +279,7 @@ export function getGarage(src: Sources, input: { garage: string }) {
       operator: live.operator || null,
       phone: live.phone,
       city_remark: live.note?.en ?? live.note?.nl ?? null,
+      rates: ratesOf(src, live.id),
     };
   }
   const extra = findExtra(src, input.garage);
@@ -170,6 +288,7 @@ export function getGarage(src: Sources, input: { garage: string }) {
       ...carParkWithoutCount(extra, src),
       position: { lat: extra.lat, lng: extra.lng },
       city_remark: extra.note?.en ?? extra.note?.nl ?? null,
+      rates: ratesOf(src, extra.id),
     };
   }
   throw new ToolInputError(
@@ -314,6 +433,119 @@ export function typicalAvailability(
   };
 }
 
+// A moment from the assistant: with an offset or "Z" as given, without one
+// as Ghent's clock time.
+function parseArrival(text: string | undefined, now: number): number {
+  const trimmed = text?.trim() ?? "";
+  if (!trimmed) return now;
+  const ms = /(Z|[+-]\d{2}:?\d{2})$/i.test(trimmed)
+    ? Date.parse(trimmed)
+    : wallClockToEpoch(trimmed, "Europe/Brussels");
+  if (ms === null || !Number.isFinite(ms)) {
+    throw new ToolInputError(
+      'arrive_at must be a date and time such as "2026-11-21T14:00" (Ghent time), or one with an offset such as "2026-11-21T13:00Z".',
+    );
+  }
+  return ms;
+}
+
+// The longest stay cheapest_parking prices: a week.
+const MAX_STAY_MINUTES = 7 * 24 * 60;
+// How many priced car parks it lists.
+const CHEAPEST_LIMIT = 10;
+
+export function cheapestParking(
+  src: Sources,
+  input: {
+    stay_minutes: number;
+    arrive_at?: string;
+    inside_low_emission_zone?: boolean;
+    only_with_space?: boolean;
+  },
+) {
+  const minutes = input.stay_minutes;
+  if (!Number.isInteger(minutes) || minutes < 1 || minutes > MAX_STAY_MINUTES) {
+    throw new ToolInputError(`stay_minutes must be a whole number from 1 to ${MAX_STAY_MINUTES}.`);
+  }
+  const arrival = parseArrival(input.arrive_at, src.now);
+  const lez = input.inside_low_emission_zone;
+  if (lez !== undefined && !src.city.knows.lowEmissionZone) {
+    throw new ToolInputError(`${src.city.name}'s data doesn't say which car parks lie inside a low-emission zone.`);
+  }
+  const { knows } = src.city;
+  const live = src.parkings.filter(
+    (p) => (lez === undefined || p.isInsideLez === lez) && (!input.only_with_space || hasSpace(p, src)),
+  );
+  // Without a live count, or without a known zone, a car park can't be said
+  // to match those filters.
+  const extras = lez === undefined && !input.only_with_space ? src.extras : [];
+  const rows = [
+    ...live.map((p) => ({
+      cost: costAt(src, p.id, arrival, minutes),
+      usable: p.isOpen && p.hasLiveData,
+      free: p.hasLiveData ? p.freeSpaces : -1,
+      row: {
+        id: p.id,
+        name: p.name,
+        address: p.address || null,
+        open: p.isOpen,
+        free_spaces: p.hasLiveData ? p.freeSpaces : null,
+        count_is_current: p.hasLiveData && !isStale(p, src.now),
+        inside_low_emission_zone: knows.lowEmissionZone ? p.isInsideLez : null,
+        park_and_ride: knows.parkAndRide ? p.parkAndRide : null,
+        url: pageUrl(src, p.id) ?? (p.websiteUrl || null),
+      },
+    })),
+    ...extras.map((e) => ({
+      cost: costAt(src, e.id, arrival, minutes),
+      // Whether it is open or has room isn't known.
+      usable: true,
+      free: -1,
+      row: {
+        id: e.id,
+        name: e.name,
+        address: e.address || null,
+        open: null,
+        free_spaces: null,
+        count_is_current: false,
+        inside_low_emission_zone: null,
+        park_and_ride: knows.parkAndRide ? e.parkAndRide : null,
+        url: pageUrl(src, e.id) ?? e.url,
+      },
+    })),
+  ];
+  const known = rows
+    .filter((item) => item.cost !== null)
+    .sort((a, b) => a.cost! - b.cost! || Number(b.usable) - Number(a.usable) || b.free - a.free);
+  const unknown = rows.filter((item) => item.cost === null);
+  return {
+    city: src.city.name,
+    arrive_at: new Date(arrival).toISOString(),
+    stay_minutes: minutes,
+    inside_low_emission_zone: lez ?? null,
+    // Cheapest first. cost_eur is an estimate from the operators' published
+    // rates; the car park's own pay machine decides.
+    cheapest: known.slice(0, CHEAPEST_LIMIT).map((item) => ({
+      ...item.row,
+      cost_eur: euros(item.cost),
+      rates_source: tariffOf(src, item.row.id)?.sourceUrl ?? null,
+    })),
+    // No confirmed rates for these: their price is unknown, not zero.
+    price_unknown: unknown.map((item) => item.row.name),
+    note: !knows.rates
+      ? `This site knows no parking rates for ${src.city.name}, so it cannot say which car park is cheapest.`
+      : [
+          "Estimates from the rates each operator publishes (get_garage gives the full rates and their source). Event rates (Gentse Feesten, Lichtfestival …) and discount cards are not included.",
+          lez !== undefined || input.only_with_space
+            ? "Car parks without a live count are left out: whether they have room, or lie inside the zone, isn't known."
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" "),
+    source: sourceLine(src),
+  };
+}
+
 // Which cities the tools can answer for, and how much they know about each.
 export function listCities(siteUrl: string) {
   return {
@@ -325,6 +557,8 @@ export function listCities(siteUrl: string) {
       // false: the city only lists where its car parks are and how big.
       live_free_spaces: city.knows.liveCounts,
       park_and_ride_marked: city.knows.parkAndRide,
+      // What a stay costs (cheapest_parking); elsewhere unknown, not free.
+      parking_rates: city.knows.rates,
       forecast_for_the_next_hour: city.knows.forecast,
       usual_pattern_per_hour_of_the_week: city.knows.typical,
       well_known_places_by_name: city.placeNames().length > 0,

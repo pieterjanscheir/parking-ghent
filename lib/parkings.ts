@@ -8,6 +8,7 @@ import {
   type DirectoryEntry,
 } from "./directory";
 import { distanceKm, type LatLng } from "./geo";
+import { tariffFor } from "./tariffs";
 import { cached } from "./ttl-cache";
 import { fetchUpstream } from "./upstream";
 
@@ -212,6 +213,7 @@ export function combineSources(
     const facts = directoryFacts(byLiveId[p.id]);
     return {
       ...p,
+      isFree: p.isFree || tariffSaysFree(p.id) === true,
       parkAndRide: p.parkAndRide || facts.parkAndRide,
       note: facts.note,
       evChargers: charging[p.id]?.count ?? 0,
@@ -222,10 +224,17 @@ export function combineSources(
     parkings,
     extras: extras.map((entry) => ({
       ...entry,
+      isFree: entry.isFree ?? tariffSaysFree(entry.id),
       evChargers: charging[entry.id]?.count ?? 0,
       evMaxKw: charging[entry.id]?.maxKw ?? null,
     })),
   };
+}
+
+// What the rate table (lib/tariffs.ts) says about paying here, if anything.
+function tariffSaysFree(id: string): boolean | null {
+  const entry = tariffFor(id);
+  return entry ? entry.tariff.kind === "free" : null;
 }
 
 async function fetchParkingsResponse(): Promise<{
@@ -339,7 +348,8 @@ export type SortKey =
   | "name-asc"
   | "name-desc"
   | "spaces-asc"
-  | "percent-asc";
+  | "percent-asc"
+  | "cheapest";
 
 export const SORT_KEYS: readonly SortKey[] = [
   "spaces-desc",
@@ -349,6 +359,7 @@ export const SORT_KEYS: readonly SortKey[] = [
   "name-desc",
   "spaces-asc",
   "percent-asc",
+  "cheapest",
 ] as const;
 
 export const DEFAULT_SORT: SortKey = "spaces-desc";
@@ -366,11 +377,13 @@ export function distanceTo(p: Parking, origin: LatLng | null): number | null {
 // Availability-style sorts push closed / no-data parkings to the end: when
 // you're looking for a spot, "0 free (closed)" is noise, not a result. Name
 // sorts are plain alphabetical. "distance" without a location falls back to
-// most free spaces.
+// most free spaces. "cheapest" needs what the chosen stay costs in each
+// (lib/tariffs.ts): car parks with an unknown price go last.
 export function sortParkings(
   list: Parking[],
   key: SortKey,
   origin: LatLng | null = null,
+  costs: Costs = {},
 ): Parking[] {
   const sorted = [...list];
   const usableFirst = (a: Parking, b: Parking) =>
@@ -388,6 +401,14 @@ export function sortParkings(
       return sorted.sort((a, b) => usableFirst(a, b) || a.freePercent - b.freePercent);
     case "percent-desc":
       return sorted.sort((a, b) => usableFirst(a, b) || b.freePercent - a.freePercent);
+    case "cheapest":
+      return sorted.sort(
+        (a, b) =>
+          knownCostFirst(a, b, costs) ||
+          usableFirst(a, b) ||
+          (costs[a.id] ?? 0) - (costs[b.id] ?? 0) ||
+          b.freeSpaces - a.freeSpaces,
+      );
     case "distance": {
       if (!origin) return sortParkings(list, "spaces-desc");
       // Unusable parkings go last even if they're next door.
@@ -399,6 +420,13 @@ export function sortParkings(
     }
   }
 }
+
+// What one stay costs in each car park, in euro cents, by id; null or
+// missing when unknown.
+export type Costs = Record<string, number | null>;
+
+const knownCostFirst = (a: { id: string }, b: { id: string }, costs: Costs) =>
+  Number((costs[b.id] ?? null) !== null) - Number((costs[a.id] ?? null) !== null);
 
 export type Filters = {
   q: string;
@@ -448,9 +476,24 @@ export function filterExtras(list: DirectoryEntry[], filters: Filters): Director
 }
 
 // Nearest first when there is a point to measure from; otherwise Park & Ride
-// first, then by name.
-export function sortExtras(list: DirectoryEntry[], origin: LatLng | null): DirectoryEntry[] {
+// first, then by name. With `costs` (the "cheapest" sort): cheapest first,
+// unknown prices last, each group in the usual order.
+export function sortExtras(
+  list: DirectoryEntry[],
+  origin: LatLng | null,
+  costs: Costs | null = null,
+): DirectoryEntry[] {
   const sorted = [...list];
+  if (costs) {
+    const usual = sortExtras(list, origin);
+    const rank = new Map(usual.map((entry, i) => [entry.id, i]));
+    return sorted.sort(
+      (a, b) =>
+        knownCostFirst(a, b, costs) ||
+        (costs[a.id] ?? 0) - (costs[b.id] ?? 0) ||
+        rank.get(a.id)! - rank.get(b.id)!,
+    );
+  }
   if (origin) {
     sorted.sort((a, b) => distanceKm(origin, a) - distanceKm(origin, b));
   } else {
